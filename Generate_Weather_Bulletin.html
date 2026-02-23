@@ -1371,8 +1371,8 @@
           border: 1px dashed #ccc;
           margin-top: 10px;
           font-family: &quot;Arial&quot;, sans-serif;
-          font-size: 16px;
-          line-height: 1.5;
+          font-size: 12px;
+          line-height: 1.25;
         "
       ></div>
     </div>
@@ -1409,7 +1409,8 @@
         font_family_formats:
           "Arial=arial,helvetica,sans-serif; Courier New=courier new,courier,monospace; AkrutiKndPadmini=AkrutiKndPadmini; Times New Roman=times new roman,times,serif; Verdana=verdana,geneva,sans-serif",
         content_style: `
-            body { font-family: 'Arial', sans-serif; font-size: 14px; }
+            body { font-family: 'Arial', sans-serif; font-size: 12px; line-height: 1.25; }
+            p { margin: 2px 0; }
             table { width: 100% !important; table-layout: fixed; border-collapse: collapse; }
             td, th { border: 1px solid #000; padding: 5px; word-wrap: break-word; }
             img { max-width: 100%; height: auto; }
@@ -2267,7 +2268,7 @@
           // Compact the content before adding
           summaryContent = summaryContent.replace(
             /<p[^>]*>/gi,
-            '<p style="margin:1px 0;line-height:1.2;">',
+            '<p style="margin:2px 0 1px 0;line-height:1.25;font-size:12px;">',
           );
           // Add page break after the observed table (Max/Min/RH)
           const tableFooterText =

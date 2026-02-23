@@ -1091,7 +1091,7 @@ Or paste table..."
 
         // COMPACT TABLE STYLING FOR EXPORT - OPTIMIZED FOR SINGLE PAGE
         let html = `<div class="first-page-limit">
-        <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: 1px solid #000; background: white; font-family: Arial, sans-serif; table-layout: fixed; margin: 0 auto; max-width: 210mm;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: 1px solid #000; background: white; font-family: Arial, sans-serif; table-layout: fixed; margin: 0 auto; max-width: 210mm;">
             <thead>
                 <tr style="font-size: 7px; line-height: 1.1;">
                     <th style="width: 22%; border: 1px solid #000; padding: 2px 1px; text-align: center; background-color: #e6b07d !important; font-weight: bold; color: #000;">DISTRICT/<br>जिला</th>
@@ -1132,7 +1132,7 @@ Or paste table..."
           const valOrNA = (v, style) => {
             if (!v || v === "" || v.toUpperCase() === "NA")
               return '<span style="color: #666; font-weight: normal; font-size: 9px;">NA</span>';
-            return `<span style="${style} font-size: 10px;">${v}</span>`;
+            return `<span style="${style} font-size: 9px;">${v}</span>`;
           };
 
           html += `<tr style="page-break-inside: avoid; line-height: 1.1;">
