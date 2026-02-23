@@ -692,6 +692,18 @@ function addGeoJsonToMap(map, geojson, index) {
       if (distData && distData.color) {
         fillColor = distData.color;
         fillOpacity = 0.6;
+      } else if (distData && distData.distribution !== undefined) {
+        // Fallback: Use distribution if color is missing
+        const dColors = {
+          4: "rgb(0, 102, 255)", // WS
+          3: "rgb(51, 204, 255)", // FWS
+          2: "rgb(0, 153, 0)", // SCT
+          1: "rgb(51, 204, 51)", // ISOL
+          0: "transparent", // DRY
+        };
+        if (dColors[distData.distribution])
+          fillColor = dColors[distData.distribution];
+        fillOpacity = 0.6;
       } else if (phenomColor) {
         fillColor = phenomColor;
         fillOpacity = 0.6;

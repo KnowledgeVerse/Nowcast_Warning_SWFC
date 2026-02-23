@@ -679,6 +679,19 @@ function attachHandlers() {
   document.getElementById("globalPlaceCount").addEventListener("change", () => {
     currentDistribution =
       parseInt(document.getElementById("globalPlaceCount").value) || 0;
+
+    // Auto-set color based on distribution
+    const opt = forecastDropdownOptions.find(
+      (o) => o.value === currentDistribution,
+    );
+    if (opt && opt.color) {
+      currentColor = opt.color;
+      const cSelect = document.getElementById("globalColorSelect");
+      if (cSelect) {
+        cSelect.value = opt.color;
+        cSelect.style.backgroundColor = opt.color;
+      }
+    }
     updateDropdownBackgrounds();
   });
 
@@ -686,6 +699,17 @@ function attachHandlers() {
   document.getElementById("globalWarning").addEventListener("change", () => {
     currentWarning =
       parseInt(document.getElementById("globalWarning").value) || 0;
+
+    // Auto-set color based on warning level
+    const opt = warningDropdownOptions.find((o) => o.value === currentWarning);
+    if (opt && opt.color) {
+      currentColor = opt.color;
+      const cSelect = document.getElementById("globalColorSelect");
+      if (cSelect) {
+        cSelect.value = opt.color;
+        cSelect.style.backgroundColor = opt.color;
+      }
+    }
     updateDropdownBackgrounds();
   });
 
@@ -1361,7 +1385,7 @@ function sortTable(column) {
 }
 window.sortTable = sortTable;
 
-function renderTable() {
+function renderTable(dataSource) {
   // Inject CSS for IMD Table Styling
   const styleId = "imd-table-style";
   if (!document.getElementById(styleId)) {
@@ -1448,6 +1472,7 @@ function renderTable() {
 
   tbody.innerHTML = ""; // Clear existing content
   const today = new Date(forecastBaseDate);
+  const dataToRender = dataSource || weeklyData;
   let rowDataList = [];
 
   for (let i = 1; i <= 7; i++) {
@@ -1459,7 +1484,7 @@ function renderTable() {
       year: "numeric",
     });
 
-    const dayData = weeklyData[i - 1];
+    const dayData = dataToRender[i - 1];
     const groups = {};
     Object.entries(dayData).forEach(([distId, data]) => {
       if (!data.phenomena || data.phenomena.size === 0) return;
@@ -1489,7 +1514,7 @@ function renderTable() {
         day: i,
         date: dateStr,
         colorClass: "warning-green",
-        colorText: "🟢 Green (No Warning)",
+        colorText: "Green (No Warning)",
         sortData: { day: i, area: "", phenom: "", color: 0 },
       });
     } else {
@@ -1601,7 +1626,7 @@ function renderTable() {
           ${!hideCols ? `<td>-</td>` : ""}
           ${!hideCols ? `<td style="text-align:center;">Nil</td>` : ""}
           <td style="background-color:${neutralBg}">No Warning</td>
-          <td style="background-color:${neutralBg}">कोई चेतावनी नहीं</td>
+          <td style="background-color:${neutralBg}">राज्य में कोई चेतावनी नहीं।</td>
           ${!hideWarningCol ? `<td style="background-color:${neutralBg}; font-weight:bold;">Green (No Warning)</td>` : ""}
         </tr>`;
       tbody.innerHTML += row;
@@ -1679,7 +1704,10 @@ function renderTable() {
     if (typeof addExportHeader === "function") {
       addExportHeader(tableClone);
     }
-    localStorage.setItem("bihar_warning_table_html", tableClone.outerHTML);
+    // Only save if we are rendering Warning Data
+    if (weeklyData === weeklyWarningData) {
+      localStorage.setItem("bihar_warning_table_html", tableClone.outerHTML);
+    }
   }
 }
 
@@ -2437,7 +2465,25 @@ function handleMapUpdate(mode) {
   } else {
     weeklyData = weeklyWarningData; // Ensure we are updating the right data
   }
+
+  // Update the current view reference so map shows the correct data
+  districtPhenomenaMap = weeklyData[currentDay - 1];
+
   updateMapWithPhenomena();
+
+  // Force table update if warning mode, to ensure bulletin gets latest data
+  if (mode === "warning") {
+    // Ensure table exists for rendering
+    if (!document.getElementById("imdTable")) {
+      const container = document.getElementById("tableViewContainer");
+      if (container) {
+        const tbl = document.createElement("table");
+        tbl.id = "imdTable";
+        container.appendChild(tbl);
+      }
+    }
+    renderTable(weeklyWarningData);
+  }
 }
 
 function loadSavedData() {
@@ -2479,8 +2525,11 @@ function loadSavedData() {
         const modeForecast = document.getElementById("modeForecast");
         if (modeForecast && modeForecast.checked) {
           weeklyData = weeklyForecastData;
-        } else {
+        } else if (modeForecast && !modeForecast.checked) {
           weeklyData = weeklyWarningData;
+        } else {
+          // Default to Forecast if toggle is missing/undefined
+          weeklyData = weeklyForecastData;
         }
         districtPhenomenaMap = weeklyData[currentDay - 1];
         updateMapStyle();
@@ -2516,6 +2565,10 @@ function updateMapWithPhenomena() {
         ? intensitySelect.selectedIndex
         : 0;
     });
+
+  if (activeDays.size === 0) {
+    activeDays.add(currentDay);
+  }
 
   activeDays.forEach((dayNum) => {
     const dayData = weeklyData[dayNum - 1];
@@ -2565,12 +2618,26 @@ function copyCurrentDayToAll() {
         phenomena: new Set(phenSet.phenomena),
         intensities: { ...phenSet.intensities },
         color: phenSet.color,
+        distribution: phenSet.distribution,
+        warningLevel: phenSet.warningLevel,
       };
     }
     weeklyData[i] = newDayData;
   }
+
+  // Update map style to reflect changes immediately
+  updateMapStyle();
+
   alert(`Day ${currentDay} data copied to all other days.`);
   saveData();
+
+  // Update table if we just copied warning data (Copy to All) or if table is visible
+  if (
+    weeklyData === weeklyWarningData ||
+    document.getElementById("tableViewContainer").style.display === "block"
+  ) {
+    renderTable(weeklyWarningData);
+  }
 }
 
 function openCopyModal() {
@@ -2606,6 +2673,8 @@ function submitCopyDays() {
         phenomena: new Set(phenSet.phenomena),
         intensities: { ...phenSet.intensities },
         color: phenSet.color,
+        distribution: phenSet.distribution,
+        warningLevel: phenSet.warningLevel,
       };
     }
     weeklyData[targetIndex] = newDayData;
@@ -2614,6 +2683,14 @@ function submitCopyDays() {
   alert(`Forecast copied to ${checkboxes.length} selected days.`);
   document.getElementById("copyModal").style.display = "none";
   saveData();
+
+  // FIX: Update table if we just copied warning data (Copy to Select) or if table is visible
+  if (
+    weeklyData === weeklyWarningData ||
+    document.getElementById("tableViewContainer").style.display === "block"
+  ) {
+    renderTable(weeklyWarningData);
+  }
 }
 
 function saveData() {
@@ -2626,6 +2703,7 @@ function saveData() {
           intensities: set.intensities,
           color: set.color,
           distribution: set.distribution || 0,
+          warningLevel: set.warningLevel || 0,
         };
       }
       return newDay;
