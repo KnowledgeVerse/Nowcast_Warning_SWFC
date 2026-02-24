@@ -310,8 +310,11 @@ function generateDistrictForecastTable(maxData, minData) {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const dayNum = d.getDate();
+    const dayNumPad = String(dayNum).padStart(2, "0");
     const month = d.toLocaleString("default", { month: "short" });
-    dateHeaders.push(`${dayNum}${getDaySuffix(dayNum)} ${month}`);
+    dateHeaders.push(
+      `${dayNumPad}<sup style="text-transform: lowercase; font-size: 0.6em;">${getDaySuffix(dayNum)}</sup><br>${month}`,
+    );
   }
 
   let html = `
@@ -321,9 +324,15 @@ function generateDistrictForecastTable(maxData, minData) {
     <table class="gen-table" id="exportTable">
         <thead>
             <tr>
-                <th style="width:10%;">METEOROLOGICAL<br>SECTOR</th>
-                <th style="width:25%;">NAME OF THE DISTRICTS</th>
-                <th style="width:10%;">Tmax (°C) /<br>Tmin (°C)</th>
+                <th rowspan="2" style="width:10%; vertical-align: middle;">METEOROLOGICAL<br>SECTOR</th>
+                <th rowspan="2" style="width:25%; vertical-align: middle;">NAME OF THE DISTRICTS</th>
+                <th rowspan="2" style="width:10%; vertical-align: middle;">Tmax (°C) /<br>Tmin (°C)</th>
+                <th colspan="7" style="text-align:center; font-weight:bold;">
+                    अगले सात दिनों तक अधिकतम और न्यूनतम तापमान का पूर्वानुमान /<br>
+                    Maximum & Minimum Temperature forecast for next 7 days
+                </th>
+            </tr>
+            <tr>
                 ${dateHeaders.map((d) => `<th>${d}</th>`).join("")}
             </tr>
         </thead>

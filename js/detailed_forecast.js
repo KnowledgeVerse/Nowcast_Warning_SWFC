@@ -198,8 +198,14 @@ function renderTable() {
   let html = `<table class="forecast-table" id="exportTable">
       <thead>
           <tr>
-              <th style="width:10%">Meteorological Sector</th>
-              <th style="width:20%">Name of Districts</th>`;
+              <th rowspan="2" style="width:10%; vertical-align: middle;">Meteorological Sector</th>
+              <th rowspan="2" style="width:20%; vertical-align: middle;">Name of the Districts<br>(जिलों के नाम)</th>
+              <th colspan="7" style="background-color: #e9ecef; color: black; font-weight: bold; font-size: 14px; text-align: center; text-transform: none; border: 1px solid #333;">
+                  सात दिनों के लिए वर्षा का स्थानिक वितरण पूर्वानुमान<br>
+                  (Spatial distribution forecast of Rainfall for next Seven Days)
+              </th>
+          </tr>
+          <tr>`;
 
   // Generate Date Headers
   for (let i = 0; i < 7; i++) {
@@ -220,7 +226,7 @@ function renderTable() {
               ? "rd"
               : "th";
 
-    html += `<th>Day ${i + 1}<br>${dayNumPad}${suffix} ${d.toLocaleString("default", { month: "short" })}</th>`;
+    html += `<th>${dayNumPad}<sup style="text-transform: lowercase; font-size: 0.6em;">${suffix}</sup><br>${d.toLocaleString("default", { month: "short" })}</th>`;
   }
   html += `</tr></thead><tbody>`;
 

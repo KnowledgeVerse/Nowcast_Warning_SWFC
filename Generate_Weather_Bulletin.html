@@ -218,13 +218,21 @@
         top: 0;
         z-index: 1000;
         background: var(--bg-color);
-        padding-bottom: 10px;
-        border-bottom: 1px solid #ccc;
-        transition: transform 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
 
-      #topRibbon.collapsed {
-        transform: translateY(-100%);
+      #collapsibleControls {
+        transition:
+          max-height 0.3s ease,
+          opacity 0.3s ease;
+        max-height: 500px;
+        opacity: 1;
+        overflow: hidden;
+      }
+
+      #collapsibleControls.collapsed {
+        max-height: 0;
+        opacity: 0;
       }
 
       .ribbon-toggle-btn {
@@ -259,14 +267,21 @@
 
       /* Print Styles */
       @media print {
+        @page {
+          margin: 0;
+        }
         body {
           background: white;
+          margin: 0;
+          padding: 0;
         }
         .container {
           box-shadow: none;
           border: none;
-          padding: 3mm;
-          width: 100%;
+          padding: 5mm !important;
+          width: 100% !important;
+          max-width: none !important;
+          margin: 0 !important;
         }
         .controls {
           display: none;
@@ -399,6 +414,7 @@
         border-collapse: collapse;
         font-size: 10px;
         margin-top: 4px;
+        table-layout: fixed;
       }
       .imd-table th,
       .imd-table td {
@@ -415,7 +431,22 @@
         color: white;
         font-weight: bold;
         text-transform: uppercase;
+        text-align: center !important;
       }
+      /* Force 4-column layout widths specifically */
+      .imd-table.cols-4 th:nth-child(1) {
+        width: 8% !important;
+      }
+      .imd-table.cols-4 th:nth-child(2) {
+        width: 12% !important;
+      }
+      .imd-table.cols-4 th:nth-child(3) {
+        width: 40% !important;
+      }
+      .imd-table.cols-4 th:nth-child(4) {
+        width: 40% !important;
+      }
+
       .warning-green {
         background-color: #28a745 !important;
         color: white;
@@ -846,14 +877,6 @@
   </head>
   <body>
     <div id="topRibbon">
-      <button
-        class="ribbon-toggle-btn"
-        onclick="toggleRibbon()"
-        title="Show/Hide Ribbon"
-      >
-        <i class="fas fa-chevron-up" id="ribbonIcon"></i> Hide Ribbon
-      </button>
-
       <!-- Fixed Toolbar Container for TinyMCE -->
       <div
         id="tiny-toolbar"
@@ -872,7 +895,7 @@
           flex-wrap: wrap;
           justify-content: center;
           padding: 10px;
-          margin-bottom: 10px;
+          background: #fff;
         "
       >
         <a href="index.html" class="toggle-btn btn-blink-anim" title="Home"
@@ -956,128 +979,175 @@
         ></a>
       </div>
 
-      <!-- Controls (Moved to Top) -->
-      <div class="controls" style="flex-wrap: wrap">
-        <div class="control-group">
-          <label style="font-weight: bold">Date:</label>
-          <input
-            type="date"
-            id="manualDateInput"
-            onchange="updateManualDate()"
-          />
-        </div>
-
-        <div class="control-group">
-          <label style="font-weight: bold">Time Mode:</label>
-          <label
-            ><input
-              type="radio"
-              name="timeMode"
-              value="auto"
-              checked
-              onchange="toggleTimeMode()"
-            />
-            Auto</label
-          >
-          <label
-            ><input
-              type="radio"
-              name="timeMode"
-              value="manual"
-              onchange="toggleTimeMode()"
-            />
-            Manual</label
-          >
-        </div>
+      <div id="collapsibleControls">
+        <!-- Controls (Moved to Top) -->
         <div
-          class="control-group"
-          id="manualTimeContainer"
-          style="display: none"
+          class="controls"
+          style="
+            flex-wrap: wrap;
+            border-top: 1px solid #ccc;
+            padding-top: 15px;
+            margin-top: 0;
+            border-radius: 0;
+          "
         >
-          <input
-            type="time"
-            id="manualTimeInput"
-            onchange="updateManualTime()"
-          />
-        </div>
+          <div class="control-group">
+            <label style="font-weight: bold">Date:</label>
+            <input
+              type="date"
+              id="manualDateInput"
+              onchange="updateManualDate()"
+            />
+          </div>
 
-        <div class="control-group">
-          <label style="font-weight: bold">Page Size:</label>
-          <select
-            id="pageSizeSelect"
-            onchange="updatePageSize()"
-            style="padding: 5px; border-radius: 4px; border: 1px solid #ccc"
+          <div class="control-group">
+            <label style="font-weight: bold">Time Mode:</label>
+            <label
+              ><input
+                type="radio"
+                name="timeMode"
+                value="auto"
+                checked
+                onchange="toggleTimeMode()"
+              />
+              Auto</label
+            >
+            <label
+              ><input
+                type="radio"
+                name="timeMode"
+                value="manual"
+                onchange="toggleTimeMode()"
+              />
+              Manual</label
+            >
+          </div>
+          <div
+            class="control-group"
+            id="manualTimeContainer"
+            style="display: none"
           >
-            <option value="a4">A4 (210mm x 297mm)</option>
-            <option value="legal">Legal (216mm x 356mm)</option>
-          </select>
-        </div>
+            <input
+              type="time"
+              id="manualTimeInput"
+              onchange="updateManualTime()"
+            />
+          </div>
 
-        <!-- Template Controls -->
-        <div class="control-group">
-          <button
-            class="export-btn"
-            onclick="saveTemplate()"
-            style="background-color: #17a2b8"
-          >
-            <i class="fas fa-save"></i> Save Template
-          </button>
-          <button
-            class="export-btn"
-            onclick="loadTemplate()"
-            style="background-color: #17a2b8"
-          >
-            <i class="fas fa-folder-open"></i> Load Template
-          </button>
-          <button
-            class="export-btn"
-            onclick="openMarginModal()"
-            style="background-color: #007bff"
-          >
-            <i class="fas fa-ruler-combined"></i> Margins
-          </button>
-        </div>
+          <div class="control-group">
+            <label style="font-weight: bold">Page Size:</label>
+            <select
+              id="pageSizeSelect"
+              onchange="updatePageSize()"
+              style="padding: 5px; border-radius: 4px; border: 1px solid #ccc"
+            >
+              <option value="a4">A4 (210mm x 297mm)</option>
+              <option value="legal">Legal (216mm x 356mm)</option>
+            </select>
+          </div>
 
-        <!-- Export Buttons -->
-        <div
-          class="control-group"
-          style="border-left: 1px solid #ccc; padding-left: 15px"
-        >
-          <button class="export-btn" onclick="exportBulletinImages()">
-            <i class="fas fa-image"></i> Export Images
-          </button>
-          <button
-            class="export-btn"
-            onclick="exportBulletinWebImage()"
-            style="background-color: #28a745"
+          <!-- Template Controls -->
+          <div class="control-group">
+            <button
+              class="export-btn"
+              onclick="saveTemplate()"
+              style="background-color: #17a2b8"
+            >
+              <i class="fas fa-save"></i> Save Template
+            </button>
+            <button
+              class="export-btn"
+              onclick="loadTemplate()"
+              style="background-color: #17a2b8"
+            >
+              <i class="fas fa-folder-open"></i> Load Template
+            </button>
+            <button
+              class="export-btn"
+              onclick="openMarginModal()"
+              style="background-color: #007bff"
+            >
+              <i class="fas fa-ruler-combined"></i> Margins
+            </button>
+          </div>
+
+          <!-- Export Buttons -->
+          <div
+            class="control-group"
+            style="border-left: 1px solid #ccc; padding-left: 15px"
           >
-            <i class="fas fa-file-image"></i> Export Web Image
-          </button>
-          <button class="export-btn" onclick="exportBulletinPDF()">
-            <i class="fas fa-file-pdf"></i> Export PDF
-          </button>
-          <button class="export-btn" onclick="exportBulletinWord()">
-            <i class="fas fa-file-word"></i> Export Word
-          </button>
-          <button class="export-btn" onclick="exportBulletinExcel()">
-            <i class="fas fa-file-excel"></i> Export Excel
-          </button>
-          <button
-            class="export-btn"
-            onclick="toggleUploadPanel()"
-            style="background-color: #6f42c1"
-          >
-            <i class="fas fa-upload"></i> Manual Uploads
-          </button>
-          <button
-            class="export-btn"
-            onclick="togglePageBreaks()"
-            style="background-color: #e83e8c"
-          >
-            <i class="fas fa-cut"></i> Show Page Breaks
-          </button>
+            <button class="export-btn" onclick="exportBulletinImages()">
+              <i class="fas fa-image"></i> Export Images
+            </button>
+            <button class="export-btn" onclick="exportBulletinPDF()">
+              <i class="fas fa-file-pdf"></i> Export PDF (Text)
+            </button>
+            <button
+              class="export-btn"
+              onclick="exportBulletinImagePDF()"
+              style="background-color: #dc3545"
+            >
+              <i class="fas fa-file-pdf"></i> Export PDF (Image)
+            </button>
+            <button
+              id="cancelPdfBtn"
+              class="export-btn"
+              onclick="cancelPdfExport()"
+              style="background-color: #ffc107; color: #000; display: none"
+            >
+              <i class="fas fa-ban"></i> Cancel
+            </button>
+            <button
+              id="cancelPdfBtn"
+              class="export-btn"
+              onclick="cancelPdfExport()"
+              style="background-color: #ffc107; color: #000; display: none"
+            >
+              <i class="fas fa-ban"></i> Cancel
+            </button>
+            <button
+              id="cancelPdfBtn"
+              class="export-btn"
+              onclick="cancelPdfExport()"
+              style="background-color: #ffc107; color: #000; display: none"
+            >
+              <i class="fas fa-ban"></i> Cancel
+            </button>
+            <button
+              class="export-btn"
+              onclick="printBulletin()"
+              style="background-color: #343a40"
+            >
+              <i class="fas fa-print"></i> Print
+            </button>
+            <button class="export-btn" onclick="exportBulletinWord()">
+              <i class="fas fa-file-word"></i> Export Word
+            </button>
+            <button
+              class="export-btn"
+              onclick="toggleUploadPanel()"
+              style="background-color: #6f42c1"
+            >
+              <i class="fas fa-upload"></i> Manual Uploads
+            </button>
+            <button
+              class="export-btn"
+              onclick="togglePageBreaks()"
+              style="background-color: #e83e8c"
+            >
+              <i class="fas fa-cut"></i> Show Page Breaks
+            </button>
+          </div>
         </div>
       </div>
+
+      <button
+        class="ribbon-toggle-btn"
+        onclick="toggleRibbon()"
+        title="Show/Hide Ribbon"
+      >
+        <i class="fas fa-chevron-up" id="ribbonIcon"></i> Hide Ribbon
+      </button>
     </div>
 
     <!-- Manual Upload Panel -->
@@ -1688,7 +1758,7 @@
 
       // --- Ribbon Toggle ---
       function toggleRibbon() {
-        const ribbon = document.getElementById("topRibbon");
+        const ribbon = document.getElementById("collapsibleControls");
         const icon = document.getElementById("ribbonIcon");
         const btn = document.querySelector(".ribbon-toggle-btn");
 
@@ -2066,28 +2136,159 @@
         const pageSize = document.getElementById("pageSizeSelect").value;
         const { jsPDF } = window.jspdf;
         const format = pageSize === "legal" ? "legal" : "a4";
-        const doc = new jsPDF("p", "mm", format);
+
+        // Show loading indicator
+        const btn = document.querySelector(
+          "button[onclick='exportBulletinPDF()']",
+        );
+        const originalText = btn ? btn.innerHTML : "Export PDF";
+        if (btn)
+          btn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Generating PDF...';
+
+        const doc = new jsPDF({
+          orientation: "p",
+          unit: "mm",
+          format: format,
+        });
         const pdfWidth = doc.internal.pageSize.getWidth();
+        const pdfHeight = doc.internal.pageSize.getHeight();
 
         // Create hidden container
         const hiddenDiv = document.createElement("div");
         hiddenDiv.style.position = "absolute";
         hiddenDiv.style.left = "-9999px";
         hiddenDiv.style.top = "0";
+        // Ensure container width matches page size to prevent wrapping issues
+        hiddenDiv.style.width = pageSize === "legal" ? "216mm" : "210mm";
         document.body.appendChild(hiddenDiv);
 
-        for (let i = 0; i < pages.length; i++) {
-          hiddenDiv.innerHTML = "";
-          hiddenDiv.appendChild(pages[i]);
+        try {
+          for (let i = 0; i < pages.length; i++) {
+            if (i > 0) doc.addPage();
 
-          // Auto-fit logic for tables
-          const tables = pages[i].querySelectorAll("table");
-          tables.forEach((table) => {
-            // Reduce font size for tables in export to ensure fit
-            table.style.fontSize = "10px";
+            const page = pages[i];
+
+            // Auto-fit logic for tables
+            const tables = page.querySelectorAll("table");
+            tables.forEach((table) => {
+              table.style.fontSize = "10px";
+            });
+
+            hiddenDiv.appendChild(page);
+
+            // Calculate scaling to fit single page
+            const contentHeight = page.scrollHeight;
+            const contentWidth = page.scrollWidth;
+            const contentRatio = contentWidth / contentHeight;
+
+            let renderWidth = pdfWidth;
+            const projectedHeight = renderWidth / contentRatio;
+
+            // If content is taller than page, scale down width to fit height
+            if (projectedHeight > pdfHeight) {
+              renderWidth = (pdfHeight - 10) * contentRatio; // -10mm margin safety
+            }
+
+            await new Promise((resolve) => {
+              doc.html(page, {
+                callback: function (doc) {
+                  hiddenDiv.removeChild(page);
+                  resolve();
+                },
+                x: (pdfWidth - renderWidth) / 2, // Center horizontally
+                y: 0,
+                width: renderWidth,
+                windowWidth: page.scrollWidth, // Use scrollWidth to capture full content
+                autoPaging: false,
+                html2canvas: {
+                  useCORS: true,
+                  logging: false,
+                  letterRendering: true,
+                },
+              });
+            });
+          }
+
+          doc.save(
+            `बिहार_राज्य_के_लिए_दैनिक_मौसम_विज्ञप्ति_एवं_मौसम_चेतावनी_${dateStr}.pdf`,
+          );
+        } catch (e) {
+          console.error("PDF Export Failed", e);
+          alert("Failed to generate PDF. Please check console for details.");
+        } finally {
+          document.body.removeChild(hiddenDiv);
+          if (btn) btn.innerHTML = originalText;
+        }
+      }
+
+      let isPdfExportCancelled = false;
+
+      function cancelPdfExport() {
+        isPdfExportCancelled = true;
+        const btn = document.getElementById("cancelPdfBtn");
+        if (btn)
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Stopping...';
+      }
+
+      async function exportBulletinImagePDF() {
+        // Show loading indicator
+        const btn = document.querySelector(
+          "button[onclick='exportBulletinImagePDF()']",
+        );
+        const cancelBtn = document.getElementById("cancelPdfBtn");
+        const originalText = btn ? btn.innerHTML : "Export PDF (Image)";
+
+        isPdfExportCancelled = false;
+        if (btn) {
+          btn.innerHTML =
+            '<i class="fas fa-spinner fa-spin"></i> Processing...';
+          btn.disabled = true;
+        }
+        if (cancelBtn) {
+          cancelBtn.style.display = "flex";
+          cancelBtn.innerHTML = '<i class="fas fa-ban"></i> Cancel';
+        }
+
+        try {
+          const pages = await getBulletinPages();
+          const dateStr = getFormattedDate();
+          const pageSize = document.getElementById("pageSizeSelect").value;
+          const { jsPDF } = window.jspdf;
+          const format = pageSize === "legal" ? "legal" : "a4";
+
+          const doc = new jsPDF({
+            orientation: "p",
+            unit: "mm",
+            format: format,
           });
+          const pdfWidth = doc.internal.pageSize.getWidth();
 
-          try {
+          // Create hidden container
+          const hiddenDiv = document.createElement("div");
+          hiddenDiv.style.position = "absolute";
+          hiddenDiv.style.left = "-9999px";
+          hiddenDiv.style.top = "0";
+          // Ensure container width matches page size to prevent wrapping issues
+          hiddenDiv.style.width = pageSize === "legal" ? "216mm" : "210mm";
+          document.body.appendChild(hiddenDiv);
+
+          for (let i = 0; i < pages.length; i++) {
+            if (isPdfExportCancelled) throw new Error("Cancelled");
+
+            // Update spinner text
+            if (btn)
+              btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Page ${i + 1}/${pages.length}...`;
+
+            hiddenDiv.innerHTML = "";
+            hiddenDiv.appendChild(pages[i]);
+
+            // Auto-fit logic for tables
+            const tables = pages[i].querySelectorAll("table");
+            tables.forEach((table) => {
+              table.style.fontSize = "10px";
+            });
+
             const dataUrl = await domtoimage.toPng(pages[i], {
               bgcolor: "#ffffff",
               width: pages[i].offsetWidth,
@@ -2098,15 +2299,47 @@
 
             if (i > 0) doc.addPage();
             doc.addImage(dataUrl, "PNG", 0, 0, pdfWidth, imgHeight);
-          } catch (e) {
-            console.error("PDF Page capture failed", e);
-          }
-        }
 
-        document.body.removeChild(hiddenDiv);
-        doc.save(
-          `बिहार_राज्य_के_लिए_दैनिक_मौसम_विज्ञप्ति_एवं_मौसम_चेतावनी_${dateStr}.pdf`,
-        );
+            // Allow UI update and cancellation check
+            await new Promise((r) => setTimeout(r, 10));
+          }
+
+          doc.save(
+            `बिहार_राज्य_के_लिए_दैनिक_मौसम_विज्ञप्ति_एवं_मौसम_चेतावनी_${dateStr}_Image.pdf`,
+          );
+          document.body.removeChild(hiddenDiv);
+        } catch (e) {
+          if (e.message === "Cancelled") {
+            alert("PDF Export Cancelled.");
+          } else {
+            console.error("PDF Export Failed", e);
+            alert("Failed to generate Image PDF.");
+          }
+        } finally {
+          const hiddenDiv = document.querySelector(
+            "div[style*='left: -9999px']",
+          );
+          if (hiddenDiv && hiddenDiv.parentNode)
+            document.body.removeChild(hiddenDiv);
+          if (btn) {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+          }
+          if (cancelBtn) cancelBtn.style.display = "none";
+        }
+      }
+
+      async function printBulletin() {
+        const btn = document.querySelector("button[onclick='printBulletin()']");
+        const originalText = btn ? btn.innerHTML : "Print";
+        if (btn)
+          btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
+
+        // Small delay to allow spinner to render before print dialog freezes UI
+        setTimeout(() => {
+          window.print();
+          if (btn) btn.innerHTML = originalText;
+        }, 500);
       }
 
       async function exportBulletinWebImage() {
@@ -2159,6 +2392,10 @@
           for (const page of pages) {
             const images = page.querySelectorAll("img");
             for (const img of images) {
+              // Ensure images fit within page width
+              img.style.maxWidth = "100%";
+              img.style.height = "auto";
+
               if (!img.src.startsWith("data:")) {
                 try {
                   const canvas = document.createElement("canvas");
@@ -2173,6 +2410,76 @@
               }
             }
           }
+
+          // Convert Flexbox layouts to Tables for Word compatibility
+          pages.forEach((page) => {
+            // 1. Fix Header (Flex -> Table)
+            const headerTop = page.querySelector(".header-top");
+            if (headerTop) {
+              const leftLogo = headerTop.querySelector(
+                ".logo-container:first-child",
+              ).innerHTML;
+              const centerText =
+                headerTop.querySelector(".header-text").innerHTML;
+              const rightLogo = headerTop.querySelector(
+                ".logo-container:last-child",
+              ).innerHTML;
+
+              const table = document.createElement("table");
+              table.style.width = "100%";
+              table.style.border = "none";
+              table.style.marginBottom = "10px";
+              table.innerHTML = `
+                <tr>
+                  <td style="width:15%; text-align:left; vertical-align:middle; border:none;">${leftLogo}</td>
+                  <td style="width:70%; text-align:center; vertical-align:middle; border:none;">${centerText}</td>
+                  <td style="width:15%; text-align:right; vertical-align:middle; border:none;">${rightLogo}</td>
+                </tr>
+              `;
+              headerTop.parentNode.replaceChild(table, headerTop);
+            }
+
+            // 2. Fix Date/Time Row (Flex -> Table)
+            const dateRow = page.querySelector(".date-time-row");
+            if (dateRow) {
+              const divs = dateRow.querySelectorAll("div");
+              const leftText = divs[0] ? divs[0].innerText : "";
+              const rightText = divs[1] ? divs[1].innerText : "";
+
+              const table = document.createElement("table");
+              table.style.width = "100%";
+              table.style.border = "none";
+              table.style.marginBottom = "10px";
+              table.innerHTML = `
+                 <tr>
+                   <td style="text-align:left; border:none; font-weight:bold; font-size:14px;">${leftText}</td>
+                   <td style="text-align:right; border:none; font-weight:bold; font-size:14px;">${rightText}</td>
+                 </tr>
+               `;
+              dateRow.parentNode.replaceChild(table, dateRow);
+            }
+
+            // 3. Fix Signature Section (Flex -> Table)
+            const sigSection = page.querySelector(".signature-section");
+            if (sigSection) {
+              const sigs = sigSection.querySelectorAll(".sig-box");
+              if (sigs.length === 2) {
+                const leftSig = sigs[0].innerHTML;
+                const rightSig = sigs[1].innerHTML;
+                const table = document.createElement("table");
+                table.style.width = "100%";
+                table.style.border = "none";
+                table.style.marginTop = "30px";
+                table.innerHTML = `
+                        <tr>
+                            <td style="text-align:center; border:none; vertical-align:top;">${leftSig}</td>
+                            <td style="text-align:center; border:none; vertical-align:top;">${rightSig}</td>
+                        </tr>
+                    `;
+                sigSection.parentNode.replaceChild(table, sigSection);
+              }
+            }
+          });
 
           let htmlContent = "";
 
@@ -2225,7 +2532,10 @@
         `;
 
         const header =
-          "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export<\/title><style>" +
+          "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
+          "<head><meta charset='utf-8'><title>Export</title>" +
+          "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
+          "<style>" +
           styles +
           "</style><\/head><body>";
         const footer = "<\/body><\/html>";
@@ -2270,22 +2580,6 @@
             /<p[^>]*>/gi,
             '<p style="margin:2px 0 1px 0;line-height:1.25;font-size:12px;">',
           );
-          // Add page break after the observed table (Max/Min/RH)
-          const tableFooterText =
-            "*NA- (data not available), (AWS) - Automatic weather station";
-          if (summaryContent.includes(tableFooterText)) {
-            // Regex to find the table ending after the specific footer text
-            // Matches footer text -> anything until </table> -> optionally </div>
-            const regex = new RegExp(
-              `(${tableFooterText.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&")}[\\s\\S]*?<\\/table>(?:\\s*<\\/div>)?)`,
-              "i",
-            );
-
-            summaryContent = summaryContent.replace(
-              regex,
-              "$1<div class='page-break-marker' style='page-break-after: always;'>&nbsp;</div>",
-            );
-          }
           finalContent += summaryContent;
         }
 
@@ -2295,7 +2589,7 @@
         );
         if (savedForecastTable) {
           finalContent += `<div style="height: 20px;"></div>`;
-          finalContent += `<h3 style="text-align:center; margin-bottom:10px; color:#2c3e50;">District Wise Detailed Weather Forecast</h3>`;
+          finalContent += `<h3 style="text-align:center; margin-bottom:10px; color:#2c3e50;">जिलावार विस्तृत मौसम पूर्वानुमान / District Wise Detailed Weather Forecast</h3>`;
           finalContent += savedForecastTable;
           finalContent += `<div style="page-break-after: always;"></div>`;
         }
@@ -2438,6 +2732,37 @@
         });
 
         setupDragAndDrop();
+
+        // Robust fix for Warning Table Widths (Run multiple times to ensure it catches the table)
+        const fixTableWidths = () => {
+          const warningTable = document.querySelector(
+            "#summaryContent .imd-table",
+          );
+          if (warningTable) {
+            warningTable.style.setProperty(
+              "table-layout",
+              "fixed",
+              "important",
+            );
+            warningTable.style.width = "100%";
+            const headerCells = warningTable.querySelectorAll("thead th");
+            if (headerCells.length === 4) {
+              // Add class for CSS enforcement
+              warningTable.classList.add("cols-4");
+              // Also apply inline as backup
+              headerCells[0].style.width = "8%";
+              headerCells[1].style.width = "12%";
+              headerCells[2].style.width = "40%";
+              headerCells[3].style.width = "40%";
+            }
+          }
+        };
+
+        // Run immediately and after delays to handle slow rendering
+        fixTableWidths();
+        setTimeout(fixTableWidths, 100);
+        setTimeout(fixTableWidths, 500);
+        setTimeout(fixTableWidths, 1000);
       });
 
       function togglePageBreaks() {

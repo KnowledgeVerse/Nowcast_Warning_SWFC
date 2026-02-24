@@ -1392,7 +1392,7 @@ function renderTable(dataSource) {
     const style = document.createElement("style");
     style.id = styleId;
     style.innerHTML = `
-      #imdTable { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; margin-top: 0; }
+      #imdTable { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 12px; margin-top: 0; table-layout: fixed; }
       #imdTable th { background-color: #003366; color: white; padding: 12px; text-align: center; font-size: 14px; border: 1px solid #000; position: sticky; top: 0; z-index: 5; }
       #imdTable td { padding: 12px; border: 1px solid #000; vertical-align: top; color: #000; }
       #imdTable.compact { font-size: 11px; }
@@ -1410,10 +1410,35 @@ function renderTable(dataSource) {
   const hideWarningCol = document.getElementById("chkHideWarningCol")?.checked;
   const applyTextBg = document.getElementById("chkTextBgColor")?.checked;
 
+  // Define widths based on user request
+  let wDay = "5%";
+  let wDate = "10%";
+  let wArea = "20%";
+  let wPhenom = "15%";
+  let wDesc = "20%";
+  let wColor = "10%";
+
+  if (hideCols) {
+    if (hideWarningCol) {
+      // 4 Columns: Day, Date, Desc En, Desc Hi
+      // User Request: Day+Date=20%, Desc=40%, Desc=40%
+      wDay = "8%";
+      wDate = "12%";
+      wDesc = "40%";
+    } else {
+      // 5 Columns: Day, Date, Desc En, Desc Hi, Color
+      wDay = "7%";
+      wDate = "13%";
+      wDesc = "35%";
+      wColor = "10%";
+    }
+  }
+
   const table = document.getElementById("imdTable");
   if (table) {
     if (isCompact) table.classList.add("compact");
     else table.classList.remove("compact");
+    table.style.tableLayout = "fixed"; // Ensure fixed layout is inline
 
     const getSortIcon = (col) => {
       if (tableSortState.column !== col)
@@ -1426,13 +1451,13 @@ function renderTable(dataSource) {
     table.innerHTML = `
         <thead>
             <tr>
-                <th style="width: 5%; cursor:pointer;" onclick="sortTable('day')">DAY ${getSortIcon("day")}</th>
-                <th style="width: 10%; cursor:pointer;" onclick="sortTable('day')">DATE ${getSortIcon("day")}</th>
-                ${!hideCols ? `<th style="width: 20%; cursor:pointer;" onclick="sortTable('area')">AFFECTED AREA<br>(प्रभावित क्षेत्र) ${getSortIcon("area")}</th>` : ""}
-                ${!hideCols ? `<th style="width: 15%; cursor:pointer;" onclick="sortTable('phenom')">WEATHER PHENOMENON<br>(मौसम घटना) ${getSortIcon("phenom")}</th>` : ""}
-                <th style="width: 20%;">WARNING DESCRIPTION<br>(English)</th>
-                <th style="width: 20%;">चेतावनी विवरण<br>(हिन्दी)</th>
-                ${!hideWarningCol ? `<th style="width: 10%; cursor:pointer;" onclick="sortTable('color')">WARNING COLOUR<br>(चेतावनी रंग) ${getSortIcon("color")}</th>` : ""}
+                <th style="width: ${wDay}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('day')">DAY ${getSortIcon("day")}</th>
+                <th style="width: ${wDate}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('day')">DATE ${getSortIcon("day")}</th>
+                ${!hideCols ? `<th style="width: ${wArea}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('area')">AFFECTED AREA<br>(प्रभावित क्षेत्र) ${getSortIcon("area")}</th>` : ""}
+                ${!hideCols ? `<th style="width: ${wPhenom}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('phenom')">WEATHER PHENOMENON<br>(मौसम घटना) ${getSortIcon("phenom")}</th>` : ""}
+                <th style="width: ${wDesc}; text-align: center; font-weight: bold;">WARNING DESCRIPTION<br>(English)</th>
+                <th style="width: ${wDesc}; text-align: center; font-weight: bold;">चेतावनी विवरण<br>(हिन्दी)</th>
+                ${!hideWarningCol ? `<th style="width: ${wColor}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('color')">WARNING COLOUR<br>(चेतावनी रंग) ${getSortIcon("color")}</th>` : ""}
             </tr>
         </thead>
         <tbody></tbody>
