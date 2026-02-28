@@ -15,6 +15,10 @@
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
     <!-- TinyMCE CDN -->
     <script
       src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.2/tinymce.min.js"
@@ -2190,24 +2194,28 @@
               renderWidth = (pdfHeight - 10) * contentRatio; // -10mm margin safety
             }
 
-            await new Promise((resolve) => {
-              doc.html(page, {
-                callback: function (doc) {
-                  hiddenDiv.removeChild(page);
-                  resolve();
-                },
-                x: (pdfWidth - renderWidth) / 2, // Center horizontally
-                y: 0,
-                width: renderWidth,
-                windowWidth: page.scrollWidth, // Use scrollWidth to capture full content
-                autoPaging: false,
-                html2canvas: {
-                  useCORS: true,
-                  logging: false,
-                  letterRendering: true,
-                },
-              });
+            // Use html2canvas to render as image to preserve Hindi fonts
+            const canvas = await html2canvas(page, {
+              scale: 2, // High quality for crisp text
+              useCORS: true,
+              logging: false,
+              backgroundColor: "#ffffff",
             });
+
+            const imgData = canvas.toDataURL("image/png");
+            const imgProps = doc.getImageProperties(imgData);
+            const imgHeight = (imgProps.height * renderWidth) / imgProps.width;
+
+            doc.addImage(
+              imgData,
+              "PNG",
+              (pdfWidth - renderWidth) / 2,
+              0,
+              renderWidth,
+              imgHeight,
+            );
+
+            hiddenDiv.removeChild(page);
           }
 
           doc.save(
@@ -2263,6 +2271,7 @@
             format: format,
           });
           const pdfWidth = doc.internal.pageSize.getWidth();
+          const pdfHeight = doc.internal.pageSize.getHeight();
 
           // Create hidden container
           const hiddenDiv = document.createElement("div");
@@ -2295,10 +2304,18 @@
               height: pages[i].offsetHeight,
             });
             const imgProps = doc.getImageProperties(dataUrl);
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            let imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            let imgWidth = pdfWidth;
+
+            // Scale to fit height if needed to prevent cut-off
+            if (imgHeight > pdfHeight) {
+              imgWidth = (imgProps.width * pdfHeight) / imgProps.height;
+              imgHeight = pdfHeight;
+            }
+            const xOffset = (pdfWidth - imgWidth) / 2;
 
             if (i > 0) doc.addPage();
-            doc.addImage(dataUrl, "PNG", 0, 0, pdfWidth, imgHeight);
+            doc.addImage(dataUrl, "PNG", xOffset, 0, imgWidth, imgHeight);
 
             // Allow UI update and cancellation check
             await new Promise((r) => setTimeout(r, 10));
@@ -2387,14 +2404,20 @@
 
         try {
           const pages = await getBulletinPages();
+          let htmlContent = "";
+          const dateStr = getFormattedDate();
 
-          // Convert images to Base64 for Word embedding (Fixes Logo Issue)
-          for (const page of pages) {
+          for (let i = 0; i < pages.length; i++) {
+            const page = pages[i];
+
+            // 1. Image Handling: Base64 & Fixed Size
             const images = page.querySelectorAll("img");
             for (const img of images) {
-              // Ensure images fit within page width
-              img.style.maxWidth = "100%";
-              img.style.height = "auto";
+              // Fix Logo Size for Word (35mm)
+              if (img.classList.contains("logo")) {
+                img.style.width = "35mm";
+                img.style.height = "auto";
+              }
 
               if (!img.src.startsWith("data:")) {
                 try {
@@ -2402,18 +2425,17 @@
                   canvas.width = img.naturalWidth || img.width;
                   canvas.height = img.naturalHeight || img.height;
                   const ctx = canvas.getContext("2d");
-                  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                  ctx.drawImage(img, 0, 0);
                   img.src = canvas.toDataURL("image/png");
                 } catch (e) {
                   console.warn("Image conversion failed", e);
                 }
               }
             }
-          }
 
-          // Convert Flexbox layouts to Tables for Word compatibility
-          pages.forEach((page) => {
-            // 1. Fix Header (Flex -> Table)
+            // 2. Layout Transformation: Flexbox -> Table (Word Compatibility)
+
+            // Header Transformation
             const headerTop = page.querySelector(".header-top");
             if (headerTop) {
               const leftLogo = headerTop.querySelector(
@@ -2425,76 +2447,78 @@
                 ".logo-container:last-child",
               ).innerHTML;
 
-              const table = document.createElement("table");
-              table.style.width = "100%";
-              table.style.border = "none";
-              table.style.marginBottom = "10px";
-              table.innerHTML = `
+              const tbl = document.createElement("table");
+              tbl.style.width = "100%";
+              tbl.style.border = "none";
+              tbl.style.marginBottom = "15px";
+              tbl.innerHTML = `
                 <tr>
-                  <td style="width:15%; text-align:left; vertical-align:middle; border:none;">${leftLogo}</td>
-                  <td style="width:70%; text-align:center; vertical-align:middle; border:none;">${centerText}</td>
-                  <td style="width:15%; text-align:right; vertical-align:middle; border:none;">${rightLogo}</td>
-                </tr>
-              `;
-              headerTop.parentNode.replaceChild(table, headerTop);
+                  <td style="width:20%; text-align:left; vertical-align:middle; border:none;">${leftLogo}</td>
+                  <td style="width:60%; text-align:center; vertical-align:middle; border:none;">${centerText}</td>
+                  <td style="width:20%; text-align:right; vertical-align:middle; border:none;">${rightLogo}</td>
+                </tr>`;
+              headerTop.parentNode.replaceChild(tbl, headerTop);
             }
 
-            // 2. Fix Date/Time Row (Flex -> Table)
+            // Date Row Transformation
             const dateRow = page.querySelector(".date-time-row");
             if (dateRow) {
               const divs = dateRow.querySelectorAll("div");
-              const leftText = divs[0] ? divs[0].innerText : "";
-              const rightText = divs[1] ? divs[1].innerText : "";
+              const left = divs[0] ? divs[0].innerHTML : "";
+              const right = divs[1] ? divs[1].innerHTML : "";
 
-              const table = document.createElement("table");
-              table.style.width = "100%";
-              table.style.border = "none";
-              table.style.marginBottom = "10px";
-              table.innerHTML = `
-                 <tr>
-                   <td style="text-align:left; border:none; font-weight:bold; font-size:14px;">${leftText}</td>
-                   <td style="text-align:right; border:none; font-weight:bold; font-size:14px;">${rightText}</td>
-                 </tr>
-               `;
-              dateRow.parentNode.replaceChild(table, dateRow);
+              const tbl = document.createElement("table");
+              tbl.style.width = "100%";
+              tbl.style.border = "none";
+              tbl.style.marginBottom = "10px";
+              tbl.innerHTML = `
+                <tr>
+                  <td style="text-align:left; font-weight:bold; border:none;">${left}</td>
+                  <td style="text-align:right; font-weight:bold; border:none;">${right}</td>
+                </tr>`;
+              dateRow.parentNode.replaceChild(tbl, dateRow);
             }
 
-            // 3. Fix Signature Section (Flex -> Table)
+            // Signature Section Transformation
             const sigSection = page.querySelector(".signature-section");
             if (sigSection) {
               const sigs = sigSection.querySelectorAll(".sig-box");
-              if (sigs.length === 2) {
-                const leftSig = sigs[0].innerHTML;
-                const rightSig = sigs[1].innerHTML;
-                const table = document.createElement("table");
-                table.style.width = "100%";
-                table.style.border = "none";
-                table.style.marginTop = "30px";
-                table.innerHTML = `
-                        <tr>
-                            <td style="text-align:center; border:none; vertical-align:top;">${leftSig}</td>
-                            <td style="text-align:center; border:none; vertical-align:top;">${rightSig}</td>
-                        </tr>
-                    `;
-                sigSection.parentNode.replaceChild(table, sigSection);
+              if (sigs.length >= 2) {
+                const left = sigs[0].innerHTML;
+                const right = sigs[1].innerHTML;
+                const tbl = document.createElement("table");
+                tbl.style.width = "100%";
+                tbl.style.border = "none";
+                tbl.style.marginTop = "30px";
+                tbl.innerHTML = `
+                  <tr>
+                    <td style="text-align:center; vertical-align:top; border:none;">${left}</td>
+                    <td style="text-align:center; vertical-align:top; border:none;">${right}</td>
+                  </tr>`;
+                sigSection.parentNode.replaceChild(tbl, sigSection);
               }
             }
-          });
 
-          let htmlContent = "";
+            // 3. Ensure Data Tables have Borders
+            const tables = page.querySelectorAll("table");
+            tables.forEach((t) => {
+              if (t.style.border !== "none") {
+                t.setAttribute("border", "1");
+                t.style.borderCollapse = "collapse";
+                t.style.width = "100%";
+              }
+            });
 
-          pages.forEach((page, index) => {
-            htmlContent += page.outerHTML;
-            if (index < pages.length - 1) {
+            // 4. Build Page Content
+            htmlContent += `<div class="main-page">${page.innerHTML}</div>`;
+
+            if (i < pages.length - 1) {
               htmlContent +=
                 "<br clear=all style='mso-special-character:line-break;page-break-before:always'>";
             }
-          });
+          }
 
-          exportToWord(
-            htmlContent,
-            `Weather_Bulletin_${getFormattedDate()}.doc`,
-          );
+          exportToWord(htmlContent, `Weather_Bulletin_${dateStr}.doc`);
         } catch (e) {
           console.error(e);
           alert("Export failed");
@@ -2511,44 +2535,57 @@
       }
 
       // Helper Export Functions (Reused)
-      function exportToWord(html, filename) {
-        let styles = "";
-        document.querySelectorAll("style").forEach((style) => {
-          styles += style.innerHTML;
+      function exportToWord(htmlContent, filename) {
+        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' 
+                 xmlns:w='urn:schemas-microsoft-com:office:word' 
+                 xmlns='http://www.w3.org/TR/REC-html40'>
+           <head>
+               <meta charset='utf-8'>
+               <title>Export</title>
+               <style>
+                   @page {
+                       size: A4;
+                       margin: 20mm;
+                   }
+                   body {
+                       font-family: Arial, sans-serif;
+                       font-size: 11pt;
+                   }
+                   .main-page {
+                       width: 210mm;
+                       min-height: 297mm;
+                       box-sizing: border-box;
+                       margin: 0 auto;
+                   }
+                   table {
+                       width: 100%;
+                       border-collapse: collapse;
+                   }
+                   td, th {
+                       padding: 4px;
+                   }
+                   .page-break {
+                       page-break-after: always;
+                   }
+               </style>
+           </head>
+           <body>`;
+
+        const footer = "<\/body><\/html>";
+        const sourceHTML = header + htmlContent + footer;
+
+        const blob = new Blob(["\ufeff", sourceHTML], {
+          type: "application/msword",
         });
 
-        // Add Word-specific Page Setup (A4 Size + Margins)
-        styles += `
-            @page {
-                size: ${document.getElementById("pageSizeSelect").value === "legal" ? "Legal" : "A4"};
-                margin: 0.2in; 
-            }
-            body { font-family: Arial, sans-serif; font-size: 11px; }
-            p { margin: 2px 0; line-height: 1.15; }
-            h3, h4 { margin-top: 5px; margin-bottom: 2px; }
-            table { width: 100%; border-collapse: collapse; border: 1px solid black; font-size: 10px; }
-            td, th { border: 1px solid black; padding: 2px 4px; border-collapse: collapse; }
-            img { max-width: 100%; }
-        `;
-
-        const header =
-          "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>" +
-          "<head><meta charset='utf-8'><title>Export</title>" +
-          "<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->" +
-          "<style>" +
-          styles +
-          "</style><\/head><body>";
-        const footer = "<\/body><\/html>";
-        const sourceHTML = header + html + footer;
-        const source =
-          "data:application/vnd.ms-word;charset=utf-8," +
-          encodeURIComponent(sourceHTML);
-        const fileDownload = document.createElement("a");
-        document.body.appendChild(fileDownload);
-        fileDownload.href = source;
-        fileDownload.download = filename;
-        fileDownload.click();
-        document.body.removeChild(fileDownload);
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }
 
       function exportToExcel(html, filename) {
