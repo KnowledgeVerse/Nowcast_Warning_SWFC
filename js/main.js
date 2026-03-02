@@ -1644,15 +1644,22 @@ function renderTable(dataSource) {
     }
 
     if (item.type === "no-warning") {
+      let noWarnBg = neutralBg;
+      let noWarnStyle = "";
+      if (hideWarningCol && applyTextBg) {
+        noWarnBg = "#28a745";
+        noWarnStyle = "color:white; font-weight:bold;";
+      }
+
       const row = `
         <tr style="background-color:${neutralBg}">
           <td style="text-align:center; background-color:${neutralBg}">Day ${item.day}</td>
           <td style="text-align:center; background-color:${neutralBg}">${item.date}</td>
           ${!hideCols ? `<td>-</td>` : ""}
           ${!hideCols ? `<td style="text-align:center;">Nil</td>` : ""}
-          <td style="background-color:${neutralBg}">No Warning</td>
-          <td style="background-color:${neutralBg}">राज्य में कोई चेतावनी नहीं।</td>
-          ${!hideWarningCol ? `<td style="background-color:${neutralBg}; font-weight:bold;">Green (No Warning)</td>` : ""}
+          <td style="background-color:${noWarnBg}; ${noWarnStyle}">No Warning</td>
+          <td style="background-color:${noWarnBg}; ${noWarnStyle}">राज्य में कोई चेतावनी नहीं।</td>
+          ${!hideWarningCol ? `<td style="background-color:#28a745; color:white; font-weight:bold; text-align:center;">Green (No Warning)</td>` : ""}
         </tr>`;
       tbody.innerHTML += row;
     } else {
