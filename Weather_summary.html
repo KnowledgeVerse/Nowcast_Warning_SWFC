@@ -323,6 +323,29 @@
         font-weight: bold;
         color: #0056b3;
       }
+      /* Professional Arrow Bullets */
+      .arrow-bullet-list {
+        margin: 0 0 5px 0;
+        padding-left: 0;
+      }
+      .arrow-bullet-list li {
+        list-style: none;
+        margin-bottom: 2px; /* Reduced spacing */
+        line-height: 1.3;
+        font-size: 12px;
+        position: relative;
+        padding-left: 15px;
+      }
+      .arrow-bullet-list li::before {
+        content: "\f0da"; /* fa-caret-right */
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        left: 0;
+        top: 1px;
+        color: #2c3e50;
+        font-size: 12px;
+      }
     </style>
     <script src="js/districts.js"></script>
   </head>
@@ -668,27 +691,9 @@ Or paste table..."
       <div class="section">
         <h3>6. Inference & Forecast</h3>
 
-        <!-- Toggle for No Significant Weather -->
-        <div
-          class="checkbox-wrapper"
-          style="
-            background: #e3f2fd;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            border: 1px solid #90caf9;
-          "
-        >
-          <input
-            type="checkbox"
-            id="toggleNoSigWeather"
-            onchange="toggleNoSignificantWeather(this.checked)"
-          />
-          <label
-            for="toggleNoSigWeather"
-            style="color: #0d47a1; font-weight: bold"
-            >Add "No Significant Weather System" Text</label
-          >
+        <div class="checkbox-wrapper" style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #90caf9;">
+            <input type="checkbox" id="chkNoSigWeather" onchange="toggleNoSigWeather(this.checked)">
+            <label for="chkNoSigWeather" style="color: #0d47a1; font-weight: bold; margin-bottom: 0;">Add "No Significant Weather System" (राज्य से संबंधित कोई भी उल्लेखनीय मौसम परिदृश्य नहीं है।)</label>
         </div>
 
         <label
@@ -766,13 +771,18 @@ Or paste table..."
             >Auto Translate to Hindi (Dictionary - Fallback)</label
           >
         </div>
+
+      <!-- Section: Forecast Summary -->
+      <div class="section">
+        <h3>पूर्वानुमान सारांश (Forecast Summary)</h3>
         <div class="checkbox-wrapper">
-          <input type="checkbox" id="includeDrySummary" />
-          <label for="includeDrySummary"
-            >Include Forecast Summary (Dry Weather)</label
-          >
-          >
+          <input type="checkbox" id="includeForecastSummary" onchange="toggleForecastSummaryText(this.checked)" />
+          <label for="includeForecastSummary">Include Forecast Summary</label>
         </div>
+        <div id="forecastSummaryText" style="display:none; margin-top:10px; padding:10px; background:#f9f9f9; border:1px solid #ddd; color:#2c3e50;">
+            अगले 7 दिनों के दौरान प्रदेश का मौसम शुष्क बने रहने की संभावना है।
+        </div>
+      </div>
 
         <!-- Temperature Trend Section (Moved Here) -->
         <div class="section">
@@ -1810,12 +1820,13 @@ Or paste table..."
         let summary = "";
 
         // SECTION 1
-        summary += `<p style="margin: 4px 0 1px 0;"><b>पिछले 24 घंटों का राज्य में दर्ज किया गया मौसम सारांश:-</b></p>`;
+        summary += `<p style="margin: 4px 0 0 0;"><b>पिछले 24 घंटों का राज्य में दर्ज किया गया मौसम सारांश:-</b></p>`;
 
         const weatherCond =
           document.getElementById("weatherConditionInput").value ||
           document.querySelector("weatherConditionInput").value;
-        summary += `${weatherCond}<br>`;
+        
+        let sec1Content = weatherCond;
 
         const groupDivs = document.querySelectorAll(
           "#rainfallGroupsContainer > div",
@@ -1847,8 +1858,8 @@ Or paste table..."
           rainSummary += " दर्ज की गयी।";
         }
 
-        if (rainSummary) summary += rainSummary;
-        summary += "<br>";
+        if (rainSummary) sec1Content += "\n" + rainSummary;
+        summary += formatTextToBullets(sec1Content);
 
         // SECTION 2 (Max Temp)
         const maxData = getMaxData();
@@ -1857,19 +1868,20 @@ Or paste table..."
           prevDate.setDate(reportDate.getDate() - 1);
           const dateStr = formatDate(prevDate);
 
-          summary += `<p style="margin: 4px 0 1px 0;"><b>अधिकतम तापमान : </b></p>`;
-          summary += `सर्वाधिक अधिकतम तापमान <b>${maxData.highestVal}°C (${dateStr}) ${maxData.stationNames}</b> में दर्ज किया गया ।<br>`;
-          summary += `राज्य का अधिकतम तापमान <b>${maxData.minVal} – ${maxData.maxVal}°C</b> के बीच रहा।<br>`;
+          summary += `<p style="margin: 4px 0 0 0;"><b>अधिकतम तापमान : </b></p>`;
+          let maxContent = `सर्वाधिक अधिकतम तापमान <b>${maxData.highestVal}°C (${dateStr}) ${maxData.stationNames.replace(/\n/g, " ")}</b> में दर्ज किया गया ।\n`;
+          maxContent += `राज्य का अधिकतम तापमान <b>${maxData.minVal} – ${maxData.maxVal}°C</b> के बीच रहा।\n`;
 
           if (document.getElementById("includeLowestMax").checked) {
             const lowestMax = getLowestMaxData();
             if (lowestMax) {
-              summary += `सबसे कम अधिकतम तापमान <b>${lowestMax.val}°C ${lowestMax.stationNames}</b> में दर्ज किया गया ।<br>`;
+              maxContent += `सबसे कम अधिकतम तापमान <b>${lowestMax.val}°C ${lowestMax.stationNames.replace(/\n/g, " ")}</b> में दर्ज किया गया ।\n`;
             }
           }
 
           const maxTrend = document.getElementById("maxTempTrend").value;
-          summary += `${maxTrend}<br>`;
+          maxContent += `${maxTrend}`;
+          summary += formatTextToBullets(maxContent);
         }
 
         // SECTION 3 (Min Temp)
@@ -1877,12 +1889,13 @@ Or paste table..."
         if (minData) {
           const dateStr = formatDate(reportDate);
 
-          summary += `<p style="margin: 4px 0 1px 0;"><b>न्यूनतम तापमान : </b></p>`;
-          summary += `सबसे कम न्यूनतम तापमान <b>${minData.lowestVal}°C (${dateStr}) ${minData.stationNames}</b> में दर्ज किया गया ।<br>`;
-          summary += `राज्य का न्यूनतम तापमान <b>${minData.minVal} – ${minData.maxVal}°C</b> के बीच रहा।<br>`;
+          summary += `<p style="margin: 4px 0 0 0;"><b>न्यूनतम तापमान : </b></p>`;
+          let minContent = `सबसे कम न्यूनतम तापमान <b>${minData.lowestVal}°C (${dateStr}) ${minData.stationNames.replace(/\n/g, " ")}</b> में दर्ज किया गया ।\n`;
+          minContent += `राज्य का न्यूनतम तापमान <b>${minData.minVal} – ${minData.maxVal}°C</b> के बीच रहा।\n`;
 
           const minTrend = document.getElementById("minTempTrend").value;
-          summary += `${minTrend}<br>`;
+          minContent += `${minTrend}`;
+          summary += formatTextToBullets(minContent);
         }
 
         // SECTION 4 (Dynamic Heading)
@@ -1897,7 +1910,7 @@ Or paste table..."
 
             // Get Area
             const wrapperId = block.querySelector(".sector-dist-wrapper").id;
-            const areaText = getSelectedAreaText(wrapperId);
+            const areaText = getSelectedAreaText(wrapperId).replace(/\n/g, " ");
             const areaBold = areaText ? `<b>${areaText}</b>` : "<b>__</b>";
 
             let finalContent = content;
@@ -1936,14 +1949,17 @@ Or paste table..."
               }
             }
 
-            summary += `<p style="margin: 4px 0 1px 0;"><b>${heading} :</b></p>`;
-            summary += `${finalContent}<br>`;
+            // Remove newlines from finalContent to prevent unwanted bullets/breaks within the sentence
+            finalContent = finalContent.replace(/\n/g, " ");
+
+            summary += `<p style="margin: 4px 0 0 0;"><b>${heading} :</b></p>`;
+            summary += formatTextToBullets(finalContent);
           });
           summary += "<br>";
         }
 
         // SECTION 5 (Rainfall Quantity)
-        summary += `<p style="margin: 4px 0 1px 0;"><b>वर्षा की मुख्य मात्रा (मिमी में):– </b>`;
+        summary += `<p style="margin: 4px 0 0 0;"><b>वर्षा की मुख्य मात्रा (मिमी में):– </b>`;
 
         const rainText = document.getElementById("rainInput").value.trim();
         let rainfallStations = [];
@@ -1973,6 +1989,7 @@ Or paste table..."
 
         // OBSERVED DATA TABLE
         summary += generateObservedTableHtml(observedData, reportDate);
+        summary += `<div style="page-break-after: always;"></div>`;
 
         // INFERENCE SECTION
         const selectionContainer = document.getElementById(
@@ -1998,29 +2015,30 @@ Or paste table..."
           }
         }
 
-        if (finalInferenceLines.length > 0) {
-          summary += `<h3 style="page-break-before: always; color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; margin: 10px 0 15px 0; font-size: 14px;">बिहार राज्य से संबंधित आज की संक्षिप्त मौसम प्रणाली:-</h3>`;
+        // Always show header
+        summary += `<h3 style="color: #2c3e50; border-bottom: 2px solid #2c3e50; padding-bottom: 5px; margin: 10px 0 15px 0; font-size: 14px;">बिहार राज्य से संबंधित आज की मुख्य मौसम प्रणाली:-</h3>`;
 
+        if (finalInferenceLines.length > 0) {
           const isTranslate = document.getElementById(
             "autoTranslateInference",
           ).checked;
 
-          summary += `<ul style="margin-top: 0; padding-left: 20px; font-size: 12px;">`;
+          summary += `<ul class="arrow-bullet-list">`;
           finalInferenceLines.forEach((line) => {
             if (line.trim()) {
               let text = line.trim();
-              text = text.replace(/^[❖•\-\*]\s*/, "");
+              text = text.replace(/^[❖•\-\*➤]\s*/, "");
 
               if (selectionContainer.style.display === "none" && isTranslate) {
                 text = translateToHindi(text);
               }
-              summary += `<li style="margin-bottom: 3px; line-height: 1.4;">${text}</li>`;
+              summary += `<li>${text}</li>`;
             }
           });
           summary += `</ul>`;
         }
 
-        if (document.getElementById("includeDrySummary").checked) {
+        if (document.getElementById("includeForecastSummary").checked) {
           summary += `<p style="font-size: 12px; margin: 5px 0;"><b>पूर्वानुमान सारांश :-</b><br>अगले 7 दिनों के दौरान प्रदेश का मौसम शुष्क बने रहने की संभावना है।</p>`;
         }
 
@@ -2034,13 +2052,14 @@ Or paste table..."
 
             if ((includeMax && maxPreview) || (includeMin && minPreview)) {
                 summary += `<br><h4 style="margin: 5px 0; font-size: 12px;">तापमान प्रवृत्ति पूर्वानुमान-:</h4>`;
+                let ttContent = "";
                 if (includeMax && maxPreview) {
-                    summary += `<div style="font-size: 11px;"><b>अधिकतम तापमान : </b>${maxPreview}</div>`;
+                    ttContent += `<b>अधिकतम तापमान : </b>${maxPreview}\n`;
                 }
                 if (includeMin && minPreview) {
-                    // Add spacing if max was also added
-                    summary += `<div style="font-size: 11px; margin-top:5px;"><b>न्यूनतम तापमान : </b>${minPreview}</div>`;
+                    ttContent += `<b>न्यूनतम तापमान : </b>${minPreview}`;
                 }
+                summary += formatTextToBullets(ttContent);
             }
         }
 
@@ -2048,7 +2067,7 @@ Or paste table..."
         const fogText = document.getElementById("staticFogPreview").innerText.trim();
         if (fogText) {
              summary += `<br><h4 style="margin: 5px 0; font-size: 12px;">कुहासा / कोहरा का पूर्वानुमान:-</h4>`;
-             summary += `<div style="font-size: 11px;">${fogText}</div>`;
+             summary += formatTextToBullets(fogText);
         }
 
         // DYNAMIC SECTIONS
@@ -2060,14 +2079,14 @@ Or paste table..."
 
         dynamicSections.forEach((section) => {
           const heading = section.querySelector(".ds-heading").value.trim();
-          const content = section.querySelector(".ds-content").innerHTML;
+          const content = section.querySelector(".ds-content").innerText;
 
           if (heading || content) {
             summary += `<br>`;
             if (heading)
               summary += `<h4 style="margin: 5px 0; font-size: 12px;">${heading}</h4>`;
             if (content)
-              summary += `<div style="font-size: 11px;">${content}</div>`;
+              summary += formatTextToBullets(content);
           }
         });
 
@@ -2084,7 +2103,7 @@ Or paste table..."
             summary += `<br><h4 style="margin: 5px 0; font-size: 12px;">${heading}</h4>`;
             let fullText = text;
             if (areaText) fullText = `${areaText} में ${text}`;
-            summary += `<div style="font-size: 11px;">${fullText}</div>`;
+            summary += formatTextToBullets(fullText);
           }
         }
 
@@ -2092,6 +2111,45 @@ Or paste table..."
 
         // Save to localStorage
         localStorage.setItem("bihar_generated_summary", summary);
+      }
+
+      function toggleNoSigWeather(checked) {
+        const textarea = document.getElementById("inferenceInput");
+        const selectionContainer = document.getElementById("inferenceSelectionContainer");
+        const text = "राज्य से संबंधित कोई भी उल्लेखनीय मौसम परिदृश्य नहीं है।";
+
+        if (checked) {
+            textarea.value = text;
+            if (selectionContainer) {
+                selectionContainer.style.display = "none";
+                selectionContainer.innerHTML = "";
+            }
+        } else {
+            if (textarea.value.trim() === text) {
+                textarea.value = "";
+            }
+        }
+      }
+
+      function toggleForecastSummaryText(checked) {
+          const div = document.getElementById("forecastSummaryText");
+          if(div) div.style.display = checked ? "block" : "none";
+      }
+
+      function formatTextToBullets(text) {
+        if (!text) return "";
+        // Split by newline, filter empty lines
+        const lines = text.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+        if (lines.length === 0) return "";
+        
+        let html = '<ul class="arrow-bullet-list">';
+        lines.forEach(line => {
+            // Remove existing bullet chars if user typed them to avoid double bullets
+            let cleanLine = line.replace(/^[➤•\-\*]\s*/, '');
+            html += `<li>${cleanLine}</li>`;
+        });
+        html += '</ul>';
+        return html;
       }
 
       function parseRainPart(str, arr) {

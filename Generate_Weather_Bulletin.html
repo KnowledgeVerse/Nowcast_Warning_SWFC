@@ -877,6 +877,63 @@
       .mce-content-body {
         outline: none !important;
       }
+
+      /* --- Professional Bulletin Formatting (Added) --- */
+      #summaryContent {
+        text-align: left;
+        color: #000;
+      }
+
+      /* Headings Alignment */
+      #summaryContent h3,
+      #summaryContent h4 {
+        color: #000;
+        margin-top: 5px;
+        margin-bottom: 2px;
+        display: block;
+        text-align: left;
+      }
+
+      /* List Reset & Custom Bullets */
+      #summaryContent ul,
+      .arrow-bullet-list {
+        list-style: none !important;
+        padding-left: 0 !important;
+        margin: 0 0 5px 0 !important;
+      }
+
+      #summaryContent li,
+      .arrow-bullet-list li {
+        position: relative;
+        padding-left: 15px; /* Space for bullet text indentation */
+        margin-bottom: 2px;
+        line-height: 1.3;
+        text-align: justify;
+      }
+
+      #summaryContent li::before,
+      .arrow-bullet-list li::before {
+        content: "\f0da"; /* fa-caret-right */
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        left: 0;
+        top: 1px;
+        font-size: 12px;
+        color: #2c3e50;
+      }
+
+      /* Nested Lists Indentation */
+      #summaryContent li ul {
+        margin-top: 2px;
+        margin-left: 5px;
+      }
+
+      /* Paragraph Alignment */
+      #summaryContent p {
+        margin: 3px 0;
+        text-align: justify;
+      }
     </style>
   </head>
   <body>
@@ -2615,7 +2672,7 @@
           // Compact the content before adding
           summaryContent = summaryContent.replace(
             /<p[^>]*>/gi,
-            '<p style="margin:2px 0 1px 0;line-height:1.25;font-size:12px;">',
+            '<p style="margin:2px 0 0 0;line-height:1.25;font-size:12px;">',
           );
           finalContent += summaryContent;
         }
