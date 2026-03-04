@@ -584,6 +584,37 @@
             >Include Lowest Max Temp Line (सबसे कम अधिकतम तापमान)</label
           >
         </div>
+        <!-- Custom Logical Text for Max Temp -->
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="enableMaxCustomLogic" onchange="toggleCustomLogic('max', this.checked)" />
+          <label for="enableMaxCustomLogic">Enable Custom Logical Text</label>
+        </div>
+        <div id="maxCustomLogicContainer" style="display:none; background:#f9f9f9; padding:10px; border:1px solid #ddd; margin-bottom:10px; border-radius:4px;">
+            <div class="tt-row">
+                <label>Region:</label>
+                <select id="max_obs_region" class="tt-select-large" onchange="updateObsPreview('max')">
+                    <option value="राज्य के अधिकांश स्थानों">राज्य के अधिकांश स्थानों</option>
+                    <option value="राज्य के अनेक स्थानों">राज्य के अनेक स्थानों</option>
+                    <option value="राज्य के कुछ स्थानों">राज्य के कुछ स्थानों</option>
+                    <option value="राज्य के एक या दो स्थानों">राज्य के एक या दो स्थानों</option>
+                </select>
+            </div>
+            <div class="tt-row">
+                <label>Change:</label>
+                <div id="max_obs_amount_wrapper" style="display:inline-flex; align-items:center; gap:5px;">
+                    <input type="text" id="max_obs_amount" class="tt-input-medium" value="2-3" oninput="updateObsPreview('max')">
+                    <label>°C की</label>
+                </div>
+                <select id="max_obs_change" class="tt-select-medium" onchange="updateObsPreview('max')">
+                    <option value="वृद्धि">वृद्धि (Rise)</option>
+                    <option value="गिरावट">गिरावट (Fall)</option>
+                    <option value="कोई विशेष परिवर्तन नहीं">कोई विशेष परिवर्तन नहीं</option>
+                </select>
+                <label>दर्ज की गई।</label>
+            </div>
+            <label>Preview (Editable):</label>
+            <textarea id="max_obs_preview" class="form-control" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></textarea>
+        </div>
         <div class="checkbox-wrapper">
           <input
             type="checkbox"
@@ -610,6 +641,40 @@
             विशेष परिवर्तन नहीं दर्ज की गयी।
           </option>
         </select>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="includeMinTrend" checked />
+          <label for="includeMinTrend">Include Logical Text</label>
+        </div>
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="enableMinCustomLogic" onchange="toggleCustomLogic('min', this.checked)" />
+          <label for="enableMinCustomLogic">Enable Custom Logical Text</label>
+        </div>
+        <div id="minCustomLogicContainer" style="display:none; background:#f9f9f9; padding:10px; border:1px solid #ddd; margin-bottom:10px; border-radius:4px;">
+            <div class="tt-row">
+                <label>Region:</label>
+                <select id="min_obs_region" class="tt-select-large" onchange="updateObsPreview('min')">
+                    <option value="राज्य के अधिकांश स्थानों">राज्य के अधिकांश स्थानों</option>
+                    <option value="राज्य के अनेक स्थानों">राज्य के अनेक स्थानों</option>
+                    <option value="राज्य के कुछ स्थानों">राज्य के कुछ स्थानों</option>
+                    <option value="राज्य के एक या दो स्थानों">राज्य के एक या दो स्थानों</option>
+                </select>
+            </div>
+            <div class="tt-row">
+                <label>Change:</label>
+                <div id="min_obs_amount_wrapper" style="display:inline-flex; align-items:center; gap:5px;">
+                    <input type="text" id="min_obs_amount" class="tt-input-medium" value="2-3" oninput="updateObsPreview('min')">
+                    <label>°C की</label>
+                </div>
+                <select id="min_obs_change" class="tt-select-medium" onchange="updateObsPreview('min')">
+                    <option value="वृद्धि">वृद्धि (Rise)</option>
+                    <option value="गिरावट">गिरावट (Fall)</option>
+                    <option value="कोई विशेष परिवर्तन नहीं">कोई विशेष परिवर्तन नहीं</option>
+                </select>
+                <label>दर्ज की गई।</label>
+            </div>
+            <label>Preview (Editable):</label>
+            <textarea id="min_obs_preview" class="form-control" rows="3" style="width:100%; padding:8px; border:1px solid #ccc; border-radius:4px;"></textarea>
+        </div>
         <div class="checkbox-wrapper">
           <input
             type="checkbox"
@@ -1879,8 +1944,12 @@ Or paste table..."
             }
           }
 
-          const maxTrend = document.getElementById("maxTempTrend").value;
-          maxContent += `${maxTrend}`;
+          if (document.getElementById("enableMaxCustomLogic").checked) {
+             maxContent += document.getElementById("max_obs_preview").value;
+          } else {
+             const maxTrend = document.getElementById("maxTempTrend").value;
+             maxContent += `${maxTrend}`;
+          }
           summary += formatTextToBullets(maxContent);
         }
 
@@ -1893,8 +1962,14 @@ Or paste table..."
           let minContent = `सबसे कम न्यूनतम तापमान <b>${minData.lowestVal}°C (${dateStr}) ${minData.stationNames.replace(/\n/g, " ")}</b> में दर्ज किया गया ।\n`;
           minContent += `राज्य का न्यूनतम तापमान <b>${minData.minVal} – ${minData.maxVal}°C</b> के बीच रहा।\n`;
 
-          const minTrend = document.getElementById("minTempTrend").value;
-          minContent += `${minTrend}`;
+          if (document.getElementById("includeMinTrend").checked) {
+              if (document.getElementById("enableMinCustomLogic").checked) {
+                 minContent += document.getElementById("min_obs_preview").value;
+              } else {
+                 const minTrend = document.getElementById("minTempTrend").value;
+                 minContent += `${minTrend}`;
+              }
+          }
           summary += formatTextToBullets(minContent);
         }
 
@@ -2454,6 +2529,35 @@ Or paste table..."
         text += "।";
         const previewEl = document.getElementById(`${prefix}_tt_preview`);
         if (previewEl) previewEl.value = text;
+      }
+
+      function toggleCustomLogic(type, checked) {
+        const container = document.getElementById(`${type}CustomLogicContainer`);
+        if (container) {
+            container.style.display = checked ? 'block' : 'none';
+        }
+        if (checked) {
+            updateObsPreview(type);
+        }
+      }
+
+      function updateObsPreview(type) {
+        const region = document.getElementById(`${type}_obs_region`).value;
+        const amount = document.getElementById(`${type}_obs_amount`).value;
+        const change = document.getElementById(`${type}_obs_change`).value;
+        const paramName = type === 'max' ? 'अधिकतम तापमान' : 'न्यूनतम तापमान';
+        
+        const wrapper = document.getElementById(`${type}_obs_amount_wrapper`);
+        if (wrapper) {
+            if (change === "कोई विशेष परिवर्तन नहीं") {
+                wrapper.style.display = "none";
+            } else {
+                wrapper.style.display = "inline-flex";
+            }
+        }
+        
+        let text = change === "कोई विशेष परिवर्तन नहीं" ? `${region} के ${paramName} में कोई विशेष परिवर्तन नहीं हुआ।` : `${region} के ${paramName} में ${amount}°C की ${change} दर्ज की गई।`;
+        document.getElementById(`${type}_obs_preview`).value = text;
       }
 
       function generateSelectionList(lines) {
