@@ -1449,6 +1449,15 @@ function renderTable(dataSource) {
     };
 
     table.innerHTML = `
+        <colgroup>
+            <col style="width: ${wDay}">
+            <col style="width: ${wDate}">
+            ${!hideCols ? `<col style="width: ${wArea}">` : ""}
+            ${!hideCols ? `<col style="width: ${wPhenom}">` : ""}
+            <col style="width: ${wDesc}">
+            <col style="width: ${wDesc}">
+            ${!hideWarningCol ? `<col style="width: ${wColor}">` : ""}
+        </colgroup>
         <thead>
             <tr>
                 <th style="width: ${wDay}; cursor:pointer; text-align: center; font-weight: bold;" onclick="sortTable('day')">DAY ${getSortIcon("day")}</th>

@@ -2767,6 +2767,18 @@
         <table class="table-terminology">
           <thead>
             <tr><th colspan="4" style="font-size: 1.1em; padding: 10px">पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast</th></tr>
+            <tr>
+              <th colspan="4" style="font-size: 1.1em; padding: 10px; background-color: #d9d9d9">पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast</th>
+            </tr>
+            <tr>
+              <th colspan="2" style="background-color: #f0f0f0">वर्षा पात / Rainfall</th>
+              <th rowspan="2" style="background-color: #f0f0f0">Probability of Occurrence<br>(संभाव्यता)</th>
+              <th rowspan="2" style="background-color: #f0f0f0">चेतावनी का रंग कोड<br>(Color Code of Warning)</th>
+            </tr>
+            <tr>
+              <th style="background-color: #f0f0f0">मात्रा / Intensity (mm)</th>
+              <th style="background-color: #f0f0f0">विस्तार / Distribution (% स्टेशनों पर वर्षा दर्ज)</th>
+            </tr>
           </thead>
           <tbody>
             <tr><th colspan="2" style="width: 50%">वर्षा का वितरण (Rainfall Distribution)</th><th colspan="2" style="width: 50%">चेतावनी रंग (Warning Colour Codes)</th></tr>
@@ -2775,6 +2787,42 @@
             <tr><td class="term-cell rain-sct">Scattered (SCT) / कुछ स्थानों पर</td><td class="term-cell">26 - 50 %</td><td class="term-cell warn-yellow">Yellow (Watch)</td><td class="term-cell">Be Updated (अपडेट रहें)</td></tr>
             <tr><td class="term-cell rain-isol">Isolated (ISOL) / एक या दो स्थानों पर</td><td class="term-cell">1 - 25 %</td><td class="term-cell warn-green">Green (No Warning)</td><td class="term-cell">No Action (कोई कार्रवाई नहीं)</td></tr>
             <tr><td class="term-cell rain-dry">Dry (DRY) / शुष्क</td><td class="term-cell">0 %</td><td colspan="2" style="background-color: #f9f9f9"></td></tr>
+            <tr>
+              <td>बहुत हल्की वर्षा / Very Light Rain<br>(0.1 – 2.4)</td>
+              <td class="term-cell rain-dry">शुष्क / Dry (0 %)</td>
+              <td>संभावना नहीं / Unlikely<br>(< 25 %)</td>
+              <td class="term-cell warn-green">हरा (कोई चेतावनी नहीं) / Green (No Warning)<br>कोई कार्रवाई नहीं / No Action</td>
+            </tr>
+            <tr>
+              <td>हल्की वर्षा / Light Rain<br>(2.5 – 15.5)</td>
+              <td class="term-cell rain-isol">एक या दो स्थानों पर / Isolated<br>(1-25 %)</td>
+              <td>संभावित / Likely<br>(25 - 50 %)</td>
+              <td class="term-cell warn-yellow">पीला (निगरानी रखें) / Yellow (Watch)<br>अपडेट रहें / Be Updated</td>
+            </tr>
+            <tr>
+              <td>मध्यम वर्षा / Moderate Rain<br>(15.6 – 64.4)</td>
+              <td class="term-cell rain-sct">कुछ स्थानों पर / Scattered<br>(26-50 %)</td>
+              <td>अति संभावना / Very Likely<br>(50 - 75 %)</td>
+              <td class="term-cell warn-orange">नारंगी (सतर्क रहें) / Orange (Alert)<br>तैयार रहें / Be Prepared</td>
+            </tr>
+            <tr>
+              <td>भारी वर्षा / Heavy Rain<br>(64.5 – 115.5)</td>
+              <td class="term-cell rain-fws">अनेक स्थानों पर / Fairly Widespread<br>(51-75 %)</td>
+              <td>प्रबल संभावना / Most Likely<br>(> 75 %)</td>
+              <td class="term-cell warn-red">लाल (चेतावनी) / Red (Warning)<br>कार्रवाई करें / Take Action</td>
+            </tr>
+            <tr>
+              <td>बहुत भारी वर्षा / Very Heavy Rain<br>(115.6 – 204.4)</td>
+              <td class="term-cell rain-ws">अधिकांश स्थानों पर / Widespread<br>(76-100 %)</td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>अत्यधिक भारी वर्षा / Extremely Heavy Rain<br>(≥ 204.5)</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
 
@@ -2839,15 +2887,44 @@
               "important",
             );
             warningTable.style.width = "100%";
-            const headerCells = warningTable.querySelectorAll("thead th");
-            if (headerCells.length === 4) {
-              // Add class for CSS enforcement
-              warningTable.classList.add("cols-4");
-              // Also apply inline as backup
-              headerCells[0].style.width = "8%";
-              headerCells[1].style.width = "12%";
-              headerCells[2].style.width = "40%";
-              headerCells[3].style.width = "40%";
+
+            // Remove existing colgroup if any to prevent duplicates
+            const oldColgroup = warningTable.querySelector("colgroup");
+            if (oldColgroup) oldColgroup.remove();
+
+            // Find the header row with actual columns (skip export header if present)
+            const rows = warningTable.querySelectorAll("thead tr");
+            let headerRow = null;
+            rows.forEach((r) => {
+              if (r.innerText.includes("DAY")) headerRow = r;
+            });
+
+            if (headerRow) {
+              const ths = headerRow.querySelectorAll("th");
+              const count = ths.length;
+              const colgroup = document.createElement("colgroup");
+              let widths = [];
+
+              if (count === 4) {
+                warningTable.classList.add("cols-4");
+                widths = ["8%", "12%", "40%", "40%"];
+              } else if (count === 7) {
+                widths = ["5%", "10%", "20%", "15%", "20%", "20%", "10%"];
+              } else if (count === 5) {
+                widths = ["7%", "13%", "35%", "35%", "10%"];
+              } else if (count === 6) {
+                widths = ["5%", "10%", "20%", "15%", "25%", "25%"];
+              }
+
+              if (widths.length > 0) {
+                widths.forEach((w) => {
+                  const col = document.createElement("col");
+                  col.style.width = w;
+                  colgroup.appendChild(col);
+                });
+                // Insert colgroup as the first child of the table
+                warningTable.insertBefore(colgroup, warningTable.firstChild);
+              }
             }
           }
         };

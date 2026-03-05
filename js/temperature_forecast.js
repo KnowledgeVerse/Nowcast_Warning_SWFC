@@ -797,7 +797,7 @@ async function generateCompositeImage() {
     ctx.drawImage(itemImages[i], x, y, itemWidth, itemHeight);
   }
 
-  return canvas.toDataURL("image/png");
+  return canvas;
 }
 
 async function downloadSingleImage() {
@@ -805,8 +805,9 @@ async function downloadSingleImage() {
   const originalText = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
   try {
-    const dataUrl = await generateCompositeImage();
-    if (dataUrl) {
+    const canvas = await generateCompositeImage();
+    if (canvas) {
+      const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
       const typeStr = currentTab === "max" ? "Maximum" : "Minimum";
       link.download = `Temperature_Forecast_${typeStr}_Grid_${new Date().toISOString().split("T")[0]}.png`;
@@ -827,13 +828,53 @@ async function syncToBulletin() {
   const originalText = '<i class="fas fa-sync"></i> Sync to Bulletin';
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
   try {
-    const dataUrl = await generateCompositeImage();
-    if (dataUrl) {
+    const canvas = await generateCompositeImage();
+    if (canvas) {
       const key =
         currentTab === "max"
           ? "bihar_max_temp_forecast_image"
           : "bihar_min_temp_forecast_image";
-      localStorage.setItem(key, dataUrl);
+
+      // Clear previous image to free up space immediately
+      try {
+        localStorage.removeItem(key);
+      } catch (e) {
+        console.warn("Could not clear old image", e);
+      }
+
+      let saved = false;
+      let scale = 1.0;
+
+      // Try progressively lower scale and quality until it fits
+      while (scale >= 0.4 && !saved) {
+        let exportCanvas = canvas;
+        if (scale < 1.0) {
+          exportCanvas = document.createElement("canvas");
+          exportCanvas.width = canvas.width * scale;
+          exportCanvas.height = canvas.height * scale;
+          const ctx = exportCanvas.getContext("2d");
+          ctx.drawImage(canvas, 0, 0, exportCanvas.width, exportCanvas.height);
+        }
+
+        // Try higher quality first, then lower
+        let quality = 0.95;
+        while (quality > 0.4 && !saved) {
+          try {
+            const dataUrl = exportCanvas.toDataURL("image/jpeg", quality);
+            localStorage.setItem(key, dataUrl);
+            saved = true;
+          } catch (e) {
+            if (e.name === "QuotaExceededError" || e.code === 22) {
+              quality -= 0.1;
+            } else {
+              throw e;
+            }
+          }
+        }
+        if (!saved) scale -= 0.2;
+      }
+
+      if (!saved) throw new Error("QuotaExceededError");
 
       btn.innerHTML = '<i class="fas fa-check"></i> Synced!';
       setTimeout(() => {
@@ -842,7 +883,17 @@ async function syncToBulletin() {
     }
   } catch (e) {
     console.error(e);
-    alert("Error syncing image.");
+    if (e.name === "QuotaExceededError" || e.message === "QuotaExceededError") {
+      alert(
+        "Sync failed: Image size is too large for browser storage. Please clear old bulletins or browser cache.",
+      );
+    } else {
+      alert("Error syncing image.");
+    }
+  } finally {
+    if (btn.innerHTML.includes("Syncing")) {
+      btn.innerHTML = originalText;
+    }
   }
 }
 window.syncToBulletin = syncToBulletin;
