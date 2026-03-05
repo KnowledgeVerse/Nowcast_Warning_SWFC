@@ -54,7 +54,7 @@ function updateHeader() {
       .toLocaleDateString("en-GB", dateOptions)
       .replace(/\//g, ".");
     const typeText = currentTab === "max" ? "अधिकतम" : "न्यूनतम";
-    headerTitle.innerText = `अगले सात दिनों के लिए ${typeText} तापमान का पूर्वानुमान ${dateStr}`;
+    headerTitle.innerText = `अगले सात दिनों के लिए ${typeText} तापमान का पूर्वानुमान मानचित्र दिनांक : ${dateStr}`;
   }
 }
 
@@ -145,7 +145,7 @@ function renderGrid() {
     const item = document.createElement("div");
     item.className = "grid-item";
     item.innerHTML = `
-          <div class="map-floating-header" id="header-map-${i}">Day ${dayNum} - ${dateStr}</div>
+          <div class="map-floating-header" id="header-map-${i}">Day ${dayNum} : ${dateStr}</div>
           <div id="map${i}" class="map-container"></div>
       `;
     container.appendChild(item);

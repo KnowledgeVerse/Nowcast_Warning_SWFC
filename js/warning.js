@@ -168,7 +168,7 @@ function init() {
     const dateStr = baseDate
       .toLocaleDateString("en-GB", dateOptions)
       .replace(/\//g, ".");
-    headerTitle.innerText = `अगले 7 दिनों के लिए मौसम चेतावनी चार्ट दिनांक ${dateStr}`;
+    headerTitle.innerText = `अगले 7 दिनों के लिए मौसम चेतावनी मानचित्र दिनांक : ${dateStr}`;
     headerTitle.style.fontSize = "1.2em";
   }
 
@@ -179,7 +179,7 @@ function init() {
     const dateStr = baseDate
       .toLocaleDateString("en-GB", dateOptions)
       .replace(/\//g, ".");
-    printHeader.innerText = `अगले 7 दिनों के लिए मौसम चेतावनी चार्ट दिनांक ${dateStr}`;
+    printHeader.innerText = `अगले 7 दिनों के लिए मौसम चेतावनी मानचित्र दिनांक : ${dateStr}`;
   }
 
   renderGrid();
@@ -389,7 +389,7 @@ async function downloadPDF() {
     const dateStr = baseDate
       .toLocaleDateString("en-GB", dateOptions)
       .replace(/\//g, ".");
-    const headerText = `अगले 7 दिनों के लिए मौसम चेतावनी चार्ट दिनांक ${dateStr}`;
+    const headerText = `अगले 7 दिनों के लिए मौसम चेतावनी मानचित्र दिनांक : ${dateStr}`;
 
     const tempHeader = document.createElement("div");
     tempHeader.style.cssText =
@@ -499,7 +499,7 @@ function renderGrid() {
     const item = document.createElement("div");
     item.className = "grid-item";
     item.innerHTML = `
-          <div class="map-floating-header" id="header-map-${i}">Day ${dayNum} - ${dateStr}</div>
+          <div class="map-floating-header" id="header-map-${i}">Day ${dayNum} : ${dateStr}</div>
           <div id="map${i}" class="map-container"></div>
       `;
     container.appendChild(item);
