@@ -16,6 +16,8 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+    <!-- Tailwind CSS (Design ke liye) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
       /* IMD Style Table */
       .imd-table {
@@ -104,6 +106,44 @@
           min-height: 450px;
         }
       }
+      /* --- Glowing Button Effect --- */
+      .glow-btn {
+        position: relative;
+        transition: all 0.3s ease;
+        text-decoration: none; /* Link underline hatane ke liye */
+      }
+
+      /* Hover karne par Glow effect */
+      .glow-btn:hover {
+        box-shadow:
+          0 0 15px rgba(37, 99, 235, 0.6),
+          0 0 25px rgba(13, 148, 136, 0.4);
+        transform: translateY(-2px);
+      }
+
+      /* Shine Animation (Button ke aar-paar jane wali chamak) */
+      .glow-btn::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 50%;
+        height: 100%;
+        background: linear-gradient(
+          to right,
+          transparent,
+          rgba(255, 255, 255, 0.6),
+          transparent
+        );
+        transform: skewX(-25deg);
+        z-index: 10;
+        transition: none;
+      }
+
+      .glow-btn:hover::after {
+        left: 200%;
+        transition: 0.6s ease-in-out;
+      }
     </style>
   </head>
   <body>
@@ -152,13 +192,23 @@
               justify-content: center;
             "
           >
-            <button
-              class="btn-primary btn-blink-anim"
-              title="Home"
-              onclick="window.location.href = 'index.html'"
+            <a
+              href="https://biharmausam.com/"
+              class="glow-btn relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 shadow-md transition-all duration-300"
+              title="Go to Bihar Mausam Main Page"
             >
-              <i class="fas fa-home"></i>
-            </button>
+              <span
+                class="relative px-3 py-1.5 transition-all ease-in-out duration-75 bg-white rounded-md group-hover:bg-opacity-0 flex items-center gap-2"
+              >
+                <!-- Icon -->
+                <i
+                  class="fa-solid fa-house-chimney text-blue-600 group-hover:text-white"
+                ></i>
+
+                <!-- Text -->
+                <span class="font-bold">मुख्य वेबसाइट</span>
+              </span>
+            </a>
             <button
               id="openLivePreview"
               class="btn-display-anim system-live-btn"
