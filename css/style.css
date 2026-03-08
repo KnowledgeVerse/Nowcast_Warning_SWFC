@@ -119,6 +119,11 @@ main {
   gap: 30px;
   margin-bottom: 30px;
   padding-top: 170px;
+  transition: padding-top 0.3s ease; /* Smooth transition for layout shift */
+}
+
+.hidden-header {
+  display: none !important;
 }
 
 .control-panel {

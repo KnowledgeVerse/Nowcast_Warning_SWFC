@@ -1186,9 +1186,9 @@
         const footer = document.createElement("div");
         footer.className = "page-footer";
         footer.innerHTML = `
-                <span contenteditable="true">Footer</span>
-                <span>Page <span class="page-num">${pageCount}</span> of <span class="total-pages">${pageCount}</span></span>
-            `;
+                      <span contenteditable="true">Footer</span>
+                      <span>Page <span class="page-num">${pageCount}</span> of <span class="total-pages">${pageCount}</span></span>
+                  `;
 
         // Content
         const content = document.createElement("div");
@@ -1484,15 +1484,15 @@
 
         // Standard DOCX structure
         const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
-                <w:body>
-                    ${convertHTMLToWordXML(content)}
-                    <w:sectPr>
-                        <w:pgSz w:w="12240" w:h="15840"/>
-                        <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720"/>
-                    </w:sectPr>
-                </w:body>
-            </w:document>`;
+                  <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+                      <w:body>
+                          ${convertHTMLToWordXML(content)}
+                          <w:sectPr>
+                              <w:pgSz w:w="12240" w:h="15840"/>
+                              <w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720"/>
+                          </w:sectPr>
+                      </w:body>
+                  </w:document>`;
 
         zip.file("word/document.xml", docXml);
 
@@ -1500,19 +1500,19 @@
         zip.file(
           "[Content_Types].xml",
           `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-            <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
-                <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
-                <Default Extension="xml" ContentType="application/xml"/>
-                <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
-            </Types>`,
+                  <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+                      <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+                      <Default Extension="xml" ContentType="application/xml"/>
+                      <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+                  </Types>`,
         );
 
         zip.file(
           "_rels/.rels",
           `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-                <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
-            </Relationships>`,
+                  <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+                      <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+                  </Relationships>`,
         );
 
         zip.generateAsync({ type: "blob" }).then(function (content) {
@@ -1887,24 +1887,24 @@
 
         // Header HTML
         const headerHTML = `
-            <div class="header-top">
-                <div class="logo-container"><img src="assets/logo.png" class="logo" onerror="this.style.display='none'"></div>
-                <div class="header-text">
-                    <div>भारत सरकार</div>
-                    <div>पृथ्वी विज्ञान मंत्रालय</div>
-                    <div>भारत मौसम विज्ञान विभाग</div>
-                    <div>मौसम विज्ञान केंद्र, पटना</div>
-                    <div>पटना – 800002</div>
-                    <div style="font-weight: normal; font-size: 12px">Website: https://mausam.imd.gov.in/patna | ई-मेल: mc.patna@imd.gov.in</div>
-                </div>
-                <div class="logo-container"><img src="assets/IMD_150_Year_Logo.png" class="logo" onerror="this.style.display='none'"></div>
-            </div>
-            <div class="season-title">मानसूनोत्तर-ऋतु / POST-MONSOON SEASON</div>
-            <div class="date-time-row">
-                <div>DATE: ${dateStr}</div>
-                <div>TIME OF ISSUE: ${timeStr} HRS IST</div>
-            </div>
-        `;
+                  <div class="header-top">
+                      <div class="logo-container"><img src="assets/logo.png" class="logo" onerror="this.style.display='none'"></div>
+                      <div class="header-text">
+                          <div>भारत सरकार</div>
+                          <div>पृथ्वी विज्ञान मंत्रालय</div>
+                          <div>भारत मौसम विज्ञान विभाग</div>
+                          <div>मौसम विज्ञान केंद्र, पटना</div>
+                          <div>पटना – 800002</div>
+                          <div style="font-weight: normal; font-size: 12px">Website: https://mausam.imd.gov.in/patna | ई-मेल: mc.patna@imd.gov.in</div>
+                      </div>
+                      <div class="logo-container"><img src="assets/IMD_150_Year_Logo.png" class="logo" onerror="this.style.display='none'"></div>
+                  </div>
+                  <div class="season-title">मानसूनोत्तर-ऋतु / POST-MONSOON SEASON</div>
+                  <div class="date-time-row">
+                      <div>DATE: ${dateStr}</div>
+                      <div>TIME OF ISSUE: ${timeStr} HRS IST</div>
+                  </div>
+              `;
 
         // Content Parts
         const summary =
@@ -1931,37 +1931,46 @@
           localStorage.getItem("bihar_selected_duty_officer") || "Duty Officer";
         const issuedOfficer =
           localStorage.getItem("bihar_selected_issued_officer") || "Issued By";
+        const includeImpact =
+          localStorage.getItem("bihar_include_impact_table") !== "false";
 
-        const footerHTML = `
-            <table class="table-impact">
-              <thead>
-                <tr><th colspan="2">इस मौसम के संभावित प्रभाव / सुझाव (Expected Impact & Action Suggested)</th></tr>
-                <tr><th class="col-impact">प्रभाव (Impact)</th><th class="col-suggestion">सुझाव (Action Suggested)</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="col-impact"><ul><li>खड़ी फसलों को नुकसान हो सकता है।</li><li>दृश्यता में कमी।</li></ul></td>
-                  <td class="col-suggestion"><ul><li>मौसम की जानकारी से अपडेट रहें।</li><li>सुरक्षित स्थानों पर रहें।</li></ul></td>
-                </tr>
-              </tbody>
-            </table>
-            <table class="table-terminology">
-              <thead><tr><th colspan="4">पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast</th></tr></thead>
-              <tbody>
-                <tr><th colspan="2">वर्षा का वितरण</th><th colspan="2">चेतावनी रंग</th></tr>
-                <tr><td class="rain-ws">Widespread (WS)</td><td>76-100%</td><td class="warn-red">Red (Warning)</td><td>Take Action</td></tr>
-                <tr><td class="rain-fws">Fairly Widespread (FWS)</td><td>51-75%</td><td class="warn-orange">Orange (Alert)</td><td>Be Prepared</td></tr>
-                <tr><td class="rain-sct">Scattered (SCT)</td><td>26-50%</td><td class="warn-yellow">Yellow (Watch)</td><td>Be Updated</td></tr>
-                <tr><td class="rain-isol">Isolated (ISOL)</td><td>1-25%</td><td class="warn-green">Green (No Warning)</td><td>No Action</td></tr>
-                <tr><td class="rain-dry">Dry</td><td>0%</td><td colspan="2"></td></tr>
-              </tbody>
-            </table>
-            <div class="signature-section">
-              <div class="sig-box"><div class="sig-label">Duty Officer</div><div class="sig-line">${dutyOfficer}</div></div>
-              <div class="sig-box"><div class="sig-label">Forecast Issued By</div><div class="sig-line">${issuedOfficer}</div></div>
-            </div>
-            <div style="text-align:center; font-size:10px; margin-top:20px;">Generated by SWFC Web Application</div>
-        `;
+        // --- Footer Content (from bulletin_footer.html) ---
+        if (includeImpact) {
+          finalContent += `
+                  <table class="table-impact">
+                    <thead>
+                      <tr><th colspan="2">इस मौसम के संभावित प्रभाव / सुझाव (Expected Impact & Action Suggested)</th></tr>
+                      <tr><th class="col-impact">प्रभाव (Impact)</th><th class="col-suggestion">सुझाव (Action Suggested)</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="col-impact"><ul><li>खड़ी फसलों को नुकसान हो सकता है।</li><li>दृश्यता में कमी।</li></ul></td>
+                        <td class="col-suggestion"><ul><li>मौसम की जानकारी से अपडेट रहें।</li><li>सुरक्षित स्थानों पर रहें।</li></ul></td>
+                      </tr>
+                    </tbody>
+                  </table>
+          `;
+        }
+
+        finalContent += `
+        <table class="table-terminology">
+
+                    <thead><tr><th colspan="4">पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast</th></tr></thead>
+                    <tbody>
+                      <tr><th colspan="2">वर्षा का वितरण</th><th colspan="2">चेतावनी रंग</th></tr>
+                      <tr><td class="rain-ws">Widespread (WS)</td><td>76-100%</td><td class="warn-red">Red (Warning)</td><td>Take Action</td></tr>
+                      <tr><td class="rain-fws">Fairly Widespread (FWS)</td><td>51-75%</td><td class="warn-orange">Orange (Alert)</td><td>Be Prepared</td></tr>
+                      <tr><td class="rain-sct">Scattered (SCT)</td><td>26-50%</td><td class="warn-yellow">Yellow (Watch)</td><td>Be Updated</td></tr>
+                      <tr><td class="rain-isol">Isolated (ISOL)</td><td>1-25%</td><td class="warn-green">Green (No Warning)</td><td>No Action</td></tr>
+                      <tr><td class="rain-dry">Dry</td><td>0%</td><td colspan="2"></td></tr>
+                    </tbody>
+                  </table>
+                  <div class="signature-section">
+                    <div class="sig-box"><div class="sig-label">Duty Officer</div><div class="sig-line">${dutyOfficer}</div></div>
+                    <div class="sig-box"><div class="sig-label">Forecast Issued By</div><div class="sig-line">${issuedOfficer}</div></div>
+                  </div>
+                  <div style="text-align:center; font-size:10px; margin-top:20px;">Generated by SWFC Web Application</div>
+              `;
 
         // --- Page Construction ---
 

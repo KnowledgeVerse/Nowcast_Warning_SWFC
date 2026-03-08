@@ -605,8 +605,8 @@ function attachHandlers() {
   document.getElementById("downloadMap").onclick = downloadMapImage;
   document.getElementById("downloadSmartImages").onclick = downloadSmartImages;
   document.getElementById("downloadSmartPDF").onclick = downloadSmartPDF;
-  document.getElementById("toggleStreetView").onchange = (e) => {
-    toggleTiles(e.target.checked);
+  document.getElementById("mapLayerSelect").onchange = (e) => {
+    changeMapLayer(e.target.value);
   };
   document.getElementById("toggleAnimations").onchange = (e) => {
     const mapDiv = document.getElementById("map");
@@ -615,12 +615,6 @@ function attachHandlers() {
     } else {
       mapDiv.classList.add("static-icons");
     }
-  };
-  document.getElementById("toggleSatelliteView").onchange = (e) => {
-    toggleSatellite(e.target.checked);
-  };
-  document.getElementById("toggleHybridView").onchange = (e) => {
-    toggleHybrid(e.target.checked);
   };
   document.getElementById("fitMapBounds").onclick = () => {
     if (geojsonLayer) map.fitBounds(geojsonLayer.getBounds());
@@ -3955,16 +3949,27 @@ function toggleCleanMap(checked) {
     if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
     if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
     if (map.hasLayer(hybridLayer)) map.removeLayer(hybridLayer);
-
-    document.getElementById("toggleStreetView").checked = false;
-    document.getElementById("toggleSatelliteView").checked = false;
-    document.getElementById("toggleHybridView").checked = false;
   } else {
-    if (!map.hasLayer(tileLayer)) map.addLayer(tileLayer);
-    document.getElementById("toggleStreetView").checked = true;
+    const sel = document.getElementById("mapLayerSelect");
+    const val = sel ? sel.value : "street";
+    changeMapLayer(val);
   }
 }
 window.toggleCleanMap = toggleCleanMap;
+
+function changeMapLayer(type) {
+  if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
+  if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+  if (map.hasLayer(hybridLayer)) map.removeLayer(hybridLayer);
+
+  if (type === "street") map.addLayer(tileLayer);
+  else if (type === "satellite") map.addLayer(satelliteLayer);
+  else if (type === "hybrid") map.addLayer(hybridLayer);
+
+  const cleanToggle = document.getElementById("toggleCleanMap");
+  if (cleanToggle && cleanToggle.checked) cleanToggle.checked = false;
+}
+window.changeMapLayer = changeMapLayer;
 
 function updateMapElementScale() {
   const mapDiv = document.getElementById("map");

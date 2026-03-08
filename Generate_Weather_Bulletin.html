@@ -2730,8 +2730,12 @@
         const savedIssuedSel =
           localStorage.getItem("bihar_selected_issued_officer") || "";
 
+        const includeImpact =
+          localStorage.getItem("bihar_include_impact_table") !== "false";
+
         // --- Footer Content (from bulletin_footer.html) ---
-        finalContent += `
+        if (includeImpact) {
+          finalContent += `
         <table class="table-impact">
           <thead>
             <tr>
@@ -2763,18 +2767,89 @@
             </tr>
           </tbody>
         </table>
+          `;
+        }
 
+        finalContent += `
         <table class="table-terminology">
           <thead>
-            <tr><th colspan="4" style="font-size: 1.1em; padding: 10px">पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast</th></tr>
+            <tr>
+              <th colspan="4" style="font-size: 1.1em; padding: 10px; background-color: #d9d9d9">
+                पूर्वानुमान में प्रयुक्त शब्दावली / Terminology used in forecast
+              </th>
+            </tr>
+            <tr>
+              <th colspan="2" style="background-color: #f0f0f0">
+                वर्षा पात / Rainfall
+              </th>
+              <th rowspan="2" style="background-color: #f0f0f0">
+                Probability of Occurrence<br />(संभाव्यता)
+              </th>
+              <th rowspan="2" style="background-color: #f0f0f0">
+                चेतावनी का रंग कोड<br />(Color Code of Warning)
+              </th>
+            </tr>
+            <tr>
+              <th style="background-color: #f0f0f0">मात्रा / Intensity (mm)</th>
+              <th style="background-color: #f0f0f0">
+                विस्तार / Distribution (% स्टेशनों पर वर्षा दर्ज)
+              </th>
+            </tr>
           </thead>
           <tbody>
-            <tr><th colspan="2" style="width: 50%">वर्षा का वितरण (Rainfall Distribution)</th><th colspan="2" style="width: 50%">चेतावनी रंग (Warning Colour Codes)</th></tr>
-            <tr><td class="term-cell rain-ws">Widespread (WS) / अधिकांश स्थानों पर</td><td class="term-cell">76 - 100 %</td><td class="term-cell warn-red">Red (Warning)</td><td class="term-cell">Take Action (कार्रवाई करें)</td></tr>
-            <tr><td class="term-cell rain-fws">Fairly Widespread (FWS) / अनेक स्थानों पर</td><td class="term-cell">51 - 75 %</td><td class="term-cell warn-orange">Orange (Alert)</td><td class="term-cell">Be Prepared (तैयार रहें)</td></tr>
-            <tr><td class="term-cell rain-sct">Scattered (SCT) / कुछ स्थानों पर</td><td class="term-cell">26 - 50 %</td><td class="term-cell warn-yellow">Yellow (Watch)</td><td class="term-cell">Be Updated (अपडेट रहें)</td></tr>
-            <tr><td class="term-cell rain-isol">Isolated (ISOL) / एक या दो स्थानों पर</td><td class="term-cell">1 - 25 %</td><td class="term-cell warn-green">Green (No Warning)</td><td class="term-cell">No Action (कोई कार्रवाई नहीं)</td></tr>
-            <tr><td class="term-cell rain-dry">Dry (DRY) / शुष्क</td><td class="term-cell">0 %</td><td colspan="2" style="background-color: #f9f9f9"></td></tr>
+            <tr>
+              <td>बहुत हल्की वर्षा / Very Light Rain<br />(0.1 – 2.4)</td>
+              <td class="term-cell rain-dry">शुष्क / Dry (0 %)</td>
+              <td>संभावना नहीं / Unlikely<br />(< 25 %)</td>
+              <td class="term-cell warn-green">
+                हरा (कोई चेतावनी नहीं) / Green (No Warning)<br />कोई कार्रवाई नहीं
+                / No Action
+              </td>
+            </tr>
+            <tr>
+              <td>हल्की वर्षा / Light Rain<br />(2.5 – 15.5)</td>
+              <td class="term-cell rain-isol">
+                एक या दो स्थानों पर / Isolated<br />(1-25 %)
+              </td>
+              <td>संभावित / Likely<br />(25 - 50 %)</td>
+              <td class="term-cell warn-yellow">
+                पीला (निगरानी रखें) / Yellow (Watch)<br />अपडेट रहें / Be Updated
+              </td>
+            </tr>
+            <tr>
+              <td>मध्यम वर्षा / Moderate Rain<br />(15.6 – 64.4)</td>
+              <td class="term-cell rain-sct">
+                कुछ स्थानों पर / Scattered<br />(26-50 %)
+              </td>
+              <td>अति संभावना / Very Likely<br />(50 - 75 %)</td>
+              <td class="term-cell warn-orange">
+                नारंगी (सतर्क रहें) / Orange (Alert)<br />तैयार रहें / Be Prepared
+              </td>
+            </tr>
+            <tr>
+              <td>भारी वर्षा / Heavy Rain<br />(64.5 – 115.5)</td>
+              <td class="term-cell rain-fws">
+                अनेक स्थानों पर / Fairly Widespread<br />(51-75 %)
+              </td>
+              <td>प्रबल संभावना / Most Likely<br />(> 75 %)</td>
+              <td class="term-cell warn-red">
+                लाल (चेतावनी) / Red (Warning)<br />कार्रवाई करें / Take Action
+              </td>
+            </tr>
+            <tr>
+              <td>बहुत भारी वर्षा / Very Heavy Rain<br />(115.6 – 204.4)</td>
+              <td class="term-cell rain-ws">
+                अधिकांश स्थानों पर / Widespread<br />(76-100 %)
+              </td>
+              <td></td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>अत्यधिक भारी वर्षा / Extremely Heavy Rain<br />(≥ 204.5)</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
           </tbody>
         </table>
 

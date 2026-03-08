@@ -834,6 +834,9 @@
 
         if (savedState !== null) {
           chk.checked = savedState === "true";
+        } else {
+          // Default to checked if no state saved
+          localStorage.setItem("bihar_include_impact_table", "true");
         }
         // Apply initial state
         if (table) {

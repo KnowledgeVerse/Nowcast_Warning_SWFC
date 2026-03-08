@@ -164,7 +164,7 @@
     </div>
 
     <div class="container">
-      <header>
+      <header id="topHeader">
         <!-- Left Gov Logo -->
         <img src="assets/logo.png" class="gov-logo" alt="Government Logo" />
 
@@ -542,6 +542,27 @@
           </div>
           <div class="map-controls">
             <div class="map-controls-left">
+              <button
+                id="toggleHeaderBtn"
+                class="btn-secondary small-btn"
+                style="
+                  font-weight: bold;
+                  display: flex;
+                  align-items: center;
+                  gap: 5px;
+                "
+                title="Toggle Header Visibility"
+              >
+                <i class="fas fa-eye-slash"></i> Hide Header
+              </button>
+              <div
+                style="
+                  width: 1px;
+                  height: 20px;
+                  background: #ccc;
+                  margin: 0 5px;
+                "
+              ></div>
               <label class="icon-toggle-label" title="Enable Zoom">
                 <input
                   type="checkbox"
@@ -550,18 +571,36 @@
                 />
                 <i class="fas fa-magnifying-glass-plus"></i> Zoom
               </label>
-              <label class="icon-toggle-label" title="Street View">
-                <input type="checkbox" id="toggleStreetView" checked />
-                <i class="fas fa-road"></i> Street
-              </label>
-              <label class="icon-toggle-label" title="Satellite View">
-                <input type="checkbox" id="toggleSatelliteView" />
-                <i class="fas fa-satellite"></i> Satellite
-              </label>
-              <label class="icon-toggle-label" title="Hybrid View">
-                <input type="checkbox" id="toggleHybridView" />
-                <i class="fas fa-layer-group"></i> Hybrid
-              </label>
+              <div
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 5px;
+                  border: 1px solid #ccc;
+                  padding: 3px 8px;
+                  border-radius: 20px;
+                  background: #fff;
+                  height: 32px;
+                "
+              >
+                <i class="fas fa-layer-group" style="color: #555"></i>
+                <select
+                  id="mapLayerSelect"
+                  style="
+                    border: none;
+                    background: transparent;
+                    font-size: 14px;
+                    font-weight: 600;
+                    color: #555;
+                    outline: none;
+                    cursor: pointer;
+                  "
+                >
+                  <option value="street">Street</option>
+                  <option value="satellite">Satellite</option>
+                  <option value="hybrid">Hybrid</option>
+                </select>
+              </div>
               <label class="icon-toggle-label" title="Foothill (Map Show)">
                 <input type="checkbox" id="toggleFoothill" checked />
                 <i class="fas fa-mountain"></i> Foothills
@@ -892,6 +931,23 @@
           </div>
 
           <div class="map-wrapper">
+            <button
+              id="toggleTopControls"
+              class="btn-secondary"
+              style="
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+                padding: 5px 10px;
+                opacity: 0.9;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+              "
+              onclick="toggleMapControls()"
+              title="Hide Controls / Expand Map"
+            >
+              <i class="fas fa-expand"></i>
+            </button>
             <div id="map" class="map-frame">
               <!-- Map Header Text (Moved inside map for download) -->
               <div
@@ -1293,5 +1349,47 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/districts.js"></script>
     <script src="js/main.js"></script>
+    <script>
+      function toggleMapControls() {
+        const tabs = document.querySelector(".day-tabs-container");
+        const controls = document.querySelector(".map-controls");
+        const btn = document.getElementById("toggleTopControls");
+        const icon = btn.querySelector("i");
+
+        if (tabs.style.display === "none") {
+          tabs.style.display = "";
+          controls.style.display = "";
+          icon.className = "fas fa-expand";
+        } else {
+          tabs.style.display = "none";
+          controls.style.display = "none";
+          icon.className = "fas fa-compress";
+        }
+        if (typeof map !== "undefined" && map) {
+          setTimeout(() => {
+            map.invalidateSize();
+          }, 100);
+        }
+      }
+
+      // --- Header Toggle Logic ---
+      const header = document.getElementById("topHeader");
+      const toggleBtn = document.getElementById("toggleHeaderBtn");
+      const mainContent = document.querySelector("main");
+
+      toggleBtn.addEventListener("click", () => {
+        header.classList.toggle("hidden-header");
+
+        if (header.classList.contains("hidden-header")) {
+          toggleBtn.innerHTML = '<i class="fas fa-eye"></i> Show Header';
+          // Adjust padding when header is hidden to remove gap
+          mainContent.style.paddingTop = "5px";
+        } else {
+          toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Header';
+          // Restore original padding (defined in CSS)
+          mainContent.style.paddingTop = "170px";
+        }
+      });
+    </script>
   </body>
 </html>
