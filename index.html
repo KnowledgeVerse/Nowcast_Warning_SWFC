@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <title>बिहार मौसम पूर्वानुमान | Bihar Weather Forecast</title>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/style.css?v=2.2" />
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&display=swap"
       rel="stylesheet"
@@ -163,250 +163,282 @@
       <div class="star star7"></div>
     </div>
 
-    <div class="container">
-      <header id="topHeader">
-        <!-- Left Gov Logo -->
-        <img src="assets/logo.png" class="gov-logo" alt="Government Logo" />
+    <header id="topHeader">
+      <button id="headerToggleBtn" title="Collapse Header">▲</button>
+      <!-- Left Gov Logo -->
+      <img src="assets/logo.png" class="gov-logo" alt="Government Logo" />
+
+      <div
+        class="header-center-container"
+        style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          z-index: 10;
+        "
+      >
+        <h1>बिहार मौसम पूर्वानुमान प्रणाली</h1>
+        <h2 style="display: none">Bihar Weather Forecast System</h2>
 
         <div
-          class="header-center-container"
+          class="header-actions"
           style="
             display: flex;
-            flex-direction: column;
+            gap: 10px;
             align-items: center;
-            width: 100%;
-            z-index: 10;
+            margin-top: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
           "
         >
-          <h1>बिहार मौसम पूर्वानुमान प्रणाली</h1>
-          <h2 style="display: none">Bihar Weather Forecast System</h2>
-
-          <div
-            class="header-actions"
-            style="
-              display: flex;
-              gap: 10px;
-              align-items: center;
-              margin-top: 5px;
-              flex-wrap: wrap;
-              justify-content: center;
-            "
+          <a
+            href="https://biharmausam.com/"
+            class="glow-btn relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 shadow-md transition-all duration-300"
+            title="Go to Bihar Mausam Main Page"
           >
-            <a
-              href="https://biharmausam.com/"
-              class="glow-btn relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 shadow-md transition-all duration-300"
-              title="Go to Bihar Mausam Main Page"
+            <span
+              class="relative px-3 py-1.5 transition-all ease-in-out duration-75 bg-white rounded-md group-hover:bg-opacity-0 flex items-center gap-2"
             >
-              <span
-                class="relative px-3 py-1.5 transition-all ease-in-out duration-75 bg-white rounded-md group-hover:bg-opacity-0 flex items-center gap-2"
-              >
-                <!-- Icon -->
-                <i
-                  class="fa-solid fa-house-chimney text-blue-600 group-hover:text-white"
-                ></i>
+              <!-- Icon -->
+              <i
+                class="fa-solid fa-house-chimney text-blue-600 group-hover:text-white"
+              ></i>
 
-                <!-- Text -->
-                <span class="font-bold">मुख्य वेबसाइट</span>
-              </span>
-            </a>
-            <button
-              id="openLivePreview"
-              class="btn-display-anim system-live-btn"
-              title="Live Map Preview (7 Days)"
-              onclick="window.open('live.html', '_blank')"
-            >
-              <i class="fas fa-tower-broadcast"></i>
-            </button>
-            <button
-              id="openTempMap"
-              class="btn-display-anim"
-              title="Live Temperature Map"
-              onclick="window.open('temp.html', '_blank')"
-            >
-              <i class="fas fa-temperature-high"></i>
-            </button>
-            <button
-              id="openWindMap"
-              class="btn-display-anim"
-              title="Live Wind Map"
-              onclick="window.open('wind.html', '_blank')"
-            >
-              <i class="fas fa-wind"></i>
-            </button>
-            <button
-              id="openRainMap"
-              class="btn-display-anim"
-              title="Live Rain Map"
-              onclick="window.open('rain.html', '_blank')"
-            >
-              <i class="fas fa-cloud-showers-heavy"></i>
-            </button>
-            <button
-              id="openHumidityMap"
-              class="btn-display-anim"
-              title="Live Humidity Map"
-              onclick="window.open('humidity.html', '_blank')"
-            >
-              <i class="fas fa-tint"></i>
-            </button>
-            <button
-              id="openDisplayHeader"
-              class="btn-display-anim"
-              title="Live Display Mode"
-              onclick="window.open('display.html', '_blank')"
-            >
-              <i class="fas fa-tv"></i>
-            </button>
-
-            <div
-              style="width: 1px; height: 30px; background: #ccc; margin: 0 5px"
-            ></div>
-
-            <button
-              class="btn-secondary btn-blink-anim"
-              title="Weather Bulletin"
-              onclick="window.location.href = 'bulletin.html'"
-            >
-              <i class="fas fa-clipboard-list"></i>
-            </button>
-
-            <div
-              style="width: 1px; height: 30px; background: #ccc; margin: 0 5px"
-            ></div>
-
-            <button
-              id="bgChangeBtn"
-              class="btn-secondary"
-              title="Change Background Color"
-            >
-              <i class="fas fa-palette"></i>
-            </button>
-            <input
-              type="color"
-              id="bgColorInput"
-              style="display: none"
-              onchange="changeBodyBackground(this.value)"
-            />
-            <button id="darkModeToggle" class="btn-secondary" title="Dark Mode">
-              <i class="fas fa-moon"></i>
-            </button>
-            <button
-              id="langToggle"
-              class="btn-secondary"
-              title="Switch Language (HI/EN)"
-            >
-              HI
-            </button>
-            <!-- User Logo / Sign In Trigger -->
-            <div class="user-profile-container">
-              <img
-                src="logo/logo.png"
-                id="userLogoBtn"
-                class="user-logo"
-                title="Click to Sign In / Menu"
-              />
-              <div id="userDropdown" class="user-dropdown">
-                <!-- Menu items injected by JS -->
-              </div>
-            </div>
-          </div>
+              <!-- Text -->
+              <span class="font-bold">मुख्य वेबसाइट</span>
+            </span>
+          </a>
+          <button
+            id="openLivePreview"
+            class="btn-display-anim system-live-btn"
+            title="Live Map Preview (7 Days)"
+            onclick="window.open('live.html', '_blank')"
+          >
+            <i class="fas fa-tower-broadcast"></i>
+          </button>
+          <button
+            id="openTempMap"
+            class="btn-display-anim"
+            title="Live Temperature Map"
+            onclick="window.open('temp.html', '_blank')"
+          >
+            <i class="fas fa-temperature-high"></i>
+          </button>
+          <button
+            id="openWindMap"
+            class="btn-display-anim"
+            title="Live Wind Map"
+            onclick="window.open('wind.html', '_blank')"
+          >
+            <i class="fas fa-wind"></i>
+          </button>
+          <button
+            id="openRainMap"
+            class="btn-display-anim"
+            title="Live Rain Map"
+            onclick="window.open('rain.html', '_blank')"
+          >
+            <i class="fas fa-cloud-showers-heavy"></i>
+          </button>
+          <button
+            id="openHumidityMap"
+            class="btn-display-anim"
+            title="Live Humidity Map"
+            onclick="window.open('humidity.html', '_blank')"
+          >
+            <i class="fas fa-tint"></i>
+          </button>
+          <button
+            id="openDisplayHeader"
+            class="btn-display-anim"
+            title="Live Display Mode"
+            onclick="window.open('display.html', '_blank')"
+          >
+            <i class="fas fa-tv"></i>
+          </button>
 
           <div
-            style="width: 90%; height: 1px; background: #e0e0e0; margin: 10px 0"
+            style="width: 1px; height: 30px; background: #ccc; margin: 0 5px"
           ></div>
 
-          <div
-            class="header-actions-secondary"
-            style="
-              display: flex;
-              gap: 8px;
-              align-items: center;
-              flex-wrap: wrap;
-              justify-content: center;
-              margin-bottom: 5px;
-            "
+          <button
+            class="btn-secondary btn-blink-anim"
+            title="Weather Bulletin"
+            onclick="window.location.href = 'bulletin.html'"
           >
-            <button
-              class="btn-secondary"
-              title="Generate_Weather_Bulletin"
-              onclick="window.location.href = 'Generate_Weather_Bulletin.html'"
-            >
-              <i class="fas fa-file-lines"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Observed Data"
-              onclick="window.location.href = 'max_min_rh.html'"
-            >
-              <i class="fas fa-table"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Weather Summary"
-              onclick="window.location.href = 'Weather_summary.html'"
-            >
-              <i class="fas fa-file-alt"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Detailed Forecast"
-              onclick="window.location.href = 'Detailed_Weather_Forecast.html'"
-            >
-              <i class="fas fa-list-alt"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Warning Table"
-              onclick="window.location.href = 'Weather_Warning_Table.html'"
-            >
-              <i class="fas fa-table"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Temperature Import"
-              onclick="window.location.href = 'bulk_import.html'"
-            >
-              <i class="fas fa-file-import"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Min/Max Temperature"
-              onclick="window.location.href = 'Temperature_Forecast.html'"
-            >
-              <i class="fas fa-temperature-high"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="7-Day Forecast"
-              onclick="window.location.href = 'forecast.html'"
-            >
-              <i class="fas fa-calendar-day"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="7-Day Warning"
-              onclick="window.location.href = 'warning.html'"
-            >
-              <i class="fas fa-exclamation-triangle"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="Bulletin Footer"
-              onclick="window.location.href = 'bulletin_footer.html'"
-            >
-              <i class="fas fa-file-signature"></i>
-            </button>
-            <button
-              class="btn-secondary"
-              title="SYNOP Decoder"
-              onclick="window.location.href = 'synop.html'"
-            >
-              <i class="fas fa-code"></i>
-            </button>
+            <i class="fas fa-clipboard-list"></i>
+          </button>
+
+          <div
+            style="width: 1px; height: 30px; background: #ccc; margin: 0 5px"
+          ></div>
+
+          <button
+            id="bgChangeBtn"
+            class="btn-secondary"
+            title="Change Background Color"
+          >
+            <i class="fas fa-palette"></i>
+          </button>
+          <input
+            type="color"
+            id="bgColorInput"
+            style="display: none"
+            onchange="changeBodyBackground(this.value)"
+          />
+          <!-- New Animated Dark Mode Switch -->
+          <label class="theme-switch" title="Toggle Dark Mode">
+            <input
+              type="checkbox"
+              class="theme-switch__checkbox"
+              id="darkModeToggle"
+            />
+            <div class="theme-switch__container">
+              <div class="theme-switch__clouds"></div>
+              <div class="theme-switch__stars-container">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="100%"
+                  height="100%"
+                  fill="white"
+                >
+                  <circle cx="4" cy="4" r="1" />
+                  <circle cx="10" cy="10" r="1.5" />
+                  <circle cx="18" cy="5" r="1" />
+                  <circle cx="20" cy="15" r="1" />
+                  <circle cx="5" cy="18" r="1" />
+                </svg>
+              </div>
+              <div class="theme-switch__circle-container">
+                <div class="theme-switch__sun-moon-container">
+                  <div class="theme-switch__moon">
+                    <div class="theme-switch__spot"></div>
+                    <div class="theme-switch__spot"></div>
+                    <div class="theme-switch__spot"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </label>
+          <button
+            id="langToggle"
+            class="btn-secondary"
+            title="Switch Language (HI/EN)"
+          >
+            HI
+          </button>
+          <!-- User Logo / Sign In Trigger -->
+          <div class="user-profile-container">
+            <img
+              src="logo/logo.png"
+              id="userLogoBtn"
+              class="user-logo"
+              title="Click to Sign In / Menu"
+            />
+            <div id="userDropdown" class="user-dropdown">
+              <!-- Menu items injected by JS -->
+            </div>
           </div>
         </div>
-      </header>
 
+        <div
+          style="width: 90%; height: 1px; background: #e0e0e0; margin: 10px 0"
+        ></div>
+
+        <div
+          class="header-actions-secondary"
+          style="
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 5px;
+          "
+        >
+          <button
+            class="btn-secondary"
+            title="Generate_Weather_Bulletin"
+            onclick="window.location.href = 'Generate_Weather_Bulletin.html'"
+          >
+            <i class="fas fa-file-lines"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Observed Data"
+            onclick="window.location.href = 'max_min_rh.html'"
+          >
+            <i class="fas fa-table"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Weather Summary"
+            onclick="window.location.href = 'Weather_summary.html'"
+          >
+            <i class="fas fa-file-alt"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Detailed Forecast"
+            onclick="window.location.href = 'Detailed_Weather_Forecast.html'"
+          >
+            <i class="fas fa-list-alt"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Warning Table"
+            onclick="window.location.href = 'Weather_Warning_Table.html'"
+          >
+            <i class="fas fa-table"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Temperature Import"
+            onclick="window.location.href = 'bulk_import.html'"
+          >
+            <i class="fas fa-file-import"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Min/Max Temperature"
+            onclick="window.location.href = 'Temperature_Forecast.html'"
+          >
+            <i class="fas fa-temperature-high"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="7-Day Forecast"
+            onclick="window.location.href = 'forecast.html'"
+          >
+            <i class="fas fa-calendar-day"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="7-Day Warning"
+            onclick="window.location.href = 'warning.html'"
+          >
+            <i class="fas fa-exclamation-triangle"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="Bulletin Footer"
+            onclick="window.location.href = 'bulletin_footer.html'"
+          >
+            <i class="fas fa-file-signature"></i>
+          </button>
+          <button
+            class="btn-secondary"
+            title="SYNOP Decoder"
+            onclick="window.location.href = 'synop.html'"
+          >
+            <i class="fas fa-code"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
       <main>
         <!-- Map Container -->
         <div class="map-container">
@@ -542,27 +574,6 @@
           </div>
           <div class="map-controls">
             <div class="map-controls-left">
-              <button
-                id="toggleHeaderBtn"
-                class="btn-secondary small-btn"
-                style="
-                  font-weight: bold;
-                  display: flex;
-                  align-items: center;
-                  gap: 5px;
-                "
-                title="Toggle Header Visibility"
-              >
-                <i class="fas fa-eye-slash"></i> Hide Header
-              </button>
-              <div
-                style="
-                  width: 1px;
-                  height: 20px;
-                  background: #ccc;
-                  margin: 0 5px;
-                "
-              ></div>
               <label class="icon-toggle-label" title="Enable Zoom">
                 <input
                   type="checkbox"
@@ -883,6 +894,16 @@
                 padding-left: 15px;
               "
             >
+              <!-- Custom Toggle Switch for Header -->
+              <label class="switch" title="Show/Hide Header">
+                <input
+                  type="checkbox"
+                  class="chk"
+                  id="headerToggleSwitch"
+                  checked
+                />
+                <span class="slider"></span>
+              </label>
               <button
                 id="btnClearFW"
                 class="btn-secondary small-btn"
@@ -1348,7 +1369,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/districts.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/main.js?v=2.2"></script>
     <script>
       function toggleMapControls() {
         const tabs = document.querySelector(".day-tabs-container");
@@ -1374,22 +1395,37 @@
 
       // --- Header Toggle Logic ---
       const header = document.getElementById("topHeader");
-      const toggleBtn = document.getElementById("toggleHeaderBtn");
-      const mainContent = document.querySelector("main");
+      const toggleSwitch = document.getElementById("headerToggleSwitch");
 
-      toggleBtn.addEventListener("click", () => {
-        header.classList.toggle("hidden-header");
+      if (toggleSwitch && header) {
+        toggleSwitch.addEventListener("change", function () {
+          if (this.checked) {
+            // Checked = Green = Show Header
+            header.classList.remove("hidden-header");
+          } else {
+            // Unchecked = White/Grey = Hide Header
+            header.classList.add("hidden-header");
+          }
+        });
+      }
 
-        if (header.classList.contains("hidden-header")) {
-          toggleBtn.innerHTML = '<i class="fas fa-eye"></i> Show Header';
-          // Adjust padding when header is hidden to remove gap
-          mainContent.style.paddingTop = "5px";
-        } else {
-          toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Header';
-          // Restore original padding (defined in CSS)
-          mainContent.style.paddingTop = "170px";
-        }
-      });
+      // --- Word-Style Header Collapse Logic ---
+      const topHeader = document.getElementById("topHeader");
+      const headerToggleBtn = document.getElementById("headerToggleBtn");
+
+      if (headerToggleBtn && topHeader) {
+        headerToggleBtn.addEventListener("click", () => {
+          topHeader.classList.toggle("header-collapsed");
+
+          if (topHeader.classList.contains("header-collapsed")) {
+            headerToggleBtn.textContent = "▼";
+            headerToggleBtn.title = "Expand Header";
+          } else {
+            headerToggleBtn.textContent = "▲";
+            headerToggleBtn.title = "Collapse Header";
+          }
+        });
+      }
     </script>
   </body>
 </html>

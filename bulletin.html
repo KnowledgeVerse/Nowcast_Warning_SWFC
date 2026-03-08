@@ -79,19 +79,82 @@
         text-align: center;
         text-decoration: none;
         color: inherit;
-        transition:
-          transform 0.3s,
-          box-shadow 0.3s;
+        transition: all 0.4s ease;
         border: 1px solid #eee;
         display: flex;
         flex-direction: column;
         align-items: center;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
       }
+
+      /* --- New Hover Effect (Rotating Gradient Border) --- */
+      .card::before {
+        content: "";
+        position: absolute;
+        width: 150px; /* Beam width */
+        height: 200%; /* Ensure it covers diagonals */
+        background-image: linear-gradient(
+          180deg,
+          rgb(0, 183, 255),
+          rgb(255, 48, 255)
+        );
+        animation: rotBGimg 3s linear infinite;
+        top: 50%;
+        left: 50%;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: -2;
+      }
+
+      .card::after {
+        content: "";
+        position: absolute;
+        background: white;
+        inset: 0;
+        border-radius: 5px;
+        z-index: -1;
+        transition: inset 0.1s;
+      }
+
+      @keyframes rotBGimg {
+        from {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
+      }
+
+      /* Focus Hover Effect */
+      .grid:hover > .card:not(:hover) {
+        filter: blur(1px);
+        opacity: 0.85; /* Reduced transparency as requested */
+        transform: scale(0.95);
+      }
+
       .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        border-color: #667eea;
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        /* border-color: #667eea; Removed to let gradient show */
+        z-index: 10;
       }
+
+      .card:hover::before {
+        opacity: 1;
+      }
+
+      .card:hover::after {
+        inset: 3px; /* Reveal border */
+      }
+
+      /* Ensure content stays on top */
+      .card > * {
+        z-index: 2;
+        position: relative;
+      }
+
       .icon-box {
         width: 80px;
         height: 80px;
@@ -346,6 +409,243 @@
             0 0 0 0 rgba(0, 68, 148, 0);
         }
       }
+
+      /* From Uiverse.io by Nawsome - Generate Bulletin Button */
+      .special-card-layout {
+        display: flex;
+        flex-direction: column !important;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 0 !important;
+        text-align: center !important;
+        background: linear-gradient(to bottom, #2b3044 40%, #ffffff 40%);
+        overflow: hidden;
+        position: relative;
+      }
+
+      /* Fix background for Special Card in new hover system */
+      .special-card-layout::after {
+        background: linear-gradient(to bottom, #2b3044 40%, #ffffff 40%);
+      }
+
+      .special-card-layout .anim-layer {
+        --color: #fff;
+        --background: #404660;
+        --background-hover: #3a4059;
+        --background-left: #2b3044;
+        --folder: #f3e9cb;
+        --folder-inner: #beb393;
+        --paper: #ffffff;
+        --paper-lines: #bbc1e1;
+        --paper-behind: #e1e6f9;
+        --pencil-cap: #fff;
+        --pencil-top: #275efe;
+        --pencil-middle: #fff;
+        --pencil-bottom: #5c86ff;
+        --shadow: rgba(13, 15, 25, 0.2);
+        position: relative;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 500;
+        line-height: 19px;
+        -webkit-appearance: none;
+        -webkit-tap-highlight-color: transparent;
+        padding: 17px 29px 17px 69px;
+        transition: background 0.3s;
+        color: var(--color);
+        background: var(--bg, var(--background));
+        text-decoration: none;
+        width: 80px;
+        height: 80px;
+        margin-top: 30px;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+        background: #3e4c66; /* Lighter circle for contrast */
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        z-index: 2;
+      }
+
+      /* Animation Elements */
+      .special-card-layout .folder {
+        width: 30px;
+        height: 35px;
+        position: absolute;
+        overflow: hidden;
+        border-radius: 5px 0 0 5px;
+        background: var(--background-left);
+        left: 25px; /* Centering adjustment for 80px circle */
+        top: 23px; /* Centering adjustment for 80px circle */
+      }
+
+      .special-card-layout .folder .top {
+        left: 0;
+        top: 0;
+        z-index: 2;
+        position: absolute;
+        transform: translateX(var(--fx, 0));
+        transition: transform 0.4s ease var(--fd, 0.3s);
+      }
+
+      .special-card-layout .folder .top svg {
+        width: 24px;
+        height: 27px;
+        display: block;
+        fill: var(--folder);
+        transform-origin: 0 50%;
+        transition: transform 0.3s ease var(--fds, 0.45s);
+        transform: perspective(120px) rotateY(var(--fr, 0deg));
+      }
+
+      .special-card-layout .folder:before,
+      .special-card-layout .folder:after,
+      .special-card-layout .folder .paper {
+        content: "";
+        position: absolute;
+        left: var(--l, 0);
+        top: var(--t, 0);
+        width: var(--w, 100%);
+        height: var(--h, 100%);
+        border-radius: 1px;
+        background: var(--b, var(--folder-inner));
+      }
+
+      .special-card-layout .folder:before {
+        box-shadow:
+          0 1.5px 3px var(--shadow),
+          0 2.5px 5px var(--shadow),
+          0 3.5px 7px var(--shadow);
+        transform: translateX(var(--fx, 0));
+        transition: transform 0.4s ease var(--fd, 0.3s);
+      }
+
+      .special-card-layout .folder:after,
+      .special-card-layout .folder .paper {
+        --l: 1px;
+        --t: 1px;
+        --w: 21px;
+        --h: 25px;
+        --b: var(--paper-behind);
+      }
+
+      .special-card-layout .folder:after {
+        transform: translate(var(--pbx, 0), var(--pby, 0));
+        transition: transform 0.4s ease var(--pbd, 0s);
+      }
+
+      .special-card-layout .folder .paper {
+        z-index: 1;
+        --b: var(--paper);
+      }
+
+      .special-card-layout .folder .paper:before,
+      .special-card-layout .folder .paper:after {
+        content: "";
+        width: var(--wp, 14px);
+        height: 2px;
+        border-radius: 1px;
+        transform: scaleY(0.5);
+        left: 3px;
+        top: var(--tp, 3px);
+        position: absolute;
+        background: var(--paper-lines);
+        box-shadow:
+          0 12px 0 0 var(--paper-lines),
+          0 24px 0 0 var(--paper-lines);
+      }
+
+      .special-card-layout .folder .paper:after {
+        --tp: 6px;
+        --wp: 10px;
+      }
+
+      .special-card-layout .pencil {
+        height: 2px;
+        width: 3px;
+        border-radius: 1px 1px 0 0;
+        top: 8px;
+        left: 105%;
+        position: absolute;
+        z-index: 3;
+        transform-origin: 50% 19px;
+        background: var(--pencil-cap);
+        transform: translateX(var(--pex, 0)) rotate(35deg);
+        transition: transform 0.4s ease var(--pbd, 0s);
+      }
+
+      .special-card-layout .pencil:before,
+      .special-card-layout .pencil:after {
+        content: "";
+        position: absolute;
+        display: block;
+        background: var(
+          --b,
+          linear-gradient(
+            var(--pencil-top) 55%,
+            var(--pencil-middle) 55.1%,
+            var(--pencil-middle) 60%,
+            var(--pencil-bottom) 60.1%
+          )
+        );
+        width: var(--w, 5px);
+        height: var(--h, 20px);
+        border-radius: var(--br, 2px 2px 0 0);
+        top: var(--t, 2px);
+        left: var(--l, -1px);
+      }
+
+      .special-card-layout .pencil:before {
+        -webkit-clip-path: polygon(0 5%, 5px 5%, 5px 17px, 50% 20px, 0 17px);
+        clip-path: polygon(0 5%, 5px 5%, 5px 17px, 50% 20px, 0 17px);
+      }
+
+      .special-card-layout .pencil:after {
+        --b: none;
+        --w: 3px;
+        --h: 6px;
+        --br: 0 2px 1px 0;
+        --t: 3px;
+        --l: 3px;
+        border-top: 1px solid var(--pencil-top);
+        border-right: 1px solid var(--pencil-top);
+      }
+
+      .special-card-layout:hover .anim-layer:before,
+      .special-card-layout:hover .anim-layer:after {
+        content: "";
+        position: absolute;
+        width: 10px;
+        height: 2px;
+        border-radius: 1px;
+        background: var(--color);
+        transform-origin: 9px 1px;
+        transform: translateX(var(--cx, 0)) scale(0.5) rotate(var(--r, -45deg));
+        top: 26px;
+        right: 16px;
+        transition: transform 0.3s;
+      }
+
+      .special-card-layout:hover .anim-layer:after {
+        --r: 45deg;
+      }
+
+      .special-card-layout:hover {
+        --cx: 2px;
+        --bg: var(--background-hover);
+        --fx: -40px;
+        --fr: -60deg;
+        --fd: 0.15s;
+        --fds: 0s;
+        --pbx: 3px;
+        --pby: -3px;
+        --pbd: 0.15s;
+        --pex: -24px;
+      }
     </style>
   </head>
   <body>
@@ -454,12 +754,27 @@
       <!-- Primary Modules -->
       <div class="grid">
         <!-- 1. Generate_Bulletin -->
-        <a href="Generate_Weather_Bulletin.html" class="card">
-          <div class="icon-box icon-forecast" style="color: #6f42c1">
-            <i class="fas fa-file-lines"></i>
+        <a
+          href="Generate_Weather_Bulletin.html"
+          class="card special-card-layout"
+        >
+          <div class="anim-layer">
+            <div class="pencil"></div>
+            <div class="folder">
+              <div class="top">
+                <svg viewBox="0 0 24 27">
+                  <path
+                    d="M1,0 L23,0 C23.5522847,-1.01453063e-16 24,0.44771525 24,1 L24,8.17157288 C24,8.70200585 23.7892863,9.21071368 23.4142136,9.58578644 L20.5857864,12.4142136 C20.2107137,12.7892863 20,13.2979941 20,13.8284271 L20,26 C20,26.5522847 19.5522847,27 19,27 L1,27 C0.44771525,27 6.76353751e-17,26.5522847 0,26 L0,1 C-6.76353751e-17,0.44771525 0.44771525,1.01453063e-16 1,0 Z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="paper"></div>
+            </div>
           </div>
-          <h3>Generate_Bulletin</h3>
-          <p>Generate Official Header with Date & Time.</p>
+          <div style="flex: 1; padding: 0 20px 20px 20px; z-index: 2">
+            <h3>Generate_Bulletin</h3>
+            <p>Generate Official Header with Date & Time.</p>
+          </div>
         </a>
         <!-- 2. Observed Data -->
         <a href="max_min_rh.html" class="card">

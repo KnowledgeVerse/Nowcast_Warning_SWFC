@@ -583,7 +583,13 @@ function attachHandlers() {
   document.getElementById("exportText").onclick = exportToText;
   document.getElementById("exportPDF").onclick = exportToPDF;
   document.getElementById("copyClipboard").onclick = copyToClipboard;
-  document.getElementById("darkModeToggle").onclick = toggleDarkMode;
+
+  // Updated Dark Mode Handler for Checkbox
+  const darkModeToggle = document.getElementById("darkModeToggle");
+  if (darkModeToggle) {
+    darkModeToggle.addEventListener("change", toggleDarkMode);
+  }
+
   document.getElementById("langToggle").onclick = toggleLanguage;
   document.getElementById("backToTop").onclick = scrollToTop;
   document.getElementById("toggleFoothill").onchange = (e) => {
@@ -1979,14 +1985,20 @@ function copyToClipboard() {
     });
 }
 function toggleDarkMode() {
-  document.body.classList.toggle("dark-mode");
-  const isDark = document.body.classList.contains("dark-mode");
+  const toggle = document.getElementById("darkModeToggle");
+  // If called from event listener, use checked state, otherwise toggle class
+  let isDark;
+  if (toggle && toggle.type === "checkbox") {
+    isDark = toggle.checked;
+    if (isDark) document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
+  } else {
+    // Fallback for other pages using button
+    document.body.classList.toggle("dark-mode");
+    isDark = document.body.classList.contains("dark-mode");
+  }
+
   localStorage.setItem("darkMode", isDark);
-  const btn = document.getElementById("darkModeToggle");
-  btn.innerHTML = isDark
-    ? '<i class="fas fa-sun"></i>'
-    : '<i class="fas fa-moon"></i>';
-  btn.title = isDark ? "Light Mode" : "Dark Mode";
 }
 
 function toggleLanguage() {

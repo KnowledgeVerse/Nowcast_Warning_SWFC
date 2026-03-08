@@ -257,7 +257,30 @@ function initDisplay() {
              <button class="glass-btn small-btn icon-only" onclick="nextSlide()" title="Next"><i class="fas fa-chevron-right"></i></button>
 
              <div class="divider"></div>
-             <button class="glass-btn small-btn icon-only" onclick="toggleDarkMode()" id="btnDarkMode" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+             <label class="theme-switch" title="Toggle Dark Mode">
+                <input type="checkbox" class="theme-switch__checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+                <div class="theme-switch__container">
+                    <div class="theme-switch__clouds"></div>
+                    <div class="theme-switch__stars-container">
+                        <svg viewBox="0 0 24 24" width="100%" height="100%" fill="white">
+                            <circle cx="4" cy="4" r="1" />
+                            <circle cx="10" cy="10" r="1.5" />
+                            <circle cx="18" cy="5" r="1" />
+                            <circle cx="20" cy="15" r="1" />
+                            <circle cx="5" cy="18" r="1" />
+                        </svg>
+                    </div>
+                    <div class="theme-switch__circle-container">
+                        <div class="theme-switch__sun-moon-container">
+                            <div class="theme-switch__moon">
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
              <button class="glass-btn small-btn" onclick="toggleLanguage()" id="btnLang" title="Switch Language">${currentLang.toUpperCase()}</button>
 
              ${isAdmin ? `<div class="divider"></div>` + speedControlHtml : ""}
@@ -281,6 +304,10 @@ function initDisplay() {
 
   initMap();
   updateLanguageUI();
+  if (localStorage.getItem("darkMode") === "true") {
+    const toggle = document.getElementById("darkModeToggle");
+    if (toggle) toggle.checked = true;
+  }
 }
 
 function updateTime() {
@@ -821,14 +848,17 @@ window.loadFromGitHub = loadFromGitHub;
 window.toggleSound = toggleSound;
 
 function toggleDarkMode() {
-  document.body.classList.toggle("dark-mode");
-  const isDark = document.body.classList.contains("dark-mode");
+  const toggle = document.getElementById("darkModeToggle");
+  let isDark;
+  if (toggle && toggle.type === "checkbox") {
+    isDark = toggle.checked;
+    if (isDark) document.body.classList.add("dark-mode");
+    else document.body.classList.remove("dark-mode");
+  } else {
+    document.body.classList.toggle("dark-mode");
+    isDark = document.body.classList.contains("dark-mode");
+  }
   localStorage.setItem("darkMode", isDark);
-  const btn = document.getElementById("btnDarkMode");
-  if (btn)
-    btn.innerHTML = isDark
-      ? '<i class="fas fa-sun"></i>'
-      : '<i class="fas fa-moon"></i>';
 }
 window.toggleDarkMode = toggleDarkMode;
 
