@@ -372,30 +372,7 @@ function initLiveDisplay() {
             <button class="layer-btn" onclick="setLayer('hybrid')" id="btnHybrid">Hybrid</button>
             <button class="layer-btn" onclick="setLayer('clean')" id="btnClean">Clean</button>
             <button class="layer-btn" onclick="toggleRadar(this)" id="btnRadar" style="margin-left:5px; border-color:#e74c3c; color:#e74c3c;"><i class="fas fa-satellite-dish"></i> Radar</button>
-            <label class="theme-switch" title="Toggle Dark Mode">
-                <input type="checkbox" class="theme-switch__checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-                <div class="theme-switch__container">
-                    <div class="theme-switch__clouds"></div>
-                    <div class="theme-switch__stars-container">
-                        <svg viewBox="0 0 24 24" width="100%" height="100%" fill="white">
-                            <circle cx="4" cy="4" r="1" />
-                            <circle cx="10" cy="10" r="1.5" />
-                            <circle cx="18" cy="5" r="1" />
-                            <circle cx="20" cy="15" r="1" />
-                            <circle cx="5" cy="18" r="1" />
-                        </svg>
-                    </div>
-                    <div class="theme-switch__circle-container">
-                        <div class="theme-switch__sun-moon-container">
-                            <div class="theme-switch__moon">
-                                <div class="theme-switch__spot"></div>
-                                <div class="theme-switch__spot"></div>
-                                <div class="theme-switch__spot"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </label>
+            <button class="layer-btn" onclick="toggleDarkMode()" id="btnDarkMode" title="Dark Mode"><i class="fas fa-moon"></i></button>
             <label class="layer-btn" style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                 <input type="checkbox" id="toggleLiveZoom" onchange="toggleMapZoom(this.checked)">
                 Zoom
@@ -444,8 +421,8 @@ function initLiveDisplay() {
   updateLanguageUI();
 
   if (localStorage.getItem("darkMode") === "true") {
-    const toggle = document.getElementById("darkModeToggle");
-    if (toggle) toggle.checked = true;
+    const btn = document.getElementById("btnDarkMode");
+    if (btn) btn.innerHTML = '<i class="fas fa-sun"></i>';
   }
   if (localStorage.getItem("admin_logged_in") === "true") {
     const btn = document.getElementById("btnToggleDrag");
@@ -546,6 +523,10 @@ function initMap() {
     "data/Bihar_Districts_Shapefile/bihar",
     "Data/Bihar_Districts_Shapefile/Bihar",
     "Data/Bihar_Districts_Shapefile/bihar",
+    "data/bihar_districts_shapefile/bihar",
+    "data/bihar_districts_shapefile/Bihar",
+    "Data/bihar_districts_shapefile/bihar",
+    "Data/bihar_districts_shapefile/Bihar",
   ];
 
   const tryLoad = async () => {
@@ -1061,17 +1042,14 @@ function toggleSound() {
 window.toggleSound = toggleSound;
 
 function toggleDarkMode() {
-  const toggle = document.getElementById("darkModeToggle");
-  let isDark;
-  if (toggle && toggle.type === "checkbox") {
-    isDark = toggle.checked;
-    if (isDark) document.body.classList.add("dark-mode");
-    else document.body.classList.remove("dark-mode");
-  } else {
-    document.body.classList.toggle("dark-mode");
-    isDark = document.body.classList.contains("dark-mode");
-  }
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
   localStorage.setItem("darkMode", isDark);
+  const btn = document.getElementById("btnDarkMode");
+  if (btn)
+    btn.innerHTML = isDark
+      ? '<i class="fas fa-sun"></i>'
+      : '<i class="fas fa-moon"></i>';
 }
 window.toggleDarkMode = toggleDarkMode;
 

@@ -478,16 +478,27 @@ const phenomenonSvgs = {
 
 // ---------- Init ----------
 document.addEventListener("DOMContentLoaded", () => {
-  buildRegionalGrid();
-  buildMultipleDistrictGrid();
-  buildPhenomenaPanel();
-  buildColorSelectionDropdown();
-  attachHandlers();
+  try {
+    buildRegionalGrid();
+    buildMultipleDistrictGrid();
+    buildPhenomenaPanel();
+    buildColorSelectionDropdown();
+  } catch (e) {
+    console.error("Initialization error:", e);
+  }
+
+  try {
+    attachHandlers();
+  } catch (e) {
+    console.error("Handler attachment error:", e);
+  }
   if (localStorage.getItem("darkMode") === "true") {
     document.body.classList.add("dark-mode");
-    document.getElementById("darkModeToggle").innerHTML =
-      '<i class="fas fa-sun"></i>';
-    document.getElementById("darkModeToggle").title = "Light Mode";
+    const btn = document.getElementById("btnDarkMode");
+    if (btn) {
+      btn.innerHTML = '<i class="fas fa-sun"></i>';
+      btn.title = "Light Mode";
+    }
   }
   updateLanguageUI();
   initMap();
@@ -514,17 +525,21 @@ function buildRegionalGrid() {
   allLbl.innerHTML = `<input type="checkbox" value="ALL" onchange="handleRegionChange(this)"><span>ALL</span>`;
   box.appendChild(allLbl);
 
-  Object.entries(regionalGroups).forEach(([key, g]) => {
-    const lbl = document.createElement("label");
-    lbl.className = `regional-checkbox region-${key}`;
-    const text = currentLang === "hi" ? g.name : g.english;
-    lbl.innerHTML = `<input type="checkbox" value="${key}" onchange="handleRegionChange(this)"><span>${text}</span>`;
-    box.appendChild(lbl);
-  });
+  if (typeof regionalGroups !== "undefined") {
+    Object.entries(regionalGroups).forEach(([key, g]) => {
+      const lbl = document.createElement("label");
+      lbl.className = `regional-checkbox region-${key}`;
+      const text = currentLang === "hi" ? g.name : g.english;
+      lbl.innerHTML = `<input type="checkbox" value="${key}" onchange="handleRegionChange(this)"><span>${text}</span>`;
+      box.appendChild(lbl);
+    });
+  }
 }
 function buildMultipleDistrictGrid() {
   const grid = document.getElementById("districtGrid");
   grid.innerHTML = ""; // Clear existing content to prevent duplicates
+  if (typeof districtsData === "undefined") return;
+
   districtsData.forEach((d) => {
     const lbl = document.createElement("label");
     lbl.className = "district-checkbox";
@@ -583,12 +598,6 @@ function attachHandlers() {
   document.getElementById("exportText").onclick = exportToText;
   document.getElementById("exportPDF").onclick = exportToPDF;
   document.getElementById("copyClipboard").onclick = copyToClipboard;
-
-  // Updated Dark Mode Handler for Checkbox
-  const darkModeToggle = document.getElementById("darkModeToggle");
-  if (darkModeToggle) {
-    darkModeToggle.addEventListener("change", toggleDarkMode);
-  }
 
   document.getElementById("langToggle").onclick = toggleLanguage;
   document.getElementById("backToTop").onclick = scrollToTop;
@@ -1985,20 +1994,16 @@ function copyToClipboard() {
     });
 }
 function toggleDarkMode() {
-  const toggle = document.getElementById("darkModeToggle");
-  // If called from event listener, use checked state, otherwise toggle class
-  let isDark;
-  if (toggle && toggle.type === "checkbox") {
-    isDark = toggle.checked;
-    if (isDark) document.body.classList.add("dark-mode");
-    else document.body.classList.remove("dark-mode");
-  } else {
-    // Fallback for other pages using button
-    document.body.classList.toggle("dark-mode");
-    isDark = document.body.classList.contains("dark-mode");
-  }
-
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
   localStorage.setItem("darkMode", isDark);
+  const btn = document.getElementById("btnDarkMode");
+  if (btn) {
+    btn.innerHTML = isDark
+      ? '<i class="fas fa-sun"></i>'
+      : '<i class="fas fa-moon"></i>';
+    btn.title = isDark ? "Light Mode" : "Dark Mode";
+  }
 }
 
 function toggleLanguage() {
@@ -2058,10 +2063,12 @@ function updateLanguageUI() {
     .forEach((lbl) => {
       const input = lbl.querySelector("input");
       const key = input.value;
-      const group = regionalGroups[key];
-      const span = lbl.querySelector("span");
-      if (group && span) {
-        span.innerText = currentLang === "hi" ? group.name : group.english;
+      if (typeof regionalGroups !== "undefined") {
+        const group = regionalGroups[key];
+        const span = lbl.querySelector("span");
+        if (group && span) {
+          span.innerText = currentLang === "hi" ? group.name : group.english;
+        }
       }
     });
 
@@ -2071,10 +2078,12 @@ function updateLanguageUI() {
     .forEach((lbl) => {
       const input = lbl.querySelector("input");
       const id = parseInt(input.value);
-      const dist = districtsData.find((d) => d.id === id);
-      const span = lbl.querySelector("span");
-      if (dist && span) {
-        span.innerText = currentLang === "hi" ? dist.hindi : dist.name;
+      if (typeof districtsData !== "undefined") {
+        const dist = districtsData.find((d) => d.id === id);
+        const span = lbl.querySelector("span");
+        if (dist && span) {
+          span.innerText = currentLang === "hi" ? dist.hindi : dist.name;
+        }
       }
     });
 
@@ -2764,14 +2773,17 @@ function saveData() {
   localStorage.setItem("bihar_weather_data", JSON.stringify(payload));
 }
 
-function handleUserLogoClick() {
+function handleUserLogoClick(e) {
+  if (e) e.stopPropagation(); // Prevent window.onclick from immediately closing it
   const isLoggedIn = document.body.classList.contains("logged-in");
-  // Always toggle Dropdown
   const dropdown = document.getElementById("userDropdown");
-  dropdown.style.display =
-    dropdown.style.display === "block" ? "none" : "block";
-  renderUserMenu(isLoggedIn);
+  if (dropdown) {
+    dropdown.style.display =
+      dropdown.style.display === "block" ? "none" : "block";
+    renderUserMenu(isLoggedIn);
+  }
 }
+window.handleUserLogoClick = handleUserLogoClick;
 
 function closeLoginModal() {
   document.getElementById("loginModal").style.display = "none";
@@ -2795,6 +2807,7 @@ function submitLogin() {
     document.getElementById("loginError").style.display = "block";
   }
 }
+window.submitLogin = submitLogin;
 
 function performLogout() {
   document.body.classList.remove("logged-in");
@@ -2808,6 +2821,7 @@ function performLogout() {
   }
   alert("Logged Out Successfully.");
 }
+window.performLogout = performLogout;
 
 function renderUserMenu(isLoggedIn) {
   const dropdown = document.getElementById("userDropdown");
@@ -2834,6 +2848,8 @@ function showContact() {
   document.getElementById("userDropdown").style.display = "none";
   document.getElementById("contactModal").style.display = "flex";
 }
+window.showAbout = showAbout;
+window.showContact = showContact;
 
 function openLoginModal() {
   document.getElementById("userDropdown").style.display = "none";
@@ -2850,6 +2866,7 @@ function openLoginModal() {
     icon.classList.add("fa-eye");
   }
 }
+window.openLoginModal = openLoginModal;
 
 function togglePasswordVisibility() {
   const passInput = document.getElementById("loginPass");
@@ -2864,6 +2881,7 @@ function togglePasswordVisibility() {
     icon.classList.add("fa-eye");
   }
 }
+window.togglePasswordVisibility = togglePasswordVisibility;
 
 function shareApp() {
   if (navigator.share) {
@@ -2992,26 +3010,54 @@ function initMap() {
   // L.control.layers({ "Street View": tileLayer, "Satellite View": satelliteLayer }).addTo(map);
 
   // Load Shapefile (Bihar.shp and Bihar.dbf)
-  const basePath = "data/Bihar_Districts_Shapefile/Bihar";
+  const candidates = [
+    "data/Bihar_Districts_Shapefile/Bihar",
+    "data/Bihar_Districts_Shapefile/bihar",
+    "Data/Bihar_Districts_Shapefile/Bihar",
+    "Data/Bihar_Districts_Shapefile/bihar",
+    "data/bihar_districts_shapefile/bihar",
+    "data/bihar_districts_shapefile/Bihar",
+    "Data/bihar_districts_shapefile/bihar",
+    "Data/bihar_districts_shapefile/Bihar",
+  ];
 
-  Promise.all([
-    fetch(`${basePath}.shp`).then((r) => {
-      if (!r.ok) throw new Error("SHP file not found");
-      return r.arrayBuffer();
-    }),
-    fetch(`${basePath}.dbf`).then((r) => {
-      if (!r.ok) throw new Error("DBF file not found");
-      return r.arrayBuffer();
-    }),
-    fetch(`${basePath}.prj`).then((r) => {
-      if (!r.ok) {
-        console.warn("PRJ file not found. Map might not render correctly.");
-        return null;
-      }
-      return r.text();
-    }),
-  ])
-    .then(([shpBuffer, dbfBuffer, prjStr]) => {
+  // Parallel Load Function - Much Faster
+  const tryLoad = () => {
+    return new Promise((resolve, reject) => {
+      let failures = 0;
+      const total = candidates.length;
+
+      candidates.forEach((base) => {
+        fetch(base + ".shp")
+          .then((res) => {
+            if (!res.ok) throw new Error("SHP 404");
+            return res.arrayBuffer().then((shpBuffer) => ({ base, shpBuffer }));
+          })
+          .then(({ base, shpBuffer }) => {
+            const dbfPromise = fetch(base + ".dbf").then((r) =>
+              r.ok ? r.arrayBuffer() : Promise.reject("DBF 404"),
+            );
+            const prjPromise = fetch(base + ".prj").then((r) =>
+              r.ok ? r.text() : null,
+            );
+
+            return Promise.all([dbfPromise, prjPromise]).then(
+              ([dbfBuffer, prjStr]) => {
+                resolve({ shpBuffer, dbfBuffer, prjStr });
+              },
+            );
+          })
+          .catch(() => {
+            failures++;
+            if (failures === total)
+              reject(new Error("Shapefile not found in any candidate path."));
+          });
+      });
+    });
+  };
+
+  tryLoad()
+    .then(({ shpBuffer, dbfBuffer, prjStr }) => {
       if (!prjStr) {
         alert(
           "Warning: Bihar.prj file missing. Map projection may be incorrect.",
@@ -3028,7 +3074,9 @@ function initMap() {
         style: (feature) => {
           const oid = parseInt(feature.properties.OBJECTID);
           const isFoothill =
-            showFoothill && subRegionDistricts.fh.includes(oid);
+            showFoothill &&
+            typeof subRegionDistricts !== "undefined" &&
+            subRegionDistricts.fh.includes(oid);
           return {
             fillColor: getDistrictRegionColor(oid),
             weight: 2,
@@ -3290,7 +3338,9 @@ function updateMapStyle(skipMarkers = false) {
     } else {
       // Default style
       const isFoothill =
-        showFoothill && subRegionDistricts.fh.includes(parseInt(oid));
+        showFoothill &&
+        typeof subRegionDistricts !== "undefined" &&
+        subRegionDistricts.fh.includes(parseInt(oid));
       layer.setStyle({
         fillColor: getDistrictRegionColor(oid),
         fillOpacity: isFoothill ? 0.5 : 0.2,
@@ -3388,6 +3438,7 @@ function updateLegend() {
 
 function getDistrictRegionColor(id) {
   id = parseInt(id);
+  if (typeof subRegionDistricts === "undefined") return "#3388ff";
   // Colors for 6 sub-regions
   if (subRegionDistricts.nw.includes(id)) return "#00897b"; // North West (Teal)
   if (subRegionDistricts.nc.includes(id)) return "#1976d2"; // North Central (Blue)
@@ -3399,6 +3450,11 @@ function getDistrictRegionColor(id) {
 }
 
 function validateDistrictCoverage() {
+  if (
+    typeof districtsData === "undefined" ||
+    typeof regionalGroups === "undefined"
+  )
+    return;
   const allIds = districtsData.map((d) => d.id);
   const coveredIds = new Set();
 
@@ -3460,6 +3516,11 @@ function initVisitorCounter() {
 }
 
 function toggleMapRegion(regionCode, isChecked) {
+  if (
+    typeof subRegionDistricts === "undefined" ||
+    typeof regionalGroups === "undefined"
+  )
+    return;
   let districts = subRegionDistricts[regionCode];
 
   if (!districts && regionalGroups[regionCode]) {

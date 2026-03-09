@@ -111,30 +111,7 @@ function initRainDisplay() {
             <button class="layer-btn" onclick="setLayer('clean')" id="btnClean">Clean</button>
             <button class="layer-btn" onclick="document.getElementById('mapBgInput').click()" title="Change Map Background"><i class="fas fa-palette"></i></button>
             <input type="color" id="mapBgInput" style="display:none" onchange="updateMapBackground(this.value)">
-            <label class="theme-switch" title="Toggle Dark Mode">
-                <input type="checkbox" class="theme-switch__checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
-                <div class="theme-switch__container">
-                    <div class="theme-switch__clouds"></div>
-                    <div class="theme-switch__stars-container">
-                        <svg viewBox="0 0 24 24" width="100%" height="100%" fill="white">
-                            <circle cx="4" cy="4" r="1" />
-                            <circle cx="10" cy="10" r="1.5" />
-                            <circle cx="18" cy="5" r="1" />
-                            <circle cx="20" cy="15" r="1" />
-                            <circle cx="5" cy="18" r="1" />
-                        </svg>
-                    </div>
-                    <div class="theme-switch__circle-container">
-                        <div class="theme-switch__sun-moon-container">
-                            <div class="theme-switch__moon">
-                                <div class="theme-switch__spot"></div>
-                                <div class="theme-switch__spot"></div>
-                                <div class="theme-switch__spot"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </label>
+            <button class="layer-btn" onclick="toggleDarkMode()" id="btnDarkMode" title="Dark Mode"><i class="fas fa-moon"></i></button>
             <label class="layer-btn" style="display:flex; align-items:center; gap:5px; cursor:pointer;">
                 <input type="checkbox" id="toggleLiveZoom" onchange="toggleMapZoom(this.checked)">
                 Zoom
@@ -184,8 +161,8 @@ function initRainDisplay() {
   updateRainLegend();
   initDateSelectors();
   if (localStorage.getItem("darkMode") === "true") {
-    const toggle = document.getElementById("darkModeToggle");
-    if (toggle) toggle.checked = true;
+    const btn = document.getElementById("btnDarkMode");
+    if (btn) btn.innerHTML = '<i class="fas fa-sun"></i>';
   }
 }
 
@@ -208,7 +185,7 @@ function initMap() {
     { maxZoom: 18, attribution: "Tiles &copy; Esri" },
   );
   hybridLayer = L.tileLayer(
-    "http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}",
+    "https://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}",
     { attribution: "Google", maxZoom: 20 },
   );
 
@@ -251,16 +228,40 @@ function initMap() {
   updateDateOverlay();
 
   const basePath = "data/Bihar_Districts_Shapefile/Bihar";
-  Promise.all([
-    fetch(`${basePath}.shp`).then((r) =>
-      r.ok ? r.arrayBuffer() : Promise.reject("SHP not found"),
-    ),
-    fetch(`${basePath}.dbf`).then((r) =>
-      r.ok ? r.arrayBuffer() : Promise.reject("DBF not found"),
-    ),
-    fetch(`${basePath}.prj`).then((r) => (r.ok ? r.text() : null)),
-  ])
-    .then(([shpBuffer, dbfBuffer, prjStr]) => {
+  const candidates = [
+    "data/Bihar_Districts_Shapefile/Bihar",
+    "data/Bihar_Districts_Shapefile/bihar",
+    "Data/Bihar_Districts_Shapefile/Bihar",
+    "Data/Bihar_Districts_Shapefile/bihar",
+    "data/bihar_districts_shapefile/bihar",
+    "data/bihar_districts_shapefile/Bihar",
+    "Data/bihar_districts_shapefile/bihar",
+    "Data/bihar_districts_shapefile/Bihar",
+  ];
+
+  const tryLoad = async () => {
+    for (const base of candidates) {
+      try {
+        const shpRes = await fetch(base + ".shp");
+        if (shpRes.ok) {
+          const shpBuffer = await shpRes.arrayBuffer();
+          const dbfRes = await fetch(base + ".dbf");
+          if (!dbfRes.ok) continue;
+          const dbfBuffer = await dbfRes.arrayBuffer();
+          let prjStr = null;
+          try {
+            const prjRes = await fetch(base + ".prj");
+            if (prjRes.ok) prjStr = await prjRes.text();
+          } catch (e) {}
+          return { shpBuffer, dbfBuffer, prjStr };
+        }
+      } catch (e) {}
+    }
+    throw new Error("Shapefile not found in any candidate path.");
+  };
+
+  tryLoad()
+    .then(({ shpBuffer, dbfBuffer, prjStr }) => {
       const geojson = shp.combine([
         shp.parseShp(shpBuffer, prjStr || undefined),
         shp.parseDbf(dbfBuffer),
@@ -1016,17 +1017,14 @@ function setLayer(type) {
 }
 window.setLayer = setLayer;
 function toggleDarkMode() {
-  const toggle = document.getElementById("darkModeToggle");
-  let isDark;
-  if (toggle && toggle.type === "checkbox") {
-    isDark = toggle.checked;
-    if (isDark) document.body.classList.add("dark-mode");
-    else document.body.classList.remove("dark-mode");
-  } else {
-    document.body.classList.toggle("dark-mode");
-    isDark = document.body.classList.contains("dark-mode");
-  }
+  document.body.classList.toggle("dark-mode");
+  const isDark = document.body.classList.contains("dark-mode");
   localStorage.setItem("darkMode", isDark);
+  const btn = document.getElementById("btnDarkMode");
+  if (btn)
+    btn.innerHTML = isDark
+      ? '<i class="fas fa-sun"></i>'
+      : '<i class="fas fa-moon"></i>';
 }
 window.toggleDarkMode = toggleDarkMode;
 function toggleLanguage() {
