@@ -737,6 +737,18 @@
               >
                 <i class="fas fa-compress-arrows-alt"></i> Fit Map
               </button>
+              <label
+                class="icon-toggle-label"
+                title="Clear District Backgrounds (White for Forecast, Green for Warning)"
+              >
+                <input
+                  type="checkbox"
+                  id="toggleCleanFill"
+                  checked
+                  onchange="toggleCleanFill(this.checked)"
+                />
+                <i class="fas fa-fill-drip"></i> SET BG
+              </label>
               <button id="clearMapSelection" class="btn-secondary small-btn">
                 Clear All
               </button>

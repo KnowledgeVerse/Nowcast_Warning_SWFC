@@ -261,6 +261,7 @@ let selectedDistricts = [],
   currentDistribution = 0,
   currentWarning = 0,
   currentColor = null;
+let isCleanFill = true; // Default enabled as per request
 
 let isLayoutEditMode = false;
 let mapEffectConfig = {
@@ -3313,42 +3314,47 @@ function updateMapStyle(skipMarkers = false) {
       }
     }
 
+    // --- Styling Logic ---
+    const isFoothill =
+      showFoothill &&
+      typeof subRegionDistricts !== "undefined" &&
+      subRegionDistricts.fh.includes(parseInt(oid));
+    let style = {
+      color: "#333",
+      weight: 2,
+      dashArray: isFoothill ? "5, 5" : "",
+    };
+
+    // Logic to determine fill color
     if (
       showWeatherData &&
       distData &&
       (distData.phenomena.size > 0 || distData.color)
     ) {
-      // Use stored color if available, else fallback to phenom color
-      layer.setStyle({
-        fillColor: distData.color || phenomColor || "#667eea",
-        fillOpacity: 0.8,
-        color: "#333",
-        weight: 2,
-        dashArray: "",
-      });
+      // User Data (Phenomena or Color)
+      style.fillColor = distData.color || phenomColor || "#667eea";
+      style.fillOpacity = 0.8;
     } else if (selectedDistricts.includes(oid)) {
-      // Highlight selected
-      layer.setStyle({
-        fillColor: "#667eea",
-        fillOpacity: 0.6,
-        color: "#2c3e50",
-        weight: 2,
-        dashArray: "",
-      });
+      // Selection Highlight
+      style.fillColor = "#667eea";
+      style.fillOpacity = 0.6;
+      style.color = "#2c3e50";
     } else {
-      // Default style
-      const isFoothill =
-        showFoothill &&
-        typeof subRegionDistricts !== "undefined" &&
-        subRegionDistricts.fh.includes(parseInt(oid));
-      layer.setStyle({
-        fillColor: getDistrictRegionColor(oid),
-        fillOpacity: isFoothill ? 0.5 : 0.2,
-        color: "#333", // Dark border
-        weight: 2,
-        dashArray: isFoothill ? "5, 5" : "",
-      });
+      // Default Background
+      if (isCleanFill) {
+        if (weeklyData === weeklyWarningData) {
+          style.fillColor = "rgb(0, 153, 0)"; // Green for Warning
+          style.fillOpacity = 1.0;
+        } else {
+          style.fillColor = "#ffffff"; // White for Forecast
+          style.fillOpacity = 1.0;
+        }
+      } else {
+        style.fillColor = getDistrictRegionColor(oid);
+        style.fillOpacity = isFoothill ? 0.5 : 0.2;
+      }
     }
+    layer.setStyle(style);
   });
 }
 
@@ -3435,6 +3441,12 @@ function updateLegend() {
     legendDiv.innerHTML = "<em>No items selected</em>";
   }
 }
+
+function toggleCleanFill(checked) {
+  isCleanFill = checked;
+  updateMapStyle();
+}
+window.toggleCleanFill = toggleCleanFill;
 
 function getDistrictRegionColor(id) {
   id = parseInt(id);
