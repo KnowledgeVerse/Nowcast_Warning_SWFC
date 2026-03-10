@@ -727,22 +727,17 @@ function render() {
   // Update Header
   updateSlideHeader(slide);
 
-  districtPhenomenaMap = {};
+  districtPhenomenaMap = dayData || {};
   let dayPhenomena = new Set();
 
   if (dayData) {
-    for (const [id, list] of Object.entries(dayData)) {
-      const phenomenaList = Array.isArray(list) ? list : list.phenomena || [];
-      const color = Array.isArray(list) ? null : list.color;
-
-      districtPhenomenaMap[id] = {
-        phenomena: new Set(phenomenaList),
-        color: color,
-      };
-      phenomenaList.forEach((p) => dayPhenomena.add(p));
+    for (const [id, data] of Object.entries(dayData)) {
+      if (data.phenomena) {
+        data.phenomena.forEach((p) => dayPhenomena.add(p));
+      }
     }
   }
-  updateMapStyle();
+  updateMapStyle(slide.type);
   playWeatherSound(dayPhenomena);
   updateLegend(dayPhenomena, slide.type);
   applyMapEffect();
@@ -808,7 +803,7 @@ function updateSlideHeader(slide) {
   }
 }
 
-function updateMapStyle() {
+function updateMapStyle(slideType) {
   if (!geojsonLayer) return;
   phenomenaMarkersLayer.clearLayers();
 
@@ -852,17 +847,30 @@ function updateMapStyle() {
 
     const isFoothill =
       showFoothill && subRegionDistricts.fh.includes(parseInt(oid));
-    layer.setStyle({
-      fillColor:
-        (distData && distData.color) ||
-        phenomColor ||
-        getDistrictRegionColor(oid),
-      fillOpacity:
-        distData && (distData.color || distData.phenomena.size > 0) ? 0.8 : 0.2,
+
+    let style = {
       color: "#333",
       weight: 2,
-      dashArray: !phenomColor && !distData?.color && isFoothill ? "5, 5" : "",
-    });
+      dashArray: isFoothill ? "5, 5" : "",
+    };
+
+    if (
+      distData &&
+      (distData.color || (distData.phenomena && distData.phenomena.size > 0))
+    ) {
+      style.fillColor = distData.color || phenomColor || "#667eea";
+      style.fillOpacity = 0.8;
+    } else {
+      // Default solid background
+      if (slideType === "warning") {
+        style.fillColor = "rgb(0, 153, 0)";
+        style.fillOpacity = 1.0;
+      } else {
+        style.fillColor = "#ffffff";
+        style.fillOpacity = 1.0;
+      }
+    }
+    layer.setStyle(style);
   });
 }
 

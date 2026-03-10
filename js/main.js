@@ -3442,12 +3442,6 @@ function updateLegend() {
   }
 }
 
-function toggleCleanFill(checked) {
-  isCleanFill = checked;
-  updateMapStyle();
-}
-window.toggleCleanFill = toggleCleanFill;
-
 function getDistrictRegionColor(id) {
   id = parseInt(id);
   if (typeof subRegionDistricts === "undefined") return "#3388ff";

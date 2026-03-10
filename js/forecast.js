@@ -676,9 +676,7 @@ function addGeoJsonToMap(map, geojson, index) {
     style: (feature) => {
       const oid = String(feature.properties.OBJECTID);
       const distData = dayData[oid];
-      let fillColor = "#ffffff",
-        fillOpacity = 0.2,
-        phenomColor = null;
+      let phenomColor = null;
 
       // Check for phenomena
       if (distData && distData.phenomena && distData.phenomena.length > 0) {
@@ -689,27 +687,20 @@ function addGeoJsonToMap(map, geojson, index) {
         }
       }
 
-      if (distData && distData.color) {
-        fillColor = distData.color;
-        fillOpacity = 0.6;
-      } else if (distData && distData.distribution !== undefined) {
-        // Fallback: Use distribution if color is missing
-        const dColors = {
-          4: "rgb(0, 102, 255)", // WS
-          3: "rgb(51, 204, 255)", // FWS
-          2: "rgb(0, 153, 0)", // SCT
-          1: "rgb(51, 204, 51)", // ISOL
-          0: "transparent", // DRY
-        };
-        if (dColors[distData.distribution])
-          fillColor = dColors[distData.distribution];
-        fillOpacity = 0.6;
-      } else if (phenomColor) {
-        fillColor = phenomColor;
-        fillOpacity = 0.6;
+      let fillColor, fillOpacity;
+
+      if (
+        distData &&
+        (distData.color ||
+          (distData.phenomena && distData.phenomena.length > 0))
+      ) {
+        // Data exists, use its color
+        fillColor = distData.color || phenomColor || "#667eea";
+        fillOpacity = 0.8;
       } else {
-        fillColor = getDistrictRegionColor(oid);
-        fillOpacity = 0.1;
+        // No data, use solid white
+        fillColor = "#ffffff";
+        fillOpacity = 1.0;
       }
       return {
         fillColor: fillColor,
