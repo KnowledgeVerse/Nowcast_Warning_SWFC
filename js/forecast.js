@@ -696,7 +696,7 @@ function addGeoJsonToMap(map, geojson, index) {
       ) {
         // Data exists, use its color
         fillColor = distData.color || phenomColor || "#667eea";
-        fillOpacity = 0.8;
+        fillOpacity = 1.0;
       } else {
         // No data, use solid white
         fillColor = "#ffffff";

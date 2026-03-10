@@ -3333,7 +3333,7 @@ function updateMapStyle(skipMarkers = false) {
     ) {
       // User Data (Phenomena or Color)
       style.fillColor = distData.color || phenomColor || "#667eea";
-      style.fillOpacity = 0.8;
+      style.fillOpacity = 1.0;
     } else if (selectedDistricts.includes(oid)) {
       // Selection Highlight
       style.fillColor = "#667eea";
@@ -4023,30 +4023,25 @@ function applyMapEffect() {
   }
 }
 
-function toggleCleanMap(checked) {
-  if (checked) {
-    if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
-    if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
-    if (map.hasLayer(hybridLayer)) map.removeLayer(hybridLayer);
-  } else {
-    const sel = document.getElementById("mapLayerSelect");
-    const val = sel ? sel.value : "street";
-    changeMapLayer(val);
-  }
-}
-window.toggleCleanMap = toggleCleanMap;
-
 function changeMapLayer(type) {
   if (map.hasLayer(tileLayer)) map.removeLayer(tileLayer);
   if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
   if (map.hasLayer(hybridLayer)) map.removeLayer(hybridLayer);
 
-  if (type === "street") map.addLayer(tileLayer);
-  else if (type === "satellite") map.addLayer(satelliteLayer);
-  else if (type === "hybrid") map.addLayer(hybridLayer);
+  const mapDiv = document.getElementById("map");
 
-  const cleanToggle = document.getElementById("toggleCleanMap");
-  if (cleanToggle && cleanToggle.checked) cleanToggle.checked = false;
+  if (type === "street") {
+    map.addLayer(tileLayer);
+    if (mapDiv) mapDiv.style.background = ""; // Reset to CSS default
+  } else if (type === "satellite") {
+    map.addLayer(satelliteLayer);
+    if (mapDiv) mapDiv.style.background = ""; // Reset to CSS default
+  } else if (type === "hybrid") {
+    map.addLayer(hybridLayer);
+    if (mapDiv) mapDiv.style.background = ""; // Reset to CSS default
+  } else if (type === "clean") {
+    if (mapDiv) mapDiv.style.background = "#f0f0f0"; // Light gray
+  }
 }
 window.changeMapLayer = changeMapLayer;
 

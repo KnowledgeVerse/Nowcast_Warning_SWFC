@@ -859,7 +859,7 @@ function updateMapStyle(slideType) {
       (distData.color || (distData.phenomena && distData.phenomena.size > 0))
     ) {
       style.fillColor = distData.color || phenomColor || "#667eea";
-      style.fillOpacity = 0.8;
+      style.fillOpacity = 1.0;
     } else {
       // Default solid background
       if (slideType === "warning") {
