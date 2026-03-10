@@ -1166,9 +1166,9 @@ Or paste table..."
           section4: [
             {
               type: "wind",
-              heading: "अधिकतम हवा का बहाव (Maximum Wind Speed)",
+              heading: "हवा का बहाव :",
               content:
-                " राज्य के {area} जिले में {speed} किलोमीटर/घंटा तक की हवा दर्ज की गई।",
+                "राज्य के {area} जिले में \"{direction}\" में {speed} तक की तेज हवाएं दर्ज की गई।",
             },
           ],
           section7: {
@@ -1184,9 +1184,9 @@ Or paste table..."
           section4: [
             {
               type: "wind",
-              heading: "अधिकतम हवा का बहाव",
+              heading: "हवा का बहाव :",
               content:
-                " राज्य के {area} जिले में {speed} किलोमीटर/घंटा तक की हवा दर्ज की गई।",
+                "राज्य के {area} जिले में \"{direction}\" में {speed} तक की तेज हवाएं दर्ज की गई।",
             },
             {
               type: "heavy_rain",
@@ -1403,9 +1403,9 @@ Or paste table..."
         let content = "";
 
         if (type === "wind") {
-          heading = "अधिकतम हवा का बहाव";
+          heading = "हवा का बहाव :";
           content =
-            " राज्य के {area} जिले में {speed} किलोमीटर/घंटा तक की हवा दर्ज की गई।";
+            "राज्य के {area} जिले में \"{direction}\" में {speed} तक की तेज हवाएं दर्ज की गई।";
         } else if (type === "fog") {
           heading = "कोहरा (Fog)";
           content = "राज्य के __ जिलों में घना कोहरा छाया रहा।";
@@ -1440,10 +1440,33 @@ Or paste table..."
 
         let extraInputs = "";
         if (type === "wind") {
-          extraInputs = `<div style="margin: 5px 0;">
-                  <label>Wind Speed (km/h):</label>
-                  <input type="text" class="s4-wind-speed" placeholder="e.g. 30-40" style="width: 100%;">
-              </div>`;
+          const windDirs = [
+            { code: "N", name: "उत्तर" }, { code: "NNE", name: "उत्तर-उत्तर-पूर्व" },
+            { code: "NE", name: "उत्तर-पूर्व" }, { code: "ENE", name: "पूर्व-उत्तर-पूर्व" },
+            { code: "E", name: "पूर्व" }, { code: "ESE", name: "पूर्व-दक्षिण-पूर्व" },
+            { code: "SE", name: "दक्षिण-पूर्व" }, { code: "SSE", name: "दक्षिण-दक्षिण-पूर्व" },
+            { code: "S", name: "दक्षिण" }, { code: "SSW", name: "दक्षिण-दक्षिण-पश्चिम" },
+            { code: "SW", name: "दक्षिण-पश्चिम" }, { code: "WSW", name: "पश्चिम-दक्षिण-पश्चिम" },
+            { code: "W", name: "पश्चिम" }, { code: "WNW", name: "पश्चिम-उत्तर-पश्चिम" },
+            { code: "NW", name: "उत्तर-पश्चिम" }, { code: "NNW", name: "उत्तर-उत्तर-पश्चिम" }
+          ];
+          let dirOptions = '<option value="">-- Select Direction --</option>';
+          windDirs.forEach(d => { dirOptions += `<option value="${d.name}">${d.code} – ${d.name}</option>`; });
+
+          extraInputs = `<div style="margin: 5px 0; border:1px solid #eee; padding:10px; background:#f9f9f9; border-radius:4px;">
+                <label>Wind Direction:</label>
+                <select class="s4-wind-dir" style="width:100%; margin-bottom:10px;">${dirOptions}</select>
+                
+                <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div style="flex:1;"><label>Speed (km/h):</label><input type="number" class="s4-wind-kmh" placeholder="km/h" oninput="convertWindSpeed(this, 'kmh')" style="width:100%;"></div>
+                    <div style="flex:1;"><label>Speed (knots):</label><input type="number" class="s4-wind-knots-val" placeholder="knots" oninput="convertWindSpeed(this, 'knots')" style="width:100%;"></div>
+                </div>
+
+                <div style="display:flex; gap:15px;">
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="s4-chk-kmh" checked> km/h</label>
+                    <label style="font-weight:normal; display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="s4-chk-knots"> knots</label>
+                </div>
+            </div>`;
         }
         if (type === "visibility") {
           extraInputs = `<div style="margin: 5px 0;">
@@ -1471,6 +1494,25 @@ Or paste table..."
               <div class="s4-content" contenteditable="true" style="border:1px solid #ccc; padding:5px; min-height:40px;">${content}</div>
           `;
         container.appendChild(div);
+      }
+
+      function convertWindSpeed(input, type) {
+        const parent = input.closest('.dynamic-section');
+        const kmhInput = parent.querySelector('.s4-wind-kmh');
+        const knotsInput = parent.querySelector('.s4-wind-knots-val');
+        
+        let val = parseFloat(input.value);
+        if (isNaN(val)) {
+            if (type === 'kmh') knotsInput.value = '';
+            else kmhInput.value = '';
+            return;
+        }
+
+        if (type === 'kmh') {
+            knotsInput.value = Math.round(val * 0.539957);
+        } else {
+            kmhInput.value = Math.round(val * 1.852);
+        }
       }
 
       // --- District + Sector Selector Component ---
@@ -1991,17 +2033,24 @@ Or paste table..."
             let finalContent = content;
 
             if (type === "wind") {
-              const speedVal = block.querySelector(".s4-wind-speed").value;
-              const speedBold = speedVal ? `<b>${speedVal}</b>` : "<b>__</b>";
-
-              finalContent = finalContent
+              const dirSelect = block.querySelector(".s4-wind-dir");
+              const direction = dirSelect ? dirSelect.value : "";
+              
+              const kmhVal = block.querySelector(".s4-wind-kmh").value;
+              const knotsVal = block.querySelector(".s4-wind-knots-val").value;
+              
+              const showKmh = block.querySelector(".s4-chk-kmh").checked;
+              const showKnots = block.querySelector(".s4-chk-knots").checked;
+              
+              let speedString = "___";
+              if (showKmh && showKnots && kmhVal && knotsVal) speedString = `${kmhVal} किलोमीटर/घंटा या ${knotsVal} नॉट`;
+              else if (showKmh && kmhVal) speedString = `${kmhVal} किलोमीटर/घंटा`;
+              else if (showKnots && knotsVal) speedString = `${knotsVal} नॉट`;
+              
+              finalContent = content
                 .replace("{area}", areaBold)
-                .replace("{speed}", speedBold);
-              // Fallback for old template style if user didn't update
-              if (finalContent.includes("__"))
-                finalContent = finalContent
-                  .replace("__", areaBold)
-                  .replace("__", speedBold);
+                .replace("{direction}", direction || "___")
+                .replace("{speed}", speedString);
             } else if (type === "visibility") {
               const visVal = block.querySelector(".s4-vis-val").value;
               const visBold = visVal ? `<b>${visVal}</b>` : "<b>__</b>";
