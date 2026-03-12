@@ -429,7 +429,7 @@ function getFeatureStyle(oid, dayIndex) {
   const distData = dataArr[dayIndex] ? dataArr[dayIndex][oid] : null;
 
   let fillColor = getDistrictRegionColor(oid); // Default to region color
-  let fillOpacity = 0.2;
+  let fillOpacity = 0.01;
 
   if (distData && distData.val !== undefined) {
     fillColor = getTempColor(distData.val, currentTab);

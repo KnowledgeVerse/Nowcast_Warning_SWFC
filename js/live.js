@@ -1,7 +1,7 @@
 // Configuration Data
 const phenColors = {
   dry: "#ffffff",
-  heavyrain: "#007bff",
+  rain: "#007bff",
   heatwave: "#fd7e14",
   warmnight: "#e83e8c",
   coldwave: "#00bcd4",
@@ -27,8 +27,8 @@ const phenDefs = [
     image: "assets/weather-icons/dry.png",
   },
   {
-    id: "heavyrain",
-    hindi: "भारी वर्षा",
+    id: "rain",
+    hindi: "वर्षा",
     english: "Heavy Rainfall",
     icon: "fa-cloud-showers-heavy",
     image: "assets/weather-icons/heavyrain.png",
@@ -138,7 +138,7 @@ const weatherSounds = {
   gustywind: "assets/audio/gustywind.mp3",
   heatwave: "assets/audio/heatwave.mp3",
   hailstorm: "assets/audio/hailstorm.mp3",
-  heavyrain: "assets/audio/heavyrain.mp3",
+  rain: "assets/audio/heavyrain.mp3",
   densefog: "assets/audio/densefog.mp3",
   coldday: "assets/audio/coldday.mp3",
   warmnight: "assets/audio/warmnight.mp3",
@@ -1086,7 +1086,7 @@ function playWeatherSound(dayPhenomena) {
   const priorities = [
     "thunderstorm",
     "hailstorm",
-    "heavyrain",
+    "rain",
     "gustywind",
     "heatwave",
     "densefog",
@@ -1412,7 +1412,7 @@ function applyMapEffect() {
 
   const effect = mapEffectConfig.manualEffect;
 
-  if (effect === "thunderstorm" || effect === "heavyrain") {
+  if (effect === "thunderstorm" || effect === "rain") {
     if (canvas) canvas.classList.add("active");
     animateRain();
   }

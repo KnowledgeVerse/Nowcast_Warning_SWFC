@@ -1,7 +1,7 @@
 // Configuration
 const phenColors = {
   dry: "#ffffff",
-  heavyrain: "#007bff",
+  rain: "#007bff",
   heatwave: "#fd7e14",
   warmnight: "#e83e8c",
   coldwave: "#00bcd4",
@@ -26,9 +26,9 @@ const phenDefs = [
     image: "assets/weather-icons/dry.png",
   },
   {
-    id: "heavyrain",
-    hindi: "भारी वर्षा",
-    english: "Heavy Rainfall",
+    id: "rain",
+    hindi: "वर्षा",
+    english: "Rainfall",
     image: "assets/weather-icons/heavyrain.png",
   },
   {

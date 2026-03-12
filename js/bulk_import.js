@@ -3,7 +3,7 @@
 // Configuration for Parsing (Keywords to identify phenomena from text)
 const phenDefs = [
   { id: "dry", keywords: ["dry", "shu", "clear", "शुष्क"] },
-  { id: "heavyrain", keywords: ["heavy", "rain", "bhari", "varsha", "भारी"] },
+  { id: "rain", keywords: ["rain", "bhari", "varsha", "भारी"] },
   { id: "heatwave", keywords: ["heat", "wave", "loo", "ushn", "लू"] },
   { id: "warmnight", keywords: ["warm", "night", "garm", "गर्म"] },
   { id: "coldwave", keywords: ["cold", "wave", "sheet", "lahar", "शीत"] },
@@ -26,7 +26,7 @@ const phenDefs = [
 // Configuration for Colors (Must match main.js)
 const phenColors = {
   dry: "#ffffff",
-  heavyrain: "#007bff",
+  rain: "#007bff",
   heatwave: "#fd7e14",
   warmnight: "#e83e8c",
   coldwave: "#00bcd4",

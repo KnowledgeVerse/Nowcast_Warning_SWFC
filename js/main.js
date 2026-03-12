@@ -1,10 +1,10 @@
 // ---------- Intensity lines (Scripts.xlsx order) ----------
 const intensityLines = {
   dry: ["मौसम शुष्क रहने की संभावना है।"],
-  heavyrain: [
+  rain: [
+    "सामान्य या हल्की बारिश होने की संभावना है।",
     "भारी वर्षा होने की संभावना है।",
-    "बहुत भारी वर्षा होने की संभावना है।",
-    "अत्यधिक भारी वर्षा होने की संभावना है।",
+    "अत्यंत भारी वर्षा होने की संभावना है।",
   ],
   heatwave: [
     "लू (उष्ण लहर) की संभावना है।",
@@ -60,10 +60,10 @@ const intensityLines = {
 
 const intensityLinesEn = {
   dry: ["Weather likely to remain dry."],
-  heavyrain: [
-    "Heavy rainfall likely.",
-    "Very heavy rainfall likely.",
-    "Extremely heavy rainfall likely.",
+  rain: [
+    "Light to moderate rain likely.",
+    "Heavy rain likely.",
+    "Extremely heavy rain likely.",
   ],
   heatwave: ["Heat wave likely.", "Severe heat wave likely."],
   warmnight: ["Warm night likely.", "Severe warm night likely."],
@@ -114,7 +114,7 @@ const intensityLinesEn = {
 // ---------- Phenomena colour-map ----------
 const phenColors = {
   dry: "#ffffff", // White
-  heavyrain: "#007bff", // Blue
+  rain: "#007bff", // Blue
   heatwave: "#fd7e14", // Orange
   warmnight: "#e83e8c", // Pink
   coldwave: "#00bcd4", // Cyan
@@ -137,7 +137,7 @@ const weatherSounds = {
   gustywind: "assets/audio/gustywind.mp3",
   heatwave: "assets/audio/heatwave.mp3",
   hailstorm: "assets/audio/hailstorm.mp3",
-  heavyrain: "assets/audio/heavyrain.mp3",
+  rain: "assets/audio/heavyrain.mp3",
   densefog: "assets/audio/densefog.mp3",
   coldday: "assets/audio/coldday.mp3",
   warmnight: "assets/audio/warmnight.mp3",
@@ -348,9 +348,9 @@ const phenDefs = [
     image: "assets/weather-icons/dry.png",
   },
   {
-    id: "heavyrain",
-    hindi: "भारी वर्षा",
-    english: "Heavy Rainfall",
+    id: "rain",
+    hindi: "वर्षा",
+    english: "Rainfall",
     icon: "fa-cloud-showers-heavy",
     image: "assets/weather-icons/heavyrain.png",
   },
@@ -466,8 +466,7 @@ const phenomenonSvgs = {
     '<svg viewBox="0 0 384 512" fill="currentColor" width="1em" height="1em"><path d="M192 0C139 0 96 43 96 96V256c0 11.8-1.3 23.4-3.9 34.6C60.9 308.6 32 348.2 32 392c0 66.3 53.7 120 120 120s120-53.7 120-120c0-43.8-28.9-83.4-60.1-101.4-2.6-11.2-3.9-22.8-3.9-34.6V96c0-53-43-96-96-96zM64 96c0-70.7 57.3-128 128-128s128 57.3 128 128v160c0 17.7 14.3 32 32 32s32-14.3 32-32V96C384 43 341 0 288 0H96C43 0 0 43 0 96v160c0 17.7 14.3 32 32 32s32-14.3 32-32V96z"/></svg>', // Thermometer approx
   hailstorm:
     '<svg viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M144 208c-44.2 0-80 35.8-80 80s35.8 80 80 80 80-35.8 80-80-35.8-80-80-80zm256-32c-61.9 0-112 50.1-112 112s50.1 112 112 112 112-50.1 112-112-50.1-112-112-112zM256 32C114.6 32 0 146.6 0 288c0 92.6 49.3 174.2 123.2 219.8 8.1 5 18.7 2.5 23.7-5.6 5-8.1 2.5-18.7-5.6-23.7C79.2 439.6 32 368.5 32 288c0-123.7 100.3-224 224-224s224 100.3 224 224c0 80.5-47.2 151.6-109.3 190.5-8.1 5-10.6 15.6-5.6 23.7 5 8.1 15.6 10.6 23.7 5.6C462.7 462.2 512 380.6 512 288 512 146.6 397.4 32 256 32z"/></svg>', // Cloud/Dots approx
-  heavyrain:
-    '<svg viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M96 320c-53 0-96-43-96-96s43-96 96-96h16c0-70.7 57.3-128 128-128s128 57.3 128 128h16c53 0 96 43 96 96s-43 96-96 96H96zm32 64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm128 0c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm128 0c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>',
+  rain: '<svg viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M96 320c-53 0-96-43-96-96s43-96 96-96h16c0-70.7 57.3-128 128-128s128 57.3 128 128h16c53 0 96 43 96 96s-43 96-96 96H96zm32 64c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm128 0c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32zm128 0c-17.7 0-32 14.3-32 32v64c0 17.7 14.3 32 32 32s32-14.3 32-32v-64c0-17.7-14.3-32-32-32z"/></svg>',
   densefog:
     '<svg viewBox="0 0 512 512" fill="currentColor" width="1em" height="1em"><path d="M464 256H48c-26.5 0-48 21.5-48 48s21.5 48 48 48h416c26.5 0 48-21.5 48-48s-21.5-48-48-48zm0 112H48c-26.5 0-48 21.5-48 48s21.5 48 48 48h416c26.5 0 48-21.5 48-48s-21.5-48-48-48zM80 144h352c26.5 0 48-21.5 48-48s-21.5-48-48-48H80c-26.5 0-48 21.5-48 48s21.5 48 48 48z"/></svg>',
   coldday:
@@ -1413,12 +1412,20 @@ function renderTable(dataSource) {
   }
 
   // Update Table Headers
-  const hideCols = document.getElementById("chkHideTableCols")?.checked;
-  const filterColor =
-    document.getElementById("filterTableColor")?.value || "all";
-  const isCompact = document.getElementById("chkCompactView")?.checked;
-  const hideWarningCol = document.getElementById("chkHideWarningCol")?.checked;
-  const applyTextBg = document.getElementById("chkTextBgColor")?.checked;
+  const elHideCols = document.getElementById("chkHideTableCols");
+  const hideCols = elHideCols ? elHideCols.checked : false;
+
+  const elFilter = document.getElementById("filterTableColor");
+  const filterColor = elFilter ? elFilter.value : "all";
+
+  const elCompact = document.getElementById("chkCompactView");
+  const isCompact = elCompact ? elCompact.checked : false;
+
+  const elHideWarn = document.getElementById("chkHideWarningCol");
+  const hideWarningCol = elHideWarn ? elHideWarn.checked : false;
+
+  const elTextBg = document.getElementById("chkTextBgColor");
+  const applyTextBg = elTextBg ? elTextBg.checked : false;
 
   // Define widths based on user request
   let wDay = "5%";
@@ -1684,9 +1691,22 @@ function renderTable(dataSource) {
     } else {
       const group = item.group;
       const areaText = item.cachedAreaText || getAreaText(group.districts);
-      const phenomCount = group.phenomena.length;
 
-      group.phenomena.forEach((pId, index) => {
+      // Filter valid phenomena to ensure accurate rowspan calculation
+      const validPhenomena = group.phenomena.filter((pId) => {
+        const idx = group.intensities[pId] || 0;
+        return (
+          intensityLinesEn[pId] &&
+          intensityLinesEn[pId][idx] &&
+          intensityLines[pId] &&
+          intensityLines[pId][idx]
+        );
+      });
+
+      const phenomCount = validPhenomena.length;
+      if (phenomCount === 0) return;
+
+      validPhenomena.forEach((pId, index) => {
         const pDef = phenDefs.find((pd) => pd.id === pId);
         let name = pDef ? `${pDef.english}<br>(${pDef.hindi})` : pId;
         const idx = group.intensities[pId] || 0;
@@ -1722,8 +1742,8 @@ function renderTable(dataSource) {
         let row = `<tr style="background-color:${neutralBg}">`;
 
         if (index === 0) {
-          row += `<td rowspan="${phenomCount}" style="text-align:center; vertical-align:middle; background-color:${neutralBg}">Day ${item.day}</td>`;
-          row += `<td rowspan="${phenomCount}" style="text-align:center; vertical-align:middle; background-color:${neutralBg}">${item.date}</td>`;
+          row += `<td rowspan="${phenomCount}" style="text-align:center; vertical-align:middle; background-color:${neutralBg}; color:#000;">Day ${item.day}</td>`;
+          row += `<td rowspan="${phenomCount}" style="text-align:center; vertical-align:middle; background-color:${neutralBg}; color:#000;">${item.date}</td>`;
           if (!hideCols) {
             row += `<td rowspan="${phenomCount}" style="vertical-align:middle; background-color:${textColBg}">
                                <strong>${areaText.english}</strong><br>
@@ -2313,7 +2333,7 @@ function generateDemoData() {
     weeklyForecastData,
     1,
     allDistricts,
-    "heavyrain",
+    "rain",
     1,
     "#fd7e14", // Orange Color
     4, // Widespread (Most Places)
@@ -2324,7 +2344,7 @@ function generateDemoData() {
     weeklyWarningData,
     1,
     allDistricts,
-    "heavyrain",
+    "rain",
     1,
     "rgb(255, 192, 0)",
     4,
@@ -2517,6 +2537,35 @@ function resetUI() {
 }
 
 function handleMapUpdate(mode) {
+  const btnId = mode === "forecast" ? "updateForecastMap" : "updateWarningMap";
+  const btn = document.getElementById(btnId);
+
+  if (!btn) {
+    // If button not found (e.g., on another page), just run the logic
+    _internalHandleMapUpdate(mode);
+    return;
+  }
+
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+
+  // Use a timeout to allow the UI to update with the "processing" state
+  setTimeout(() => {
+    try {
+      _internalHandleMapUpdate(mode);
+    } catch (e) {
+      console.error(`Error during ${mode} update:`, e);
+      alert(`An error occurred during the update. Please check the console.`);
+    } finally {
+      // Restore button
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+  }, 50); // A small delay
+}
+
+function _internalHandleMapUpdate(mode) {
   if (mode === "forecast") {
     weeklyData = weeklyForecastData; // Ensure we are updating the right data
   } else {
@@ -2530,15 +2579,6 @@ function handleMapUpdate(mode) {
 
   // Force table update if warning mode, to ensure bulletin gets latest data
   if (mode === "warning") {
-    // Ensure table exists for rendering
-    if (!document.getElementById("imdTable")) {
-      const container = document.getElementById("tableViewContainer");
-      if (container) {
-        const tbl = document.createElement("table");
-        tbl.id = "imdTable";
-        container.appendChild(tbl);
-      }
-    }
     renderTable(weeklyWarningData);
   }
 }
@@ -4007,7 +4047,7 @@ function applyMapEffect() {
 
   const effect = mapEffectConfig.manualEffect;
 
-  if (effect === "thunderstorm" || effect === "heavyrain") {
+  if (effect === "thunderstorm" || effect === "rain") {
     if (canvas) canvas.classList.add("active");
     animateRain();
   }
@@ -4179,12 +4219,20 @@ function downloadTableImage() {
 
   const width = container.offsetWidth;
   const height = container.offsetHeight;
+  const scale = 3;
 
   domtoimage
     .toPng(container, {
       bgcolor: "#ffffff",
-      width: width,
-      height: height,
+      width: width * scale,
+      height: height * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: width + "px",
+        height: height + "px",
+      },
+      quality: 1,
     })
     .then(function (dataUrl) {
       const link = document.createElement("a");
@@ -4222,14 +4270,22 @@ function downloadTablePDF() {
 
   const width = container.offsetWidth;
   const height = container.offsetHeight;
+  const scale = 3;
 
   const { jsPDF } = window.jspdf;
 
   domtoimage
     .toPng(container, {
       bgcolor: "#ffffff",
-      width: width,
-      height: height,
+      width: width * scale,
+      height: height * scale,
+      style: {
+        transform: `scale(${scale})`,
+        transformOrigin: "top left",
+        width: width + "px",
+        height: height + "px",
+      },
+      quality: 1,
     })
     .then(function (dataUrl) {
       const img = new Image();

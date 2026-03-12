@@ -381,6 +381,7 @@
         border: 1px solid #000 !important;
         border-collapse: collapse !important;
         font-size: 11px;
+        color: #000 !important;
       }
       .forecast-table th {
         background-color: #0056b3;
@@ -392,19 +393,19 @@
         color: #000;
       }
       .bg-isol {
-        background-color: #28a745;
-        color: #fff;
-      }
-      .bg-sct {
-        background-color: #90ee90;
+        background-color: rgb(51, 204, 51);
         color: #000;
       }
-      .bg-fws {
-        background-color: #007bff;
+      .bg-sct {
+        background-color: rgb(0, 153, 0);
         color: #fff;
       }
+      .bg-fws {
+        background-color: rgb(51, 204, 255);
+        color: #000;
+      }
       .bg-ws {
-        background-color: #00008b;
+        background-color: rgb(0, 102, 255);
         color: #fff;
       }
       .bg-na {
@@ -1141,7 +1142,7 @@
               <i class="fas fa-image"></i> Export Images
             </button>
             <button class="export-btn" onclick="exportBulletinPDF()">
-              <i class="fas fa-file-pdf"></i> Export PDF (Text)
+              <i class="fas fa-file-pdf"></i> Export PDF (Standard)
             </button>
             <button
               class="export-btn"
