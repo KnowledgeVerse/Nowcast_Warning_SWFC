@@ -856,6 +856,14 @@ function copyEmailToClipboard() {
   }
 }
 
+// Share emails on WhatsApp
+function shareOnWhatsApp() {
+  const textarea = document.getElementById("emailListText");
+  const text = textarea.value;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent("यहाँ चयनित ईमेल पते हैं:\n\n" + text)}`;
+  window.open(whatsappUrl, "_blank");
+}
+
 // Show loading overlay
 function showLoading() {
   document.getElementById("loadingOverlay").classList.add("active");
@@ -929,65 +937,41 @@ function downloadNowcastImage() {
   });
 }
 
-// Export to Word
-function exportToWord() {
-  const element = document.getElementById("imdWarningContainer");
-
-  // HTML स्ट्रिंग बनाएँ (Word इसे समझ सकता है)
-  const html = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head><meta charset='utf-8'><title>Nowcast Warning</title></head>
-      <body>
-          ${element.innerHTML}
-      </body>
-      </html>
-  `;
-
-  const blob = new Blob(["\ufeff", html], {
-    type: "application/msword",
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = getNowcastFilename("doc");
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+// Share Nowcast Functions
+function getNowcastShareText() {
+  const hindiText = document.getElementById("warningTextHindi").innerText;
+  const englishText = document.getElementById("warningTextEnglish").innerText;
+  const level = document.getElementById("warningCodeBox").innerText;
+  return `*Bihar Weather Nowcast*\n\n*Warning Level:* ${level}\n\n*Hindi:*\n${hindiText}\n\n*English:*\n${englishText}\n\nMore details: https://biharmausam.com/`;
 }
 
-// Export to Excel (CSV)
-function exportToExcel() {
-  // डेटा निकालें
-  const issueTime = document
-    .getElementById("issueDateTime")
-    .innerText.replace(/\n/g, " ");
-  const validTime = document
-    .getElementById("validityTime")
-    .innerText.replace(/\n/g, " ");
-  const warningLevel = document.getElementById("warningCodeBox").innerText;
-  const hindiText = document
-    .getElementById("warningTextHindi")
-    .innerText.replace(/(\r\n|\n|\r)/gm, " ");
-  const englishText = document
-    .getElementById("warningTextEnglish")
-    .innerText.replace(/(\r\n|\n|\r)/gm, " ");
+function shareNowcastWhatsApp() {
+  const text = getNowcastShareText();
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+}
 
-  // CSV कंटेंट (Excel के लिए BOM के साथ)
-  const BOM = "\uFEFF";
-  const csvContent =
-    BOM +
-    "Issue Time,Validity Time,Warning Level,Hindi Warning,English Warning\n" +
-    `"${issueTime}","${validTime}","${warningLevel}","${hindiText}","${englishText}"`;
+function shareNowcastFacebook() {
+  const url = "https://biharmausam.com/";
+  window.open(
+    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+    "_blank",
+  );
+}
 
-  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", getNowcastFilename("csv"));
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+function shareNowcastTwitter() {
+  const text = getNowcastShareText();
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
+    "_blank",
+  );
+}
+
+function shareNowcastEmail() {
+  const text = getNowcastShareText();
+  window.open(
+    `mailto:?subject=Bihar Weather Nowcast&body=${encodeURIComponent(text)}`,
+    "_self",
+  );
 }
 
 // Print nowcast

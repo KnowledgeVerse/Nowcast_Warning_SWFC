@@ -125,6 +125,8 @@
         background: #f8f9fa;
         border-radius: 15px;
         padding: 15px;
+        min-width: 0;
+        overflow: hidden;
       }
 
       .map-container {
@@ -134,6 +136,8 @@
         overflow: hidden;
         border: 2px solid #dee2e6;
         position: relative;
+        width: 100%;
+        z-index: 1;
       }
 
       /* Region Selector Bar */
@@ -176,6 +180,7 @@
         padding: 20px;
         max-height: 90vh;
         overflow-y: auto;
+        min-width: 0;
       }
 
       .panel-section {
@@ -416,6 +421,11 @@
         color: white;
       }
 
+      .btn-success:hover {
+        background: linear-gradient(135deg, #0e7a71 0%, #2bbd61 100%);
+        box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+      }
+
       .btn-warning {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         color: white;
@@ -424,6 +434,11 @@
       .btn-secondary {
         background: #6c757d;
         color: white;
+      }
+
+      .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
+        box-shadow: 0 5px 20px rgba(108, 117, 125, 0.5);
       }
 
       .btn:hover {
@@ -436,6 +451,8 @@
         grid-column: 1 / -1;
         margin-top: 20px;
         display: none;
+        min-width: 0;
+        overflow-x: auto;
       }
 
       .nowcast-output.active {
@@ -734,6 +751,8 @@
         .main-content {
           display: flex;
           flex-direction: column;
+          width: 100%;
+          overflow: hidden;
         }
 
         .map-section {
@@ -887,6 +906,70 @@
         border-radius: 4px;
         font-size: 12px;
         cursor: pointer;
+      }
+
+      /* Email Modal Popup Styles */
+      .custom-modal {
+        position: fixed;
+        z-index: 10001;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+        display: none; /* Changed by JS to flex */
+        justify-content: center;
+        align-items: center;
+      }
+
+      .glass-popup-content {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        width: 600px;
+        max-width: 90%;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        animation: popupSlideIn 0.3s ease-out;
+        position: relative;
+      }
+
+      @keyframes popupSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .glass-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+      }
+
+      .glass-modal-header h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        color: #2c3e50;
+      }
+
+      .close-modal {
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+        color: #6c757d;
+        transition: 0.3s;
+      }
+
+      .close-modal:hover {
+        color: #dc3545;
       }
     </style>
   </head>
@@ -1365,16 +1448,34 @@
               <i class="fas fa-file-pdf"></i> PDF डाउनलोड करें
             </button>
             <button class="btn btn-success" onclick="downloadNowcastImage()">
-              <i class="fas fa-image"></i> छवि डाउनलोड करें
+              <i class="fas fa-image"></i> images download
             </button>
             <button class="btn btn-secondary" onclick="printNowcast()">
               <i class="fas fa-print"></i> प्रिंट करें
             </button>
-            <button class="btn btn-word" onclick="exportToWord()">
-              <i class="fas fa-file-word"></i> Word
+            <button
+              class="btn"
+              style="background: #25d366; color: white"
+              onclick="shareNowcastWhatsApp()"
+            >
+              <i class="fab fa-whatsapp"></i> WhatsApp
             </button>
-            <button class="btn btn-excel" onclick="exportToExcel()">
-              <i class="fas fa-file-excel"></i> Excel
+            <button
+              class="btn"
+              style="background: #1877f2; color: white"
+              onclick="shareNowcastFacebook()"
+            >
+              <i class="fab fa-facebook"></i> Facebook
+            </button>
+            <button
+              class="btn"
+              style="background: #000000; color: white"
+              onclick="shareNowcastTwitter()"
+            >
+              <i class="fab fa-x-twitter"></i> X (Twitter)
+            </button>
+            <button class="btn btn-info" onclick="shareNowcastEmail()">
+              <i class="fas fa-envelope"></i> Email
             </button>
           </div>
         </div>
@@ -1382,73 +1483,6 @@
 
       <!-- Footer Container -->
       <div id="footer-container"></div>
-
-      <!-- Email List Modal -->
-      <div id="emailModal" class="custom-modal" style="display: none">
-        <div class="glass-popup-content">
-          <div class="glass-modal-header">
-            <h3>
-              <i class="fas fa-envelope-open-text"></i> ईमेल लिस्ट / Email List
-            </h3>
-            <span
-              class="close-modal"
-              onclick="closeEmailModal()"
-              style="position: static"
-              >&times;</span
-            >
-          </div>
-
-          <div
-            class="regional-group-info"
-            style="
-              margin: 15px 0;
-              font-size: 14px;
-              background: rgba(255, 255, 255, 0.6);
-              border-left: 4px solid #007bff;
-            "
-          >
-            <i class="fas fa-info-circle"></i> नीचे डिफ़ॉल्ट ईमेल और चयनित जिलों
-            के ईमेल की संयुक्त सूची है। इसे कॉपी करें और उपयोग करें।
-          </div>
-
-          <div class="form-group">
-            <label for="emailListText" style="font-weight: 700; color: #444"
-              >ईमेल पते (Emails):</label
-            >
-            <textarea
-              id="emailListText"
-              class="glass-textarea"
-              style="
-                width: 100%;
-                height: 150px;
-                padding: 10px;
-                font-family: monospace;
-                font-size: 13px;
-                line-height: 1.5;
-              "
-              readonly
-            ></textarea>
-          </div>
-
-          <div
-            style="
-              display: flex;
-              justify-content: flex-end;
-              gap: 10px;
-              margin-top: 20px;
-              padding-top: 15px;
-              border-top: 1px solid rgba(0, 0, 0, 0.1);
-            "
-          >
-            <button class="btn btn-secondary" onclick="closeEmailModal()">
-              <i class="fas fa-times"></i> बंद करें / Close
-            </button>
-            <button class="btn btn-primary" onclick="copyEmailToClipboard()">
-              <i class="fas fa-copy"></i> कॉपी करें / Copy to Clipboard
-            </button>
-          </div>
-        </div>
-      </div>
 
       <script>
         // Footer Load Script
@@ -1461,6 +1495,87 @@
       </script>
     </div>
 
+    <!-- Email List Modal (Moved outside of container) -->
+    <div id="emailModal" class="custom-modal" style="display: none">
+      <div class="glass-popup-content">
+        <div class="glass-modal-header">
+          <h3>
+            <i class="fas fa-envelope-open-text"></i> ईमेल लिस्ट / Email List
+          </h3>
+          <span class="close-modal" onclick="closeEmailModal()">&times;</span>
+        </div>
+
+        <div
+          class="regional-group-info"
+          style="
+            margin: 15px 0;
+            font-size: 14px;
+            background: #e8f0fe;
+            border-left: 4px solid #007bff;
+            padding: 12px;
+            border-radius: 6px;
+          "
+        >
+          <i class="fas fa-info-circle"></i> नीचे डिफ़ॉल्ट ईमेल और चयनित जिलों
+          के ईमेल की संयुक्त सूची है। इसे कॉपी करें और उपयोग करें।
+        </div>
+
+        <div class="form-group" style="text-align: left; margin-bottom: 15px">
+          <label
+            for="emailListText"
+            style="
+              font-weight: 700;
+              color: #444;
+              display: block;
+              margin-bottom: 8px;
+            "
+            >ईमेल पते (Emails):</label
+          >
+          <textarea
+            id="emailListText"
+            class="glass-textarea"
+            style="
+              width: 100%;
+              height: 150px;
+              padding: 12px;
+              font-family: monospace;
+              font-size: 13px;
+              line-height: 1.5;
+              resize: vertical;
+              border: 2px solid #dee2e6;
+              border-radius: 8px;
+            "
+            readonly
+          ></textarea>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+          "
+        >
+          <button class="btn btn-secondary" onclick="closeEmailModal()">
+            <i class="fas fa-times"></i> बंद करें / Close
+          </button>
+          <button class="btn btn-primary" onclick="copyEmailToClipboard()">
+            <i class="fas fa-copy"></i> कॉपी करें / Copy to Clipboard
+          </button>
+          <button
+            class="btn btn-success"
+            style="background: #25d366; color: white"
+            onclick="shareOnWhatsApp()"
+          >
+            <i class="fab fa-whatsapp" style="font-size: 18px"></i> WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
@@ -1469,8 +1584,8 @@
       </div>
     </div>
 
-    <script src="js/districts.js"></script>
-    <script src="js/nowcast.js"></script>
+    <script src="js/districts.js?v=2.0"></script>
+    <script src="js/nowcast.js?v=2.0"></script>
 
     <!-- Updated Warning Generation Logic (Overrides existing logic) -->
     <script>
