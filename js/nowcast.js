@@ -136,6 +136,19 @@ function initializeMap() {
     layers: [solidColorLayer], // Default layer set to Solid/Clear per request
   });
 
+  // Dynamic Font Size for Map Labels based on Zoom Level
+  map.on("zoomend", function () {
+    const zoom = map.getZoom();
+    let fontSize = "11px"; // Default
+    if (zoom <= 6) fontSize = "9px";
+    else if (zoom === 7) fontSize = "11px";
+    else if (zoom === 8) fontSize = "14px";
+    else if (zoom >= 9) fontSize = "16px";
+    document
+      .getElementById("map")
+      .style.setProperty("--label-font-size", fontSize);
+  });
+
   // Add Layer Control to Map
   const baseMaps = {
     "Solid/Clear": solidColorLayer,
@@ -416,8 +429,31 @@ function setupEventListeners() {
     });
 }
 
+// अपडेट: चुने हुए जिलों की संख्या दिखाएं
+function updateDistrictCount() {
+  const countEl = document.getElementById("selectedDistrictCount");
+  if (countEl) {
+    countEl.innerText = selectedDistricts.length;
+  }
+}
+
+// जिले चुनने पर लिस्ट को रिऑर्डर करें (चुने हुए सबसे ऊपर)
+function reorderDistrictList() {
+  const grid = document.getElementById("districtGrid");
+  if (!grid) return;
+  const labels = Array.from(grid.querySelectorAll(".district-checkbox"));
+  labels.sort((a, b) => {
+    const aSelected = a.classList.contains("selected");
+    const bSelected = b.classList.contains("selected");
+    if (aSelected && !bSelected) return -1;
+    if (!aSelected && bSelected) return 1;
+    return parseInt(a.dataset.id) - parseInt(b.dataset.id); // बाकी को डिफ़ॉल्ट क्रम में रखें
+  });
+  labels.forEach((label) => grid.appendChild(label));
+}
+
 // Toggle district selection
-function toggleDistrict(districtId) {
+function toggleDistrict(districtId, skipZoom = false) {
   const index = selectedDistricts.indexOf(districtId);
   const checkbox = document.querySelector(
     `#districtGrid input[value="${districtId}"]`,
@@ -455,17 +491,53 @@ function toggleDistrict(districtId) {
       });
     }
   }
+
+  reorderDistrictList(); // लिस्ट अपडेट करें
+  updateDistrictCount(); // संख्या अपडेट करें
+
+  // Auto-zoom to selected districts
+  const autoZoomEnabled = document.getElementById("autoZoomToggle")?.checked;
+  if (!skipZoom && map && autoZoomEnabled) {
+    if (selectedDistricts.length > 0) {
+      const group = L.featureGroup();
+      selectedDistricts.forEach((id) => {
+        if (districtLayers[id]) {
+          group.addLayer(districtLayers[id]);
+        }
+      });
+      if (group.getLayers().length > 0) {
+        map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+      }
+    } else {
+      map.setView([25.6, 85.6], 7);
+    }
+  }
 }
 // Select all districts
 function selectAllDistricts() {
+  const group = L.featureGroup(); // बाउंड्स (Bounds) कैलकुलेट करने के लिए ग्रुप बनाएं
   districtsData.forEach((d) => {
     if (!selectedDistricts.includes(d.id)) {
-      toggleDistrict(d.id);
+      toggleDistrict(d.id, true); // bulk action me zoom skip karein
+    }
+    if (districtLayers[d.id]) {
+      group.addLayer(districtLayers[d.id]);
     }
   });
+
+  // मैप को सभी चुने हुए जिलों के हिसाब से फिट करें
+  const autoZoomEnabled = document.getElementById("autoZoomToggle")?.checked;
+  if (map && group.getLayers().length > 0 && autoZoomEnabled) {
+    map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+  }
 }
 function clearDistricts() {
-  [...selectedDistricts].forEach((id) => toggleDistrict(id));
+  [...selectedDistricts].forEach((id) => toggleDistrict(id, true)); // bulk action me zoom skip karein
+
+  const autoZoomEnabled = document.getElementById("autoZoomToggle")?.checked;
+  if (map && autoZoomEnabled) {
+    map.setView([25.6, 85.6], 7); // मैप को डिफ़ॉल्ट ज़ूम पर सेट करें
+  }
 }
 
 // Toggle phenomena selection
@@ -532,11 +604,29 @@ function toggleRegion(region, isChecked) {
     districts.forEach((districtId) => {
       const isSelected = selectedDistricts.includes(districtId);
       if (isChecked && !isSelected) {
-        toggleDistrict(districtId);
+        toggleDistrict(districtId, true); // bulk action me zoom skip karein
       } else if (!isChecked && isSelected) {
-        toggleDistrict(districtId);
+        toggleDistrict(districtId, true); // bulk action me zoom skip karein
       }
     });
+
+    // Auto-zoom to selected districts
+    const autoZoomEnabled = document.getElementById("autoZoomToggle")?.checked;
+    if (map && autoZoomEnabled) {
+      if (selectedDistricts.length > 0) {
+        const group = L.featureGroup();
+        selectedDistricts.forEach((id) => {
+          if (districtLayers[id]) {
+            group.addLayer(districtLayers[id]);
+          }
+        });
+        if (group.getLayers().length > 0) {
+          map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+        }
+      } else {
+        map.setView([25.6, 85.6], 7);
+      }
+    }
   }
 }
 
@@ -708,6 +798,11 @@ function clearAll() {
   }
 
   document.getElementById("nowcastOutput").classList.remove("active");
+
+  // Reset map view to default center and zoom
+  if (map) {
+    map.setView([25.6, 85.6], 7);
+  }
 }
 
 // --- Email Generation Logic (Updated per request) ---

@@ -230,8 +230,8 @@
       }
 
       .district-checkbox.selected {
-        background: #d4edda;
-        border: 1px solid #28a745;
+        background: #cce5ff;
+        border: 1px solid #007bff;
       }
 
       /* Warning Level Selection */
@@ -826,9 +826,10 @@
           -1px -1px 3px black,
           1px -1px 3px black,
           -1px 1px 3px black !important;
-        font-size: 11px !important;
+        font-size: var(--label-font-size, 11px) !important;
         text-align: center;
         pointer-events: none !important; /* Ensure click passes through label to map */
+        transition: font-size 0.2s ease-in-out !important; /* Smooth font size scaling */
       }
 
       /* Remove default Leaflet tooltip arrow */
@@ -1049,9 +1050,21 @@
         <div class="control-panel">
           <!-- District Selection -->
           <div class="panel-section">
-            <div class="panel-title">
-              <i class="fas fa-city"></i>
-              जिले चुनें / Select Districts
+            <div class="panel-title" style="justify-content: space-between">
+              <div>
+                <i class="fas fa-city"></i> जिले चुनें / Select Districts
+              </div>
+              <span
+                id="selectedDistrictCount"
+                style="
+                  background: #667eea;
+                  color: white;
+                  padding: 2px 8px;
+                  border-radius: 12px;
+                  font-size: 13px;
+                "
+                >0</span
+              >
             </div>
             <input
               type="text"
