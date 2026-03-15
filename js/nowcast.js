@@ -997,11 +997,12 @@ function printNowcast() {
                     border-bottom: 2px solid #000;
                 }
                 .imd-logo-section { display: flex; align-items: center; gap: 15px; }
-                .imd-emblem { width: 80px; height: 80px; }
+                .imd-emblem { width: auto; height: 110px; object-fit: contain; }
                 .imd-title-section { text-align: center; flex: 1; }
                 .imd-title-section h2 { color: #d32f2f; font-size: 20px; margin: 0; }
                 .imd-title-section h3 { font-size: 14px; margin: 0 0 5px 0; }
-                .imd-anniversary { width: 100px; }
+                .nowcast-main-heading { color: #d32f2f; font-size: 20px; margin: 0 0 20px 0; text-align: center; text-transform: uppercase; font-weight: bold; }
+                .imd-anniversary { width: auto; height: 110px; object-fit: contain; }
                 .imd-contact-bar { 
                     display: flex; 
                     justify-content: space-between; 
