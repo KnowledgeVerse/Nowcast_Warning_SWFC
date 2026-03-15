@@ -40,7 +40,7 @@
         background: white;
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        overflow: hidden;
+        overflow: visible; /* लेआउट कटने से रोकने के लिए */
       }
 
       /* Header Styles */
@@ -109,9 +109,11 @@
       /* Main Content */
       .main-content {
         display: grid;
-        grid-template-columns: 1fr 400px;
+        grid-template-columns: minmax(0, 1fr) 400px; /* मैप को बाहर निकलने से रोकेगा */
         gap: 20px;
         padding: 20px;
+        align-items: stretch; /* यह दोनों कॉलम (मैप और कंट्रोल पैनल) की ऊंचाई को हमेशा बराबर रखेगा */
+        overflow: visible; /* स्क्रॉल जंपिंग इशू को रोकेगा */
       }
 
       @media (max-width: 1024px) {
@@ -126,12 +128,14 @@
         border-radius: 15px;
         padding: 15px;
         min-width: 0;
-        overflow: hidden;
+        overflow: visible; /* मैप क्लिक करने पर हेडर छिपने की समस्या को ठीक करेगा */
+        display: flex;
+        flex-direction: column;
       }
 
       .map-container {
-        height: 70vh;
-        min-height: 600px;
+        flex: 1; /* यह मैप को खीचकर कंट्रोल पैनल के बराबर कर देगा */
+        min-height: 500px;
         border-radius: 10px;
         overflow: hidden;
         border: 2px solid #dee2e6;
@@ -178,8 +182,6 @@
         background: #f8f9fa;
         border-radius: 15px;
         padding: 20px;
-        max-height: 90vh;
-        overflow-y: auto;
         min-width: 0;
       }
 
@@ -752,7 +754,7 @@
           display: flex;
           flex-direction: column;
           width: 100%;
-          overflow: hidden;
+          overflow: visible;
         }
 
         .map-section {
@@ -760,8 +762,9 @@
         }
 
         .map-container {
-          height: 60vh;
-          min-height: 500px;
+          height: 50vh;
+          min-height: 350px;
+          flex: none; /* मोबाइल में मैप को बहुत बड़ा होने से रोकने के लिए */
         }
 
         .control-panel {
@@ -1045,6 +1048,20 @@
                 font-weight: normal;
               "
             >
+              <label
+                style="
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  border-right: 1px solid #ccc;
+                  padding-right: 8px;
+                "
+                title="मैप को आटोमेटिक ज़ूम करें"
+              >
+                <input type="checkbox" id="autoZoomToggle" />
+                Auto Zoom
+              </label>
               <label for="mapBgColor" style="cursor: pointer">BG Color:</label>
               <input
                 type="color"
