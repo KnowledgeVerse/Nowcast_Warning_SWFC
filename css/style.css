@@ -2751,12 +2751,19 @@ body.nowcast-page .container {
 }
 
 .header-top {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   margin-bottom: 15px;
-  flex-wrap: wrap;
   gap: 15px;
+}
+
+.header-left {
+  justify-self: start;
+}
+
+.header-right {
+  justify-self: end;
 }
 
 .govt-logo {
@@ -2769,7 +2776,7 @@ body.nowcast-page .container {
 }
 
 .header-center {
-  flex: 1;
+  justify-self: center;
   text-align: center;
 }
 
@@ -2788,6 +2795,18 @@ body.nowcast-page .container {
 .imd-logo {
   width: 100px;
   height: auto;
+}
+
+/* Mobile Responsive Layout for Header Grid */
+@media (max-width: 768px) {
+  .header-top {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+  .header-left,
+  .header-right {
+    justify-self: center;
+  }
 }
 
 .header-contact {

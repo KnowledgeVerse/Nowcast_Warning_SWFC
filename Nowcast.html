@@ -26,37 +26,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="css/style.css?v=2.2" />
+    <link rel="stylesheet" href="css/style.css?v=3.1" />
   </head>
   <body class="nowcast-page">
     <div class="container">
       <!-- Header -->
       <div class="header">
         <div class="header-top">
-          <a href="index.html" title="मुख्य पृष्ठ / Home Page">
-            <img
-              src="assets/logo.png"
-              alt="Government Logo"
-              class="govt-logo"
-              onerror="this.src = 'https://via.placeholder.com/80?text=GOI'"
-            />
-          </a>
+          <div class="header-left">
+            <a href="index.html" title="मुख्य पृष्ठ / Home Page">
+              <img
+                src="assets/logo.png"
+                alt="Government Logo"
+                class="govt-logo"
+                onerror="this.src = 'https://via.placeholder.com/80?text=GOI'"
+              />
+            </a>
+          </div>
           <div class="header-center">
             <h1>बिहार मौसम पूर्वानुमान प्रणाली</h1>
             <h2>Bihar Weather Forecast System</h2>
           </div>
-          <img
-            src="assets/IMD_150_Year_Logo.png"
-            alt="IMD 150 Years"
-            class="imd-logo"
-            onerror="this.style.display = 'none'"
-          />
+          <div class="header-right">
+            <img
+              src="assets/IMD_150_Year_Logo.png"
+              alt="IMD 150 Years"
+              class="imd-logo"
+              onerror="this.style.display = 'none'"
+            />
+          </div>
         </div>
         <div class="header-contact">
+          <!-- टॉप मेनू लिंक्स (यहाँ आप अपनी अन्य वेबसाइट्स/पेज लिंक कर सकते हैं) -->
           <span
             ><i class="fas fa-home"></i>
-            <a href="index.html" style="font-weight: bold"
-              >Home Dashboard</a
+            <a
+              href="https://biharmausam.com/"
+              style="color: white; text-decoration: none; font-weight: bold"
+              >Main Website</a
+            ></span
+          >
+          <span
+            ><i class="fas fa-bolt"></i>
+            <a href="index.html" style="color: #ffd700; font-weight: bold"
+              >Nowcast Warning</a
+            ></span
+          >
+          <span
+            ><i class="fas fa-smog"></i>
+            <a href="#" style="color: white; text-decoration: none"
+              >Nowcast Fog</a
             ></span
           >
           <span
@@ -350,13 +369,6 @@
               <i class="fas fa-envelope"></i> ईमेल लिस्ट जनरेट करें / Generate
               Emails
             </button>
-            <a
-              href="index.html"
-              class="btn btn-secondary"
-              style="text-decoration: none"
-            >
-              <i class="fas fa-home"></i> होम पेज / Home Page
-            </a>
           </div>
         </div>
 
@@ -368,171 +380,267 @@
           </div>
 
           <!-- IMD Style Warning Bulletin -->
-          <div class="imd-warning-container" id="imdWarningContainer">
-            <div class="imd-header">
-              <div class="imd-logo-section">
+          <div id="warningCardContainer" class="warning-card-wrapper">
+            <div class="imd-warning-container">
+              <div class="imd-header">
+                <div class="imd-logo-section">
+                  <img
+                    src="assets/logo.png"
+                    alt="Emblem"
+                    class="imd-emblem"
+                    onerror="
+                      this.src = 'https://via.placeholder.com/80?text=Emblem'
+                    "
+                  />
+                </div>
+                <div class="imd-title-section">
+                  <div
+                    style="
+                      font-weight: 700;
+                      font-size: 18px;
+                      margin-bottom: 2px;
+                    "
+                  >
+                    भारत सरकार
+                  </div>
+                  <div style="font-size: 16px; margin-bottom: 2px">
+                    पृथ्वी विज्ञान मंत्रालय
+                  </div>
+                  <div
+                    style="
+                      font-weight: 700;
+                      font-size: 18px;
+                      margin-bottom: 2px;
+                      color: #000;
+                    "
+                  >
+                    भारत मौसम विज्ञान विभाग
+                  </div>
+                  <div style="font-size: 15px; margin-bottom: 2px">
+                    मौसम विज्ञान केंद्र ,अनिसाबाद
+                  </div>
+                  <div style="font-size: 15px; margin-bottom: 2px">
+                    पटना बिहार – 800002
+                  </div>
+                </div>
                 <img
-                  src="assets/logo.png"
-                  alt="Emblem"
-                  class="imd-emblem"
-                  onerror="
-                    this.src = 'https://via.placeholder.com/80?text=Emblem'
-                  "
+                  src="assets/IMD_150_Year_Logo.png"
+                  alt="150 Years"
+                  class="imd-anniversary"
+                  onerror="this.style.display = 'none'"
                 />
               </div>
-              <div class="imd-title-section">
-                <div
-                  style="font-weight: 700; font-size: 18px; margin-bottom: 2px"
-                >
-                  भारत सरकार
-                </div>
-                <div style="font-size: 16px; margin-bottom: 2px">
-                  पृथ्वी विज्ञान मंत्रालय
-                </div>
-                <div
-                  style="
-                    font-weight: 700;
-                    font-size: 18px;
-                    margin-bottom: 2px;
-                    color: #000;
-                  "
-                >
-                  भारत मौसम विज्ञान विभाग
-                </div>
-                <div style="font-size: 15px; margin-bottom: 2px">
-                  मौसम विज्ञान केंद्र ,अनिसाबाद
-                </div>
-                <div style="font-size: 15px; margin-bottom: 2px">
-                  पटना बिहार – 800002
-                </div>
+
+              <div class="imd-contact-bar">
+                <span><strong>E-mail:</strong> mc.patna@imd.gov.in</span>
+                <span><strong>दूरभाष/Telephone:</strong> 0612-2252356</span>
               </div>
-              <img
-                src="assets/IMD_150_Year_Logo.png"
-                alt="150 Years"
-                class="imd-anniversary"
-                onerror="this.style.display = 'none'"
-              />
-            </div>
 
-            <div class="imd-contact-bar">
-              <span
-                ><strong>website:</strong>
-                <a
-                  href="http://www.mausam.imd.gov.in/patna/"
-                  style="color: #0066cc"
-                  >http://www.mausam.imd.gov.in/patna/</a
-                ></span
-              >
-              <span><strong>E-mail:</strong> mc.patna@imd.gov.in</span>
-              <span><strong>दूरभाष/Telephone:</strong> 0612-2252356</span>
-            </div>
+              <div class="imd-warning-content">
+                <h2 class="nowcast-main-heading">
+                  तात्कालिक मौसम चेतावनी / Nowcast Weather Warning
+                </h2>
+                <div class="warning-code-section">
+                  <div class="warning-code-label">
+                    Warning Code/<br />चेतावनी कोड:-
+                  </div>
+                  <div class="warning-code-box" id="warningCodeBox">
+                    YELLOW: Watch (be updated)
+                  </div>
+                  <div class="warning-validity">
+                    <table style="text-align: left; display: inline-block">
+                      <tr>
+                        <td
+                          style="
+                            font-weight: 700;
+                            padding-right: 15px;
+                            padding-bottom: 5px;
+                          "
+                        >
+                          निर्गत तिथि तथा समय का विवरण:
+                        </td>
+                        <td id="issueDateTime" style="padding-bottom: 5px">
+                          Loading...
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="font-weight: 700; padding-right: 15px">
+                          वैधता अवधि :
+                        </td>
+                        <td id="validityTime">Loading...</td>
+                      </tr>
+                    </table>
 
-            <div class="imd-warning-content">
-              <h2 class="nowcast-main-heading">
-                तात्कालिक मौसम चेतावनी / Nowcast Weather Warning
-              </h2>
-              <div class="warning-code-section">
-                <div class="warning-code-label">
-                  Warning Code/<br />चेतावनी कोड:-
+                    <!-- Manual Edit Controls (Hidden in PDF/Image export) -->
+                    <div
+                      class="manual-time-controls"
+                      data-html2canvas-ignore="true"
+                    >
+                      <button
+                        class="btn-time-edit"
+                        onclick="toggleTimeManualMode()"
+                      >
+                        <i class="fas fa-edit"></i> Edit Time
+                      </button>
+                      <div
+                        id="manualTimeInputs"
+                        style="display: none; margin-top: 5px"
+                      >
+                        <input
+                          type="datetime-local"
+                          id="manualIssueInput"
+                          class="time-input"
+                        />
+                        <button
+                          class="btn-time-apply"
+                          onclick="applyManualTime()"
+                        >
+                          Update
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="warning-code-box" id="warningCodeBox">
-                  YELLOW: Watch (be updated)
+
+                <div class="warning-text-hindi" id="warningTextHindi">
+                  पूर्वी चंपारण, गोपालगंज जिले के एक या दो स्थानों में अगले दो
+                  से तीन घंटे में हल्के से मध्यम दर्जे की मेघ गर्जन, वज्रपात,हवा
+                  (हवा की गति 30-40 कि.मी. प्रति घंटे तक) के साथ हल्की वर्षा
+                  होने की संभावना है।
                 </div>
-                <div class="warning-validity">
-                  <table style="text-align: left; display: inline-block">
-                    <tr>
-                      <td
+
+                <div class="warning-text-english" id="warningTextEnglish">
+                  Some parts of EAST CHAMPARAN, GOPALGANJ district would
+                  experience light to moderate thunderstorm and lightning
+                  accompanied with light rain and Gusty wind (wind speed upto
+                  30-40 Kmph)within next two to three hours
+                </div>
+
+                <div class="guidelines-section">
+                  <div class="guidelines-title">दिशा-निर्देश/Guidelines:</div>
+                  <div class="guidelines-text" id="guidelinesText">
+                    <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है
+                    कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो
+                    शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली
+                    के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम
+                    सामान्य होने की प्रतीक्षा करें।<br />
+                    <strong>Note:</strong> In view of this weather, people are
+                    requested to be alert and cautious. If you are in the open,
+                    take shelter in a concrete house as soon as possible. Stay
+                    away from tall trees and electric poles. Farmers should not
+                    go to their fields and wait for the weather to become
+                    normal.<br /><br />
+                    इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान
+                    केंद्र, पटना की वेबसाइट देखें:<br />
+                    For detailed and updated information about this weather,
+                    visit the website of Meteorological Centre, Patna:<br />
+                    <div
+                      style="
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 15px;
+                        margin-top: 10px;
+                        align-items: center;
+                      "
+                    >
+                      <a
+                        href="https://mausam.imd.gov.in/patna/"
+                        target="_blank"
                         style="
-                          font-weight: 700;
-                          padding-right: 15px;
-                          padding-bottom: 5px;
+                          color: #0066cc;
+                          text-decoration: none;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;
+                          font-weight: bold;
                         "
                       >
-                        निर्गत तिथि तथा समय का विवरण:
-                      </td>
-                      <td id="issueDateTime" style="padding-bottom: 5px">
-                        Loading...
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="font-weight: 700; padding-right: 15px">
-                        वैधता अवधि :
-                      </td>
-                      <td id="validityTime">Loading...</td>
-                    </tr>
-                  </table>
-
-                  <!-- Manual Edit Controls (Hidden in PDF/Image export) -->
-                  <div
-                    class="manual-time-controls"
-                    data-html2canvas-ignore="true"
-                  >
-                    <button
-                      class="btn-time-edit"
-                      onclick="toggleTimeManualMode()"
-                    >
-                      <i class="fas fa-edit"></i> Edit Time
-                    </button>
-                    <div
-                      id="manualTimeInputs"
-                      style="display: none; margin-top: 5px"
-                    >
-                      <input
-                        type="datetime-local"
-                        id="manualIssueInput"
-                        class="time-input"
-                      />
-                      <button
-                        class="btn-time-apply"
-                        onclick="applyManualTime()"
+                        <i
+                          class="fas fa-globe"
+                          style="font-size: 18px; color: #007bff"
+                        ></i>
+                        mausam.imd.gov.in/patna/
+                      </a>
+                      <a
+                        href="https://www.facebook.com/IMDpatna/"
+                        target="_blank"
+                        style="
+                          color: #0066cc;
+                          text-decoration: none;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;
+                          font-weight: bold;
+                        "
                       >
-                        Update
-                      </button>
+                        <i
+                          class="fab fa-facebook"
+                          style="font-size: 18px; color: #1877f2"
+                        ></i>
+                        www.facebook.com/IMDpatna/
+                      </a>
+                      <a
+                        href="https://x.com/imd_patna"
+                        target="_blank"
+                        style="
+                          color: #0066cc;
+                          text-decoration: none;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;
+                          font-weight: bold;
+                        "
+                      >
+                        <i
+                          class="fab fa-x-twitter"
+                          style="font-size: 18px; color: #000"
+                        ></i>
+                        x.com/imd_patna
+                      </a>
+                      <a
+                        href="https://whatsapp.com/channel/0029VaCu3dgFnSzAwq4DBD3n"
+                        target="_blank"
+                        style="
+                          color: #0066cc;
+                          text-decoration: none;
+                          display: flex;
+                          align-items: center;
+                          gap: 5px;
+                          font-weight: bold;
+                        "
+                      >
+                        <i
+                          class="fab fa-whatsapp"
+                          style="font-size: 18px; color: #25d366"
+                        ></i>
+                        WhatsApp
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="warning-text-hindi" id="warningTextHindi">
-                पूर्वी चंपारण, गोपालगंज जिले के एक या दो स्थानों में अगले दो से
-                तीन घंटे में हल्के से मध्यम दर्जे की मेघ गर्जन, वज्रपात,हवा (हवा
-                की गति 30-40 कि.मी. प्रति घंटे तक) के साथ हल्की वर्षा होने की
-                संभावना है।
-              </div>
-
-              <div class="warning-text-english" id="warningTextEnglish">
-                Some parts of EAST CHAMPARAN, GOPALGANJ district would
-                experience light to moderate thunderstorm and lightning
-                accompanied with light rain and Gusty wind (wind speed upto
-                30-40 Kmph)within next two to three hours
-              </div>
-
-              <div class="guidelines-section">
-                <div class="guidelines-title">दिशा-निर्देश/Guidelines:</div>
-                <div class="guidelines-text" id="guidelinesText">
-                  नोट:इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और
-                  सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के
-                  मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें।
-                  किसान अपने खेतों में न जाए एवं मौसम सामान्य होने की प्रतीक्षा
-                  करें। इस मौसम की विस्तृत तथा अध्यतन जानकारी के लिए मौसम
-                  विज्ञान केंद्र, पटना की वेबसाइट
-                  (https://mausam.imd.gov.in/patna/)
-                  फेसबुक(https://www.facebook.com/IMDpatna/) तथा ट्विटर पेज
-                  (https://twitter.com/imd_patna) को देख सकते हैं।
+              <div class="imd-footer">
+                <div class="warning-legend">
+                  <div
+                    class="legend-item"
+                    style="
+                      border: none;
+                      padding: 5px 5px 5px 0;
+                      background: transparent;
+                    "
+                  >
+                    Warning Colour Code:
+                  </div>
+                  <div class="legend-item green">No Warning</div>
+                  <div class="legend-item yellow">Watch: (be updated)</div>
+                  <div class="legend-item orange">Alert: (be prepared)</div>
+                  <div class="legend-item red">Warning: (Take action)</div>
                 </div>
-              </div>
-            </div>
-
-            <div class="imd-footer">
-              <div class="warning-legend">
-                <div class="legend-item green">No Warning</div>
-                <div class="legend-item yellow">Watch:(be updated)</div>
-                <div class="legend-item orange">Alert:(be prepared)</div>
-                <div class="legend-item red">Warning:(Take action)</div>
-              </div>
-              <div class="forecasting-officer">
-                <strong>Forecasting Officer</strong>
-                <span>(पूर्वानुमान पदाधिकारी)</span>
+                <div class="forecasting-officer">
+                  <strong>Forecasting Officer</strong>
+                  <span>(पूर्वानुमान पदाधिकारी)</span>
+                </div>
               </div>
             </div>
           </div>
@@ -592,7 +700,7 @@
       <div id="footer-container"></div>
     </div>
 
-    <!-- Email List Modal (Moved outside of container) -->
+    <!-- Email List Modal -->
     <div id="emailModal" class="custom-modal" style="display: none">
       <div class="glass-popup-content">
         <div class="glass-modal-header">
@@ -681,7 +789,7 @@
       </div>
     </div>
 
-    <script src="js/districts.js?v=2.2"></script>
-    <script src="js/nowcast.js?v=2.2"></script>
+    <script src="js/districts.js?v=3.0"></script>
+    <script src="js/nowcast.js?v=3.0"></script>
   </body>
 </html>
