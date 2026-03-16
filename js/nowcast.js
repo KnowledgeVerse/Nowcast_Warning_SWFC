@@ -634,24 +634,45 @@ function toggleRegion(region, isChecked) {
 function updateDateTime() {
   if (!isAutoTimeUpdate) return;
   const now = new Date();
-  updateTimeDisplay(now);
+  // समय को निकटतम 5 मिनट के गुणज में राउंड करें (Round to nearest 5 minutes)
+  const coeff = 1000 * 60 * 5;
+  const roundedDate = new Date(Math.round(now.getTime() / coeff) * coeff);
+  updateTimeDisplay(roundedDate);
 }
 
 function updateTimeDisplay(dateObj) {
-  const options = {
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
+  const formatCustomDate = (d) => {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const month = months[d.getMonth()];
+    const day = String(d.getDate()).padStart(2, "0");
+    const year = d.getFullYear();
+    let hours = d.getHours();
+    const minutes = String(d.getMinutes()).padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // 0 बजे को 12 दिखाएं
+    const strHours = String(hours).padStart(2, "0");
+    return `${month} ${day},${year} ; ${strHours}:${minutes} ${ampm}`;
   };
-  const timeStr = dateObj.toLocaleString("en-US", options);
+  const timeStr = formatCustomDate(dateObj);
   const issueEl = document.getElementById("issueDateTime");
   if (issueEl) issueEl.innerText = timeStr;
 
   const validDate = new Date(dateObj.getTime() + 3 * 60 * 60 * 1000); // +3 hours
-  const validStr = validDate.toLocaleString("en-US", options);
+  const validStr = formatCustomDate(validDate);
   const validEl = document.getElementById("validityTime");
   if (validEl) validEl.innerText = validStr;
 }
@@ -675,9 +696,13 @@ function toggleTimeManualMode() {
     }
     if (inputs) inputs.style.display = "block";
     const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const coeff = 1000 * 60 * 5;
+    const roundedDate = new Date(Math.round(now.getTime() / coeff) * coeff);
+    roundedDate.setMinutes(
+      roundedDate.getMinutes() - roundedDate.getTimezoneOffset(),
+    );
     const manualInput = document.getElementById("manualIssueInput");
-    if (manualInput) manualInput.value = now.toISOString().slice(0, 16);
+    if (manualInput) manualInput.value = roundedDate.toISOString().slice(0, 16);
   }
 }
 
@@ -937,6 +962,89 @@ function downloadNowcastImage() {
   });
 }
 
+// Copy Nowcast Image to Clipboard
+function copyNowcastImage() {
+  const element = document.getElementById("imdWarningContainer");
+  showLoading();
+
+  html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: "#ffffff",
+  }).then((canvas) => {
+    canvas.toBlob((blob) => {
+      if (!navigator.clipboard || !window.ClipboardItem) {
+        hideLoading();
+        alert(
+          "आपका ब्राउज़र इमेज कॉपी करने का समर्थन नहीं करता है। कृपया डाउनलोड विकल्प का उपयोग करें।\nYour browser does not support image copying. Please use download.",
+        );
+        return;
+      }
+
+      const item = new ClipboardItem({ "image/png": blob });
+      navigator.clipboard
+        .write([item])
+        .then(() => {
+          hideLoading();
+
+          // Success Animation on Button
+          const copyBtn = document.getElementById("copyImageBtn");
+          if (copyBtn) {
+            const originalHtml = copyBtn.innerHTML;
+            copyBtn.innerHTML =
+              '<i class="fas fa-check-circle" style="transform: scale(1.2);"></i> Copied!';
+            copyBtn.style.background = "#28a745"; // Success Green Color
+
+            // Revert back after 3 seconds
+            setTimeout(() => {
+              copyBtn.innerHTML = originalHtml;
+              copyBtn.style.background = "#ff9800"; // Original Orange Color
+            }, 3000);
+          }
+
+          // Show alert after a slight delay so button updates first
+          setTimeout(() => {
+            alert(
+              "चेतावनी की इमेज सफलतापूर्वक कॉपी हो गई है! अब आप इसे कहीं भी (Ctrl+V) पेस्ट कर सकते हैं।\nWarning image copied to clipboard successfully!",
+            );
+          }, 100);
+        })
+        .catch((err) => {
+          hideLoading();
+          console.error("Clipboard copy failed:", err);
+          alert("कॉपी करने में त्रुटि आई।\nError copying image.");
+        });
+    }, "image/png");
+  });
+}
+
+// --- Helper Functions for Image Copying ---
+function generateNowcastImageBlob() {
+  const element = document.getElementById("imdWarningContainer");
+  return html2canvas(element, {
+    scale: 2,
+    useCORS: true,
+    allowTaint: true,
+    backgroundColor: "#ffffff",
+  }).then((canvas) => {
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => resolve(blob), "image/png");
+    });
+  });
+}
+
+function copyImageToClipboard(blob) {
+  if (!navigator.clipboard || !window.ClipboardItem) {
+    return Promise.reject(
+      new Error("Your browser does not support image copying."),
+    );
+  }
+  const item = new ClipboardItem({ "image/png": blob });
+  return navigator.clipboard.write([item]);
+}
+// ------------------------------------------
+
 // Share Nowcast Functions
 function getNowcastShareText() {
   const hindiText = document.getElementById("warningTextHindi").innerText;
@@ -946,30 +1054,91 @@ function getNowcastShareText() {
 }
 
 function shareNowcastWhatsApp() {
-  const text = getNowcastShareText();
-  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  showLoading();
+  generateNowcastImageBlob()
+    .then((blob) => copyImageToClipboard(blob))
+    .then(() => {
+      hideLoading();
+      window.open("https://web.whatsapp.com/", "_blank");
+      setTimeout(() => {
+        alert("Image copied. Select contact and press CTRL+V to paste.");
+      }, 100);
+    })
+    .catch((err) => {
+      hideLoading();
+      console.error("Clipboard copy failed:", err);
+      alert(
+        "Failed to copy image. Your browser might not support this feature.",
+      );
+    });
 }
 
 function shareNowcastFacebook() {
-  const url = "https://biharmausam.com/";
-  window.open(
-    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-    "_blank",
-  );
+  showLoading();
+  generateNowcastImageBlob()
+    .then((blob) => copyImageToClipboard(blob))
+    .then(() => {
+      hideLoading();
+      window.open("https://www.facebook.com/", "_blank");
+      setTimeout(() => {
+        alert("Image copied. Click Create Post and press CTRL+V to paste.");
+      }, 100);
+    })
+    .catch((err) => {
+      hideLoading();
+      console.error("Clipboard copy failed:", err);
+      alert("Failed to copy image.");
+    });
 }
 
 function shareNowcastTwitter() {
-  const text = getNowcastShareText();
-  window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`,
-    "_blank",
-  );
+  showLoading();
+  generateNowcastImageBlob()
+    .then((blob) => copyImageToClipboard(blob))
+    .then(() => {
+      hideLoading();
+      const text = "मेघगर्जन / बिजली / सतही हवा के साथ बारिश की चेतावनी";
+      window.open(
+        `https://twitter.com/compose/tweet?text=${encodeURIComponent(text)}`,
+        "_blank",
+      );
+      setTimeout(() => {
+        alert("Image copied. Press CTRL+V to paste the image.");
+      }, 100);
+    })
+    .catch((err) => {
+      hideLoading();
+      console.error("Clipboard copy failed:", err);
+      alert("Failed to copy image.");
+    });
 }
 
 function shareNowcastEmail() {
-  const text = getNowcastShareText();
+  const emailListEl = document.getElementById("emailListText");
+  let emails = "";
+
+  if (emailListEl && emailListEl.value.trim() !== "") {
+    emails = emailListEl.value;
+  } else {
+    // Fallback: If the user didn't open the Email Modal first
+    const selectedDistrictEmails = selectedDistricts
+      .map((id) => {
+        const dist = districtsData.find((d) => d.id === id);
+        return dist && dist.email ? dist.email : null;
+      })
+      .filter((email) => email !== null);
+
+    emails = defaultEmails;
+    if (selectedDistrictEmails.length > 0) {
+      emails += ", " + selectedDistrictEmails.join(", ");
+    }
+  }
+
+  const subject = "मेघगर्जन /बिजली/ सतही हवा के साथ बारिश की चेतावनी";
+  const body = "Bihar Weather Nowcast Warning";
+
   window.open(
-    `mailto:?subject=Bihar Weather Nowcast&body=${encodeURIComponent(text)}`,
+    `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
     "_self",
   );
 }
