@@ -951,9 +951,10 @@ function generateNowcast() {
     warningLevel === "red"
   ) {
     guidelineHTML = `
-          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें।<br><br>
-          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें:<br>
-          <a href="https://mausam.imd.gov.in/patna/" target="_blank">https://mausam.imd.gov.in/patna/</a><br>
+          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें।<br>
+          <strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal.<br><br>
+          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें: / For detailed and updated information about this weather, visit the website of Meteorological Centre, Patna:<br>
+          <strong>Website:</strong> <a href="https://mausam.imd.gov.in/patna/" target="_blank">https://mausam.imd.gov.in/patna/</a><br>
           <strong>Facebook:</strong> <a href="https://www.facebook.com/IMDpatna/" target="_blank">https://www.facebook.com/IMDpatna/</a><br>
           <strong>Twitter:</strong> <a href="https://twitter.com/imd_patna" target="_blank">https://twitter.com/imd_patna</a>
       `;
@@ -1218,33 +1219,6 @@ function copyNowcastImage() {
   });
 }
 
-// --- Helper Functions for Image Copying ---
-function generateNowcastImageBlob() {
-  const element = document.getElementById("imdWarningContainer");
-  return html2canvas(element, {
-    scale: 2,
-    useCORS: true,
-    allowTaint: true,
-    backgroundColor: "#ffffff",
-  }).then((canvas) => {
-    return new Promise((resolve) => {
-      canvas.toBlob((blob) => resolve(blob), "image/png");
-    });
-  });
-}
-
-function copyImageToClipboard(blob) {
-  if (!navigator.clipboard || !window.ClipboardItem) {
-    return Promise.reject(
-      new Error("Your browser does not support image copying."),
-    );
-  }
-  const item = new ClipboardItem({ "image/png": blob });
-  return navigator.clipboard.write([item]);
-}
-// ------------------------------------------
-
-// Share Nowcast Functions
 function getNowcastShareText() {
   const hindiText = document.getElementById("warningTextHindi").innerText;
   const englishText = document.getElementById("warningTextEnglish").innerText;
@@ -1252,94 +1226,141 @@ function getNowcastShareText() {
   return `*Bihar Weather Nowcast*\n\n*Warning Level:* ${level}\n\n*Hindi:*\n${hindiText}\n\n*English:*\n${englishText}\n\nMore details: https://biharmausam.com/`;
 }
 
-function shareNowcastWhatsApp() {
+// --- Unified Advanced Share Logic ---
+async function processAndShare(platform) {
   showLoading();
-  generateNowcastImageBlob()
-    .then((blob) => copyImageToClipboard(blob))
-    .then(() => {
-      hideLoading();
-      window.open("https://web.whatsapp.com/", "_blank");
-      setTimeout(() => {
-        alert("Image copied. Select contact and press CTRL+V to paste.");
-      }, 100);
-    })
-    .catch((err) => {
-      hideLoading();
-      console.error("Clipboard copy failed:", err);
-      alert(
-        "Failed to copy image. Your browser might not support this feature.",
-      );
+  try {
+    const element = document.getElementById("imdWarningContainer");
+
+    // 1. Image Capture and Processing
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: "#ffffff",
     });
-}
 
-function shareNowcastFacebook() {
-  showLoading();
-  generateNowcastImageBlob()
-    .then((blob) => copyImageToClipboard(blob))
-    .then(() => {
-      hideLoading();
-      window.open("https://www.facebook.com/", "_blank");
-      setTimeout(() => {
-        alert("Image copied. Click Create Post and press CTRL+V to paste.");
-      }, 100);
-    })
-    .catch((err) => {
-      hideLoading();
-      console.error("Clipboard copy failed:", err);
-      alert("Failed to copy image.");
-    });
-}
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob(resolve, "image/png"),
+    );
+    const filename = getNowcastFilename("png");
+    const file = new File([blob], filename, { type: "image/png" });
+    const shareText = getNowcastShareText();
 
-function shareNowcastTwitter() {
-  showLoading();
-  generateNowcastImageBlob()
-    .then((blob) => copyImageToClipboard(blob))
-    .then(() => {
-      hideLoading();
-      const text = "मेघगर्जन / बिजली / सतही हवा के साथ बारिश की चेतावनी";
-      window.open(
-        `https://twitter.com/compose/tweet?text=${encodeURIComponent(text)}`,
-        "_blank",
-      );
-      setTimeout(() => {
-        alert("Image copied. Press CTRL+V to paste the image.");
-      }, 100);
-    })
-    .catch((err) => {
-      hideLoading();
-      console.error("Clipboard copy failed:", err);
-      alert("Failed to copy image.");
-    });
-}
-
-function shareNowcastEmail() {
-  const emailListEl = document.getElementById("emailListText");
-  let emails = "";
-
-  if (emailListEl && emailListEl.value.trim() !== "") {
-    emails = emailListEl.value;
-  } else {
-    // Fallback: If the user didn't open the Email Modal first
-    const selectedDistrictEmails = selectedDistricts
-      .map((id) => {
-        const dist = districtsData.find((d) => d.id === id);
-        return dist && dist.email ? dist.email : null;
-      })
-      .filter((email) => email !== null);
-
-    emails = defaultEmails;
-    if (selectedDistrictEmails.length > 0) {
-      emails += ", " + selectedDistrictEmails.join(", ");
+    // 2. Try Web Share API (Direct Attachment on Mobile & Edge)
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "Bihar Weather Warning",
+          text:
+            platform === "twitter"
+              ? "मेघगर्जन / बिजली / सतही हवा के साथ बारिश की चेतावनी\n"
+              : shareText,
+        });
+        hideLoading();
+        return; // Success (Image directly attached to App)
+      } catch (err) {
+        console.log(
+          "Web Share cancelled/failed, falling back to Clipboard",
+          err,
+        );
+      }
     }
+
+    // 3. Fallback for Desktop (Clipboard)
+    let copiedToClipboard = false;
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        const item = new ClipboardItem({ "image/png": blob });
+        await navigator.clipboard.write([item]);
+        copiedToClipboard = true;
+      } else {
+        throw new Error("Clipboard API not supported");
+      }
+    } catch (err) {
+      console.warn("Clipboard blocked, triggering auto-download", err);
+      // 4. Ultimate Fallback (Auto-Download)
+      const link = document.createElement("a");
+      link.download = filename;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+
+    hideLoading();
+
+    // 5. Open Share Window with clear instructions
+    const instructionMsg = copiedToClipboard
+      ? "इमेज क्लिपबोर्ड पर कॉपी हो गई है! कृपया शेयर बॉक्स में जाकर 'Paste (Ctrl+V / Long Press)' करें।\nImage copied! Please 'Paste' it in the message box."
+      : "इमेज डाउनलोड हो गई है! कृपया मैसेज के साथ इसे अटैच करें।\nImage downloaded! Please attach it to your message.";
+
+    // Delay to let browser UI catch up before alerting
+    setTimeout(() => {
+      alert(instructionMsg);
+      openPlatformWindow(platform, shareText);
+    }, 100);
+  } catch (error) {
+    hideLoading();
+    console.error("Share error:", error);
+    alert("शेयर करने में त्रुटि आई / Error generating share image.");
   }
+}
 
-  const subject = "मेघगर्जन /बिजली/ सतही हवा के साथ बारिश की चेतावनी";
-  const body = "Bihar Weather Nowcast Warning";
+// 6. Handle Specific Platform URLs
+function openPlatformWindow(platform, shareText) {
+  if (platform === "whatsapp") {
+    const text = encodeURIComponent(shareText);
+    window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
+  } else if (platform === "facebook") {
+    // FB Dialogs don't accept local images easily, pasting on the wall works best
+    window.open("https://www.facebook.com/", "_blank");
+  } else if (platform === "twitter") {
+    const text = encodeURIComponent(
+      "मेघगर्जन / बिजली / सतही हवा के साथ बारिश की चेतावनी\n" +
+        window.location.href,
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${text}`, "_blank");
+  } else if (platform === "email") {
+    const emailListEl = document.getElementById("emailListText");
+    let emails = "";
 
-  window.open(
-    `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
-    "_self",
-  );
+    if (emailListEl && emailListEl.value.trim() !== "") {
+      emails = emailListEl.value;
+    } else {
+      // Auto-generate if modal wasn't opened
+      const selectedDistrictEmails = selectedDistricts
+        .map((id) => {
+          const dist = districtsData.find((d) => d.id === id);
+          return dist && dist.email ? dist.email : null;
+        })
+        .filter((email) => email !== null);
+
+      emails = defaultEmails;
+      if (selectedDistrictEmails.length > 0) {
+        emails += ", " + selectedDistrictEmails.join(", ");
+      }
+    }
+
+    const subject = "मेघगर्जन /बिजली/ सतही हवा के साथ बारिश की चेतावनी";
+    const body =
+      "Bihar Weather Nowcast Warning\n\n(कृपया चेतावनी की इमेज यहाँ अटैच/पेस्ट करें / Please attach or paste the image here)";
+
+    window.location.href = `mailto:${emails}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+}
+
+// 7. Link to HTML Buttons
+function shareNowcastWhatsApp() {
+  processAndShare("whatsapp");
+}
+function shareNowcastFacebook() {
+  processAndShare("facebook");
+}
+function shareNowcastTwitter() {
+  processAndShare("twitter");
+}
+function shareNowcastEmail() {
+  processAndShare("email");
 }
 
 // Print nowcast
