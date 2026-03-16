@@ -1113,10 +1113,10 @@ function getNowcastFilename(extension) {
 
 // Download as PDF
 function downloadNowcastPDF() {
-  const element = document.getElementById("imdWarningContainer");
+  const element = document.getElementById("warningCardContainer");
 
   html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
@@ -1147,10 +1147,10 @@ function downloadNowcastPDF() {
 
 // Download as Image
 function downloadNowcastImage() {
-  const element = document.getElementById("imdWarningContainer");
+  const element = document.getElementById("warningCardContainer");
 
   html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
@@ -1164,11 +1164,11 @@ function downloadNowcastImage() {
 
 // Copy Nowcast Image to Clipboard
 function copyNowcastImage() {
-  const element = document.getElementById("imdWarningContainer");
+  const element = document.getElementById("warningCardContainer");
   showLoading();
 
   html2canvas(element, {
-    scale: 2,
+    scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
@@ -1230,11 +1230,11 @@ function getNowcastShareText() {
 async function processAndShare(platform) {
   showLoading();
   try {
-    const element = document.getElementById("imdWarningContainer");
+    const element = document.getElementById("warningCardContainer");
 
     // 1. Image Capture and Processing
     const canvas = await html2canvas(element, {
-      scale: 2,
+      scale: 3,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
@@ -1366,7 +1366,7 @@ function shareNowcastEmail() {
 // Print nowcast
 function printNowcast() {
   const printWindow = window.open("", "_blank");
-  const content = document.getElementById("imdWarningContainer").outerHTML;
+  const content = document.getElementById("warningCardContainer").outerHTML;
 
   printWindow.document.write(`
         <html>
@@ -1374,11 +1374,14 @@ function printNowcast() {
             <title>Nowcast Weather Warning</title>
             <style>
                 body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-                .imd-warning-container { 
+                .warning-card-wrapper { 
                     border: 3px solid #000; 
+                    padding: 10px;
+                    background: #ffffff;
                     max-width: 800px; 
                     margin: 0 auto;
                 }
+                .imd-warning-container { border: none; }
                 .imd-header { 
                     display: flex; 
                     justify-content: space-between; 
