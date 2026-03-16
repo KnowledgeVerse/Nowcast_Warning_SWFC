@@ -66,6 +66,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Set default warning level
   selectWarningLevel("yellow");
+
+  // Footer Load Script
+  fetch("footer.html")
+    .then((response) => response.text())
+    .then((data) => {
+      const footerContainer = document.getElementById("footer-container");
+      if (footerContainer) footerContainer.innerHTML = data;
+    })
+    .catch((error) => console.error("Error loading footer:", error));
 });
 
 // Helper: Get region color based on global subRegionDistricts
@@ -714,86 +723,276 @@ function applyManualTime() {
   }
 }
 
-// Generate Nowcast
+// Generate Nowcast (Updated Logic from index.html)
 function generateNowcast() {
-  if (selectedDistricts.length === 0) {
+  // 1. Get Selected Districts
+  const selectedDistrictsList = [];
+  const districtCheckboxes = document.querySelectorAll(
+    ".district-checkbox.selected",
+  ); // Assuming class 'selected' is toggled
+  // Also check for checked inputs just in case class isn't used alone
+  document
+    .querySelectorAll(".district-checkbox input:checked")
+    .forEach((input) => {
+      const parent = input.closest(".district-checkbox");
+      if (!parent.classList.contains("selected")) {
+        // Add if not already processed via class
+        const label = parent.innerText.trim();
+        processDistrictLabel(label, selectedDistrictsList);
+      }
+    });
+
+  // Use class based selection primary
+  districtCheckboxes.forEach((cb) => {
+    const label = cb.innerText.trim();
+    processDistrictLabel(label, selectedDistrictsList);
+  });
+
+  // Deduplicate logic just in case
+  const uniqueDistricts = [
+    ...new Map(
+      selectedDistrictsList.map((item) => [item["en"], item]),
+    ).values(),
+  ];
+
+  // Validation
+  if (uniqueDistricts.length === 0) {
     alert(
       "कृपया कम से कम एक जिला चुनें!\nPlease select at least one district!",
     );
     return;
   }
 
-  if (selectedPhenomena.length === 0) {
+  // 2. Format District Lists
+  let districtTextEn = "";
+  let districtTextHi = "";
+
+  if (uniqueDistricts.length > 0) {
+    // English Formatting
+    const enNames = uniqueDistricts.map((d) => d.en.toUpperCase());
+    if (enNames.length === 1) {
+      districtTextEn = enNames[0] + " district";
+    } else if (enNames.length === 2) {
+      districtTextEn = enNames.join(" and ") + " districts";
+    } else {
+      const last = enNames.pop();
+      districtTextEn = enNames.join(", ") + " and " + last + " districts";
+    }
+
+    // Hindi Formatting
+    const hiNames = uniqueDistricts.map((d) => d.hi);
+    if (hiNames.length === 1) {
+      districtTextHi = hiNames[0] + " जिले";
+    } else if (hiNames.length === 2) {
+      districtTextHi = hiNames.join(" और ") + " जिले";
+    } else {
+      const last = hiNames.pop();
+      districtTextHi = hiNames.join(", ") + " और " + last + " जिले";
+    }
+  } else {
+    districtTextEn = "[SELECT DISTRICT]";
+    districtTextHi = "[जिला चुनें]";
+  }
+
+  // 3. Get Warning Level
+  const warningLevelInput = document.querySelector(
+    'input[name="warningLevel"]:checked',
+  );
+  const warningLevel = warningLevelInput ? warningLevelInput.value : "green";
+
+  // 4. Get Selected Phenomena & Select Template
+  // Get all selected items
+  const phenomenaItems = document.querySelectorAll(".phenomena-item.selected");
+
+  // Map selected DOM elements back to data objects to maintain fixed order
+  let selectedPhenomData = [];
+
+  // We look for the ID stored in the input value within the label
+  phenomenaItems.forEach((item) => {
+    const input = item.querySelector("input");
+    if (input) {
+      const pData = weatherPhenomena.find((p) => p.id === input.value);
+      if (pData) selectedPhenomData.push(pData);
+    }
+  });
+
+  if (selectedPhenomData.length === 0) {
     alert(
       "कृपया कम से कम एक मौसम घटना चुनें!\nPlease select at least one weather phenomenon!",
     );
     return;
   }
 
+  // Sort selected phenomena based on index in global weatherPhenomena array (Fixed Order)
+  selectedPhenomData.sort((a, b) => {
+    return weatherPhenomena.indexOf(a) - weatherPhenomena.indexOf(b);
+  });
+
+  // Check for specific conditions
+  const hasWind = selectedPhenomData.some((p) => p.id === "gusty_wind");
+  const hasHail = selectedPhenomData.some((p) => p.id === "hail");
+  const hasRain = selectedPhenomData.some((p) => p.id === "rain");
+
+  // Filter out Wind from the main list (handled separately in text generation)
+  const mainPhenomena = selectedPhenomData.filter((p) => p.id !== "gusty_wind");
+
+  // Determine Wind Speed Text based on Alert Level
+  let windSpeedHi = "";
+  let windSpeedEn = "";
+
+  if (hasWind) {
+    // Use selected wind speed if available, otherwise fallback to auto
+    const windInput = document.querySelector('input[name="windSpeed"]:checked');
+    let speedRange = windInput ? windInput.value : null;
+
+    if (!speedRange) {
+      speedRange = "30-40"; // Default
+      if (warningLevel === "orange") speedRange = "40-50";
+      if (warningLevel === "red") speedRange = "50-60";
+      if (warningLevel === "red" && hasHail) speedRange = "60-70";
+    }
+
+    windSpeedHi = `(हवा की गति ${speedRange} कि.मी. प्रति घंटे तक)`;
+    windSpeedEn = `(wind speed upto ${speedRange} Kmph)`;
+  }
+
+  // 5. Generate Warning Text
+  let warningEn = "";
+  let warningHi = "";
+
+  // Construct Phenomena List String (Hindi)
+  let phenomStrHi = "";
+  if (mainPhenomena.length > 0) {
+    let names = mainPhenomena.map((p) => {
+      if (p.id === "rain" && warningLevel === "red") return "भारी वर्षा";
+      return p.hindi;
+    });
+
+    if (names.length === 1) {
+      phenomStrHi = names[0];
+    } else {
+      const last = names.pop();
+      phenomStrHi = names.join(", ") + " तथा " + last;
+    }
+  }
+
+  // Construct Phenomena List String (English)
+  let phenomStrEn = "";
+  if (mainPhenomena.length > 0) {
+    let names = mainPhenomena.map((p) => {
+      if (p.id === "rain" && warningLevel === "red") return "heavy rain";
+      return p.name.toLowerCase();
+    });
+
+    if (names.length === 1) {
+      phenomStrEn = names[0];
+    } else {
+      const last = names.pop();
+      phenomStrEn = names.join(", ") + " and " + last;
+    }
+  }
+
+  // Attach Wind to Phenomena String
+  let fullPhenomHi = phenomStrHi;
+  let fullPhenomEn = phenomStrEn;
+
+  if (hasWind) {
+    if (fullPhenomHi) fullPhenomHi += " के साथ तेज हवा " + windSpeedHi;
+    else fullPhenomHi = "तेज हवा " + windSpeedHi;
+
+    if (fullPhenomEn)
+      fullPhenomEn += " accompanied with Gusty wind " + windSpeedEn;
+    else fullPhenomEn = "Gusty wind " + windSpeedEn;
+  }
+
+  // GENERATE SENTENCES BASED ON WARNING LEVEL
+  if (warningLevel === "yellow") {
+    warningHi = `${districtTextHi} के कुछ भागों में अगले एक से तीन घंटे में हल्के से मध्यम दर्जे की ${fullPhenomHi} जारी रहने की संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} would experience light to moderate ${fullPhenomEn} will continue in next one to three hours.`;
+  } else if (warningLevel === "orange") {
+    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में मध्यम दर्जे की ${fullPhenomHi} होने की प्रबल संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} would experience moderate ${fullPhenomEn} within next two to three hours.`;
+  } else if (warningLevel === "red") {
+    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में तीव्र दर्जे की ${fullPhenomHi} की प्रबल संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} would experience severe ${fullPhenomEn} within next two to three hours.`;
+  } else {
+    warningHi = "कोई चेतावनी नहीं।";
+    warningEn = "No Warning.";
+  }
+
+  // Cleanup double spaces if any
+  warningHi = warningHi.replace(/\s+/g, " ").trim();
+  warningEn = warningEn.replace(/\s+/g, " ").trim();
+  warningHi = warningHi.replace(/"/g, "");
+  warningEn = warningEn.replace(/"/g, "");
+
+  // 6. Update UI
+  document.getElementById("warningTextHindi").innerText = warningHi;
+  document.getElementById("warningTextEnglish").innerText = warningEn;
+
+  // Update Warning Code Box
+  const codeBox = document.getElementById("warningCodeBox");
+  codeBox.className = `warning-code-box ${warningLevel}`;
+
+  let codeTitle = "NO WARNING";
+  if (warningLevel === "yellow") codeTitle = "YELLOW: Watch (be updated)";
+  if (warningLevel === "orange") codeTitle = "ORANGE: Alert (be prepared)";
+  if (warningLevel === "red") codeTitle = "RED: Warning (Take action)";
+  codeBox.innerText = codeTitle;
+
+  // Update Guidelines
+  const guidelinesDiv = document.getElementById("guidelinesText");
+  guidelinesDiv.className = `guidelines-text ${warningLevel}`;
+
+  let guidelineHTML = "";
+  if (
+    warningLevel === "yellow" ||
+    warningLevel === "orange" ||
+    warningLevel === "red"
+  ) {
+    guidelineHTML = `
+          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें।<br><br>
+          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें:<br>
+          <a href="https://mausam.imd.gov.in/patna/" target="_blank">https://mausam.imd.gov.in/patna/</a><br>
+          <strong>Facebook:</strong> <a href="https://www.facebook.com/IMDpatna/" target="_blank">https://www.facebook.com/IMDpatna/</a><br>
+          <strong>Twitter:</strong> <a href="https://twitter.com/imd_patna" target="_blank">https://twitter.com/imd_patna</a>
+      `;
+  } else {
+    guidelineHTML = "No specific guidelines.";
+  }
+  guidelinesDiv.innerHTML = guidelineHTML;
+
+  // Show Loading Animation & Display output
   showLoading();
-
   setTimeout(() => {
-    generateWarningText();
-    document.getElementById("nowcastOutput").classList.add("active");
     hideLoading();
-
-    // Scroll to output
+    document.getElementById("nowcastOutput").style.display = "block";
+    document.getElementById("nowcastOutput").classList.add("active");
     document
       .getElementById("nowcastOutput")
       .scrollIntoView({ behavior: "smooth" });
-  }, 1000);
+  }, 500);
 }
 
-// Generate warning text
-function generateWarningText() {
-  const config = warningConfig[selectedWarningLevel];
-  const districts = selectedDistricts.map((id) =>
-    districtsData.find((d) => d.id === id),
-  );
+// Helper to process label "Name / नाम"
+function processDistrictLabel(label, list) {
+  let en = label;
+  let hi = label;
 
-  // Get district names
-  const districtNamesHi = districts.map((d) => d.hindi).join(", ");
-  const districtNamesEn = districts.map((d) => d.name.toUpperCase()).join(", ");
+  const match = label.match(/^(.+?)\s*\((.+?)\)$/);
+  if (match) {
+    hi = match[1].trim();
+    en = match[2].trim();
+  } else if (label.includes("/")) {
+    const parts = label.split("/");
+    en = parts[0].trim();
+    hi = parts.length > 1 ? parts[1].trim() : en;
+  }
 
-  // Get phenomena names
-  const phenomenaList = selectedPhenomena.map((id) =>
-    weatherPhenomena.find((p) => p.id === id),
-  );
-
-  const phenomNamesHi = phenomenaList.map((p) => p.hindi).join(", ");
-  const phenomNamesEn = phenomenaList
-    .map((p) => p.name.toLowerCase())
-    .join(", ");
-
-  // Get intensity text
-  const intensityHi = intensityLevels.hi[selectedIntensity];
-  const intensityEn = intensityLevels.en[selectedIntensity];
-
-  // Update warning code box
-  const codeBox = document.getElementById("warningCodeBox");
-  codeBox.textContent = `${config.code}: ${config.action}`;
-  codeBox.className = `warning-code-box ${config.bgClass}`;
-
-  // Generate Hindi text
-  const windTextHi = selectedWindSpeed
-    ? `(हवा की गति ${selectedWindSpeed} कि.मी. प्रति घंटे तक)`
-    : "";
-  const warningTextHi = `${districtNamesHi} जिले के एक या दो स्थानों में अगले दो से तीन घंटे में ${intensityHi} ${phenomNamesHi} ${windTextHi} के साथ होने की संभावना है।`;
-
-  // Generate English text
-  const windTextEn = selectedWindSpeed
-    ? `(wind speed upto ${selectedWindSpeed} Kmph)`
-    : "";
-  const warningTextEn = `Some parts of ${districtNamesEn} district would experience ${intensityEn} ${phenomNamesEn} accompanied with Gusty wind ${windTextEn} within next two to three hours`;
-
-  // Update DOM
-  document.getElementById("warningTextHindi").textContent = warningTextHi;
-  document.getElementById("warningTextEnglish").textContent = warningTextEn;
-
-  // Update guidelines
-  const guidelinesBox = document.querySelector(".guidelines-text");
-  guidelinesBox.textContent = config.guideline;
-  guidelinesBox.className = `guidelines-text ${config.bgClass}`;
+  const exists = list.find((d) => d.en === en);
+  if (!exists) {
+    list.push({ en, hi });
+  }
 }
 
 // Preview nowcast
