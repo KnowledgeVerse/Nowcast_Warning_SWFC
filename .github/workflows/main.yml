@@ -1,0 +1,22 @@
+name: Deploy to Hostinger via FTP
+
+on:
+  push:
+    branches:
+      - main # जब भी 'main' ब्रांच में कोड पुश होगा, यह एक्शन रन करेगा
+
+jobs:
+  ftp-deploy:
+    name: FTP Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Sync files to Hostinger
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.3
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: /domains/biharmausam.com/public_html/swfc/Nowcast-Warning-SWFC/
