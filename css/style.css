@@ -2848,10 +2848,11 @@ body.nowcast-page .container {
   overflow: visible; /* मैप क्लिक करने पर हेडर छिपने की समस्या को ठीक करेगा */
   display: flex;
   flex-direction: column;
+  position: relative; /* Essential to trap the advanced panel overlay */
 }
 
 body.nowcast-page .map-container {
-  flex: 1; /* यह मैप को खीचकर कंट्रोल पैनल के बराबर कर देगा */
+  flex: 1;
   min-height: 500px;
   border-radius: 10px;
   overflow: hidden;
@@ -3176,6 +3177,11 @@ body.nowcast-page .action-buttons {
   overflow: visible; /* Prevents border clipping in html2canvas */
   margin-bottom: 20px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+  transition: aspect-ratio 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Centers content when height increases */
+  aspect-ratio: 256 / 181;
 }
 
 .imd-warning-container {
@@ -3185,6 +3191,7 @@ body.nowcast-page .action-buttons {
   overflow: visible; /* Crucial: removes clipping */
   margin-bottom: 0;
   box-shadow: none;
+  width: 100%;
 }
 
 .imd-header {
@@ -3206,7 +3213,7 @@ body.nowcast-page .action-buttons {
 
 .imd-emblem {
   width: auto;
-  height: 140px;
+  height: 180px;
   object-fit: contain;
 }
 
@@ -3239,7 +3246,7 @@ body.nowcast-page .action-buttons {
 
 .imd-anniversary {
   width: auto;
-  height: 140px;
+  height: 180px;
   object-fit: contain;
   justify-self: end;
 }
@@ -3254,15 +3261,6 @@ body.nowcast-page .action-buttons {
   .imd-anniversary {
     justify-self: center;
   }
-}
-
-.imd-contact-bar {
-  display: flex;
-  justify-content: space-between;
-  padding: 8px 15px;
-  background: #f5f5f5;
-  border-bottom: 1px solid #000;
-  font-size: 13px;
 }
 
 .imd-warning-content {
@@ -3364,24 +3362,38 @@ body.nowcast-page .action-buttons {
 
 .imd-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   padding: 15px;
   border-top: 2px solid #000;
   background: #f5f5f5;
+  gap: 15px;
 }
 
 .warning-legend {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
+  align-items: center;
+  width: 100%;
+}
+
+.warning-legend b,
+.warning-legend strong,
+.warning-legend span {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .legend-item {
-  padding: 5px 15px;
+  padding: 8px 10px;
   font-size: 12px;
   font-weight: 600;
   border: 1px solid #000;
+  flex: 1; /* चारों कोनों को 1/4 हिस्से में बांटने के लिए */
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .legend-item.green {
@@ -3407,6 +3419,8 @@ body.nowcast-page .action-buttons {
 .forecasting-officer {
   text-align: right;
   font-size: 14px;
+  order: -1; /* इसे सबसे ऊपर लाने के लिए */
+  width: 100%;
 }
 
 .forecasting-officer strong {
@@ -3418,6 +3432,7 @@ body.nowcast-page .action-buttons {
   display: flex;
   gap: 10px;
   justify-content: center;
+  align-items: center;
   margin-top: 20px;
   flex-wrap: wrap;
 }
@@ -3542,4 +3557,494 @@ body.nowcast-page .loading-overlay.active {
   border-radius: 4px;
   font-size: 12px;
   cursor: pointer;
+}
+
+/* ========================================================================== */
+/* ======================= ANIMATED DOWNLOAD BUTTONS ======================== */
+/* ========================================================================== */
+.anim-dl-label {
+  background-color: #ffffff;
+  border: 2px solid rgb(91, 91, 240);
+  display: flex;
+  align-items: center;
+  border-radius: 50px;
+  width: 150px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+  padding: 5px;
+  position: relative;
+  margin: 0;
+  box-sizing: border-box;
+  height: 54px;
+}
+
+body.dark-mode .anim-dl-label {
+  background-color: #2d3436;
+}
+
+.anim-dl-label:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.anim-dl-label::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  width: 8px;
+  height: 8px;
+  transition: all 0.4s ease;
+  border-radius: 100%;
+  margin: auto;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.anim-dl-label .anim-dl-input {
+  display: none;
+}
+
+.anim-dl-label .anim-dl-title {
+  font-size: 16px;
+  font-weight: 700;
+  transition: all 0.4s ease;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  margin: 0;
+  width: calc(100% - 60px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.anim-dl-label .anim-dl-title:last-child {
+  opacity: 0;
+  visibility: hidden;
+  color: #28a745 !important;
+}
+
+.anim-dl-label .anim-dl-circle {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.4s ease;
+  position: relative;
+  box-shadow: 0 0 0 0 rgb(255, 255, 255);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.anim-dl-label .anim-dl-circle .anim-dl-icon {
+  color: #fff;
+  width: 22px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+}
+
+.anim-dl-label .anim-dl-circle .anim-dl-square {
+  aspect-ratio: 1;
+  width: 12px;
+  border-radius: 2px;
+  background-color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: all 0.4s ease;
+}
+
+.anim-dl-label .anim-dl-circle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  width: 100%;
+  height: 0;
+  transition: all 0.4s ease;
+}
+
+.anim-dl-label:has(.anim-dl-input:checked) {
+  width: 54px;
+  animation: animDlInstalled 0.4s ease 3.5s forwards;
+}
+.anim-dl-label:has(.anim-dl-input:checked)::before {
+  animation: animDlRotate 3s ease-in-out 0.4s forwards;
+}
+.anim-dl-label .anim-dl-input:checked + .anim-dl-circle {
+  animation:
+    animDlPulse 1s forwards,
+    animDlCircleDelete 0.2s ease 3.5s forwards;
+  rotate: 180deg;
+}
+.anim-dl-label .anim-dl-input:checked + .anim-dl-circle::before {
+  animation: animDlInstalling 3s ease-in-out forwards;
+}
+.anim-dl-label .anim-dl-input:checked + .anim-dl-circle .anim-dl-icon {
+  opacity: 0;
+  visibility: hidden;
+}
+.anim-dl-label .anim-dl-input:checked ~ .anim-dl-circle .anim-dl-square {
+  opacity: 1;
+  visibility: visible;
+}
+.anim-dl-label .anim-dl-input:checked ~ .anim-dl-title {
+  opacity: 0;
+  visibility: hidden;
+}
+.anim-dl-label .anim-dl-input:checked ~ .anim-dl-title:last-child {
+  animation: animDlShowMessage 0.4s ease 3.5s forwards;
+}
+
+/* --- Theme Variants --- */
+.anim-dl-label.dl-pdf {
+  border-color: #d32f2f;
+}
+.anim-dl-label.dl-pdf .anim-dl-title {
+  color: #d32f2f;
+}
+.anim-dl-label.dl-pdf .anim-dl-circle {
+  background-color: #d32f2f;
+}
+
+.anim-dl-label.dl-img {
+  border-color: #00897b;
+}
+.anim-dl-label.dl-img .anim-dl-title {
+  color: #00897b;
+}
+.anim-dl-label.dl-img .anim-dl-circle {
+  background-color: #00897b;
+}
+
+@keyframes animDlPulse {
+  0% {
+    scale: 0.95;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+  }
+  70% {
+    scale: 1;
+    box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+  }
+  100% {
+    scale: 0.95;
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+}
+@keyframes animDlInstalling {
+  from {
+    height: 0;
+  }
+  to {
+    height: 100%;
+  }
+}
+@keyframes animDlRotate {
+  0% {
+    transform: rotate(-90deg) translate(25px) rotate(0);
+    opacity: 1;
+    visibility: visible;
+  }
+  99% {
+    transform: rotate(270deg) translate(25px) rotate(270deg);
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes animDlInstalled {
+  100% {
+    width: 150px;
+    border-color: #28a745;
+  }
+}
+@keyframes animDlCircleDelete {
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@keyframes animDlShowMessage {
+  100% {
+    opacity: 1;
+    visibility: visible;
+    right: 15px;
+  }
+}
+
+/* ========================================================================== */
+/* ======================= COPY BUTTON SLIDE ANIMATION ====================== */
+/* ========================================================================== */
+.copy-anim-btn {
+  position: relative;
+  overflow: hidden;
+  background: #ff9800;
+  color: white;
+  border: none;
+  height: 54px;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  width: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-anim-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4);
+}
+
+.copy-anim-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: #28a745;
+  z-index: 1;
+  transition: width 0.5s ease-in-out;
+}
+
+.copy-anim-btn.is-copied .copy-anim-bg {
+  width: 100%;
+}
+
+.copy-anim-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.copy-anim-text {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 16px;
+  transition:
+    transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+    opacity 0.4s ease;
+}
+
+.base-text {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.success-text {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.copy-anim-btn.is-copied .base-text {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
+.copy-anim-btn.is-copied .success-text {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* ========================================================================== */
+/* ===================== EXPORT SOCIAL BUTTONS ANIMATION ==================== */
+/* ========================================================================== */
+.export-action-btn {
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  height: 54px;
+}
+
+.export-action-btn:hover {
+  transform: translateY(-5px) scale(1.05) !important;
+  z-index: 10;
+}
+
+/* Platform specific glowing shadows on hover */
+.btn-whatsapp:hover {
+  box-shadow: 0 8px 15px rgba(37, 211, 102, 0.4) !important;
+}
+.btn-facebook:hover {
+  box-shadow: 0 8px 15px rgba(24, 119, 242, 0.4) !important;
+}
+.btn-twitter:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4) !important;
+  background: #333333 !important; /* Slightly lighter black on hover */
+}
+.btn-print:hover {
+  box-shadow: 0 8px 15px rgba(108, 117, 125, 0.4) !important;
+}
+.btn-email-share:hover {
+  box-shadow: 0 8px 15px rgba(23, 162, 184, 0.4) !important;
+}
+
+/* ========================================================================== */
+/* ======================== ADVANCED WEATHER PANEL ========================== */
+/* ========================================================================== */
+.advanced-layer-panel {
+  position: absolute;
+  top: 60px;
+  right: 20px;
+  width: 320px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  z-index: 5000;
+  transform: translateX(120%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    opacity 0.3s;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100% - 80px);
+}
+
+.advanced-layer-panel.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.advanced-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.advanced-panel-header h4 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.close-panel-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.close-panel-btn:hover {
+  transform: scale(1.2);
+}
+
+.advanced-panel-content {
+  padding: 15px;
+  overflow-y: auto;
+  flex: 1;
+}
+.adv-layer-section {
+  margin-bottom: 20px;
+}
+.adv-layer-section h5 {
+  margin: 0 0 10px 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 5px;
+  font-size: 14px;
+}
+.adv-layer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.adv-layer-item:hover {
+  background: #e9ecef;
+}
+.adv-layer-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  flex: 1;
+}
+.adv-layer-label input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+.adv-opacity-slider {
+  width: 60px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+@media (max-width: 768px) {
+  .advanced-layer-panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+  }
+  .advanced-layer-panel.open {
+    transform: translateY(0);
+  }
+  .advanced-panel-header {
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+/* --- Lightning Mock Animation --- */
+.lightning-icon {
+  animation: flashStrike 0.6s ease-out forwards;
+}
+@keyframes flashStrike {
+  0% {
+    opacity: 1;
+    transform: scale(1.5) translateY(-50%);
+    filter: drop-shadow(0 0 10px #f1c40f);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1) translateY(0);
+    filter: none;
+  }
 }

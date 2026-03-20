@@ -422,6 +422,12 @@
                   <div style="font-size: 18px; margin-bottom: 2px">
                     पटना बिहार – 800002
                   </div>
+                  <div style="font-size: 16px; margin-bottom: 2px; font-weight: bold;">
+                    E-mail: mc.patna@imd.gov.in
+                  </div>
+                  <div style="font-size: 16px; margin-bottom: 2px; font-weight: bold;">
+                    दूरभाष/Telephone: 0612-2252356
+                  </div>
                 </div>
                 <img
                   src="assets/IMD_150_Year_Logo.png"
@@ -647,36 +653,34 @@
 
           <!-- Export Buttons -->
           <div class="export-section">
-            <button class="btn btn-primary" onclick="downloadNowcastPDF()">
-              <i class="fas fa-file-pdf"></i> PDF डाउनलोड करें
-            </button>
+            <   <svg class="anim-dl-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"></path></svg>
+                <div class="anim-dl-square"></div>
+              </span>
+              <p class="anim-dl-title">PDF <i class="fas fa-file-pdf"></i></p>
+              <p class="anim-dl-title">Done!</p>
+            </label>
+
+            <label class="anim-dl-label dl-img">
+              <input type="checkbox" class="anim-dl-input" onchange="if(this.checked) { downloadNowcastImage(); setTimeout(() => this.checked = false, 5000); }" />
+              <span class="anim-dl-circle">
+                <svg class="anim-dl-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"></path></svg>
+                <div class="anim-dl-square"></div>
+              </span>
+              <p class="anim-dl-title">Image <i class="fas fa-image"></i></p>
+              <p class="anim-dl-title">Done!</p>
+            </label>
+
             <button
               class="btn btn-warning"
               id="copyImageBtn"
-              style="
-                background: #ff9800;
-                color: white;
-                transition: all 0.3s ease;
-              "
+              style="background: #ff9800; color: white; transition: all 0.3s ease; height: 54px;"
               onclick="copyNowcastImage()"
-            >
-              <i class="fas fa-copy"></i> Copy image
-            </button>
-            <button class="btn btn-success" onclick="downloadNowcastImage()">
-              <i class="fas fa-image"></i> images download
-            </button>
-            <button class="btn btn-secondary" onclick="printNowcast()">
-              <i class="fas fa-print"></i> प्रिंट करें
-            </button>
+            > abutton>
             <button
               class="btn"
               style="background: #25d366; color: white"
-              onclick="shareNowcastWhatsApp()"
-            >
-              <i class="fab fa-whatsapp"></i> WhatsApp
-            </button>
-            <button
-              class="btn"
+              onclick="shareNowcastWhatsApp()" u
+            <b clas
               style="background: #1877f2; color: white"
               onclick="shareNowcastFacebook()"
             >

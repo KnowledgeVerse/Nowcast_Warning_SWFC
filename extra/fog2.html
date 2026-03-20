@@ -9,7 +9,7 @@
     />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
-    <title>बिहार मौसम पूर्वानुमान | Bihar Weather Forecast - Nowcast</title>
+    <title>बिहार मौसम पूर्वानुमान | Bihar Weather Fog 2 Nowcast</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700&display=swap"
       rel="stylesheet"
@@ -26,17 +26,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://unpkg.com/leaflet.latlng-graticule@1.2.2/leaflet.latlng-graticule.js"></script>
-    <!-- Turf.js for Geospatial Intersection (Polygon & District Auto-select) -->
-    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
-
-    <!-- Leaflet Draw for Advanced Polygon Warning System -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"
-    />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
-
     <link rel="stylesheet" href="css/style.css?v=3.2" />
   </head>
   <body class="nowcast-page">
@@ -138,7 +127,7 @@
                 "
                 title="मैप को आटोमेटिक ज़ूम करें"
               >
-                <input type="checkbox" id="autoZoomToggle" checked />
+                <input type="checkbox" id="autoZoomToggle" />
                 Auto Zoom
               </label>
               <label for="mapBgColor" style="cursor: pointer">BG Color:</label>
@@ -157,35 +146,6 @@
                   border-radius: 4px;
                 "
               />
-              <button
-                class="btn btn-info btn-small"
-                onclick="toggleAdvancedPanel()"
-                style="
-                  padding: 5px 10px;
-                  font-size: 12px;
-                  margin-left: 10px;
-                  font-weight: bold;
-                  background: linear-gradient(135deg, #1e3c72, #2a5298);
-                  border: none;
-                "
-              >
-                <i class="fas fa-layer-group"></i> Adv. Mode
-              </button>
-              <button
-                class="btn btn-warning btn-small"
-                onclick="
-                  document.getElementById('aiNowcastPanel').style.display =
-                    'block'
-                "
-                style="
-                  padding: 5px 10px;
-                  font-size: 12px;
-                  margin-left: 5px;
-                  font-weight: bold;
-                "
-              >
-                <i class="fas fa-robot"></i> AI Dashboard
-              </button>
             </div>
           </div>
 
@@ -241,347 +201,6 @@
           </div>
 
           <div class="map-container" id="map"></div>
-
-          <!-- Grid Settings Panel -->
-          <div
-            style="
-              margin-top: 10px;
-              display: flex;
-              gap: 10px;
-              flex-wrap: wrap;
-              background: #fff;
-              padding: 10px;
-              border-radius: 8px;
-              border: 1px solid #ddd;
-              font-size: 13px;
-            "
-          >
-            <strong><i class="fas fa-th"></i> Lat/Lng Grid:</strong>
-            <label
-              ><input
-                type="checkbox"
-                id="toggleGrid"
-                onchange="toggleCustomGrid(this.checked)"
-              />
-              Enable</label
-            >
-            <label
-              >Spacing:
-              <select id="gridSpacing" onchange="updateGridLayer()">
-                <option value="1">1°</option>
-                <option value="0.5">0.5°</option>
-                <option value="0.25">0.25°</option>
-              </select></label
-            >
-            <label
-              >Color:
-              <input
-                type="color"
-                id="gridColor"
-                value="#333333"
-                onchange="updateGridLayer()"
-            /></label>
-            <label
-              >Thickness:
-              <input
-                type="number"
-                id="gridWeight"
-                value="0.8"
-                step="0.1"
-                style="width: 50px"
-                onchange="updateGridLayer()"
-            /></label>
-            <label
-              >Opacity:
-              <input
-                type="number"
-                id="gridOpacity"
-                value="0.5"
-                step="0.1"
-                min="0"
-                max="1"
-                style="width: 50px"
-                onchange="updateGridLayer()"
-            /></label>
-          </div>
-
-          <!-- Advanced Polygon Draw Settings Panel -->
-          <div
-            style="
-              margin-top: 10px;
-              background: #fff3cd;
-              padding: 10px;
-              border-radius: 8px;
-              border: 1px solid #ffeeba;
-              font-size: 13px;
-              display: flex;
-              gap: 15px;
-              flex-wrap: wrap;
-              align-items: center;
-            "
-          >
-            <strong
-              ><i class="fas fa-draw-polygon"></i> Polygon Warning Tool:</strong
-            >
-            <span style="color: #d32f2f; font-weight: bold; font-size: 12px"
-              >(Draw a polygon, click to select it, then use the main Warning
-              Level and Phenomena panels below to assign properties to
-              it.)</span
-            >
-            <button
-              class="btn btn-primary btn-small"
-              onclick="generateAutoBulletin()"
-              style="padding: 4px 8px; font-size: 12px"
-            >
-              <i class="fas fa-magic"></i> Auto Generate Bulletin
-            </button>
-          </div>
-
-          <!-- External Map Iframe Overlay -->
-          <iframe
-            id="externalIframeOverlay"
-            src=""
-            style="
-              display: none;
-              position: absolute;
-              top: 130px;
-              left: 15px;
-              width: calc(100% - 30px);
-              height: calc(100% - 175px);
-              z-index: 500;
-              pointer-events: none;
-              border: 2px solid #667eea;
-              border-radius: 10px;
-              opacity: 0.8;
-              box-sizing: border-box;
-              background: white;
-            "
-          ></iframe>
-
-          <!-- Advanced Weather Layers Panel -->
-          <div id="advancedPanel" class="advanced-layer-panel">
-            <div class="advanced-panel-header">
-              <h4>
-                <i class="fas fa-layer-group"></i> Advanced Weather Layers
-              </h4>
-              <button onclick="toggleAdvancedPanel()" class="close-panel-btn">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            <div class="advanced-panel-content" id="advancedLayersContainer">
-              <!-- Populated Dynamically via JS -->
-            </div>
-          </div>
-
-          <!-- AI Severe Weather Alert Panel -->
-          <div
-            id="aiNowcastPanel"
-            style="
-              display: none;
-              margin-top: 15px;
-              background: white;
-              border-radius: 10px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-              border: 2px solid #e74c3c;
-            "
-          >
-            <div
-              style="
-                background: linear-gradient(135deg, #e74c3c, #c0392b);
-                color: white;
-                padding: 10px 15px;
-                border-radius: 8px 8px 0 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <h4 style="margin: 0; font-size: 15px">
-                <i class="fas fa-brain"></i> AI Severe Weather Alert Panel
-              </h4>
-              <div>
-                <button
-                  class="btn btn-secondary btn-small"
-                  onclick="runAINowcast()"
-                  style="margin-right: 10px"
-                >
-                  <i class="fas fa-play"></i> Run AI Model
-                </button>
-                <button
-                  onclick="
-                    document.getElementById('aiNowcastPanel').style.display =
-                      'none'
-                  "
-                  style="
-                    background: transparent;
-                    border: none;
-                    color: white;
-                    cursor: pointer;
-                  "
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-            <div style="padding: 15px; max-height: 250px; overflow-y: auto">
-              <table
-                style="
-                  width: 100%;
-                  border-collapse: collapse;
-                  text-align: left;
-                  font-size: 13px;
-                "
-              >
-                <thead>
-                  <tr
-                    style="
-                      background: #f8f9fa;
-                      border-bottom: 2px solid #dee2e6;
-                    "
-                  >
-                    <th style="padding: 8px">District</th>
-                    <th style="padding: 8px">ETA</th>
-                    <th style="padding: 8px">AI Suggested Warning</th>
-                    <th style="padding: 8px">Severe Risk</th>
-                    <th style="padding: 8px">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="aiAlertTableBody">
-                  <tr>
-                    <td
-                      colspan="5"
-                      style="text-align: center; padding: 15px; color: #7f8c8d"
-                    >
-                      Click "Run AI Model" to detect storm cells.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Professional Map Control Panel -->
-          <div
-            id="proControlPanel"
-            style="
-              margin-top: 15px;
-              background: white;
-              border-radius: 10px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-              border: 1px solid #ccc;
-            "
-          >
-            <div
-              style="
-                background: #2c3e50;
-                color: white;
-                padding: 10px 15px;
-                border-radius: 8px 8px 0 0;
-                display: flex;
-                justify-content: space-between;
-              "
-            >
-              <h4 style="margin: 0; font-size: 14px">
-                <i class="fas fa-sliders-h"></i> Professional Map Control Panel
-              </h4>
-            </div>
-            <div
-              style="
-                padding: 10px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                font-size: 13px;
-              "
-              id="proLayersContainer"
-            >
-              <!-- Dynamic Injection from weatherLayers.js -->
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong
-                  ><i class="fas fa-satellite-dish"></i> Radar &
-                  Satellite</strong
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('radar', this.checked)"
-                  />
-                  Radar Animation (RainViewer)</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('satellite', this.checked)"
-                  />
-                  Satellite True Color</label
-                >
-              </div>
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong
-                  ><i class="fas fa-bolt"></i> Lightning & Convection</strong
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('lightning', this.checked)"
-                  />
-                  Live Lightning Tracking</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('cape', this.checked)"
-                  />
-                  CAPE Heatmap</label
-                >
-              </div>
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong><i class="fas fa-wind"></i> Storm Tracking</strong>
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('stormMotion', this.checked)"
-                  />
-                  Storm Motion Vectors</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('stormCells', this.checked)"
-                  />
-                  Detected Storm Cells</label
-                >
-              </div>
-            </div>
-          </div>
-
           <div
             style="
               margin-top: 10px;
@@ -737,14 +356,7 @@
 
           <!-- Action Buttons -->
           <div class="action-buttons">
-            <button
-              class="btn btn-primary"
-              onclick="
-                document.getElementById('mapSectionInCard').style.display =
-                  'none';
-                generateNowcast();
-              "
-            >
+            <button class="btn btn-primary" onclick="generateNowcast()">
               <i class="fas fa-bolt"></i> नाउकास्ट जनरेट करें / Generate Nowcast
             </button>
             <button class="btn btn-success" onclick="previewNowcast()">
@@ -757,249 +369,14 @@
               <i class="fas fa-envelope"></i> ईमेल लिस्ट जनरेट करें / Generate
               Emails
             </button>
-            <button
-              class="btn btn-primary"
-              onclick="generateNowcastWithMap()"
-              style="
-                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-              "
-            >
-              <i class="fas fa-map"></i> Nowcast With Map
-            </button>
-            <button
-              class="btn btn-warning"
-              onclick="generateImpactForecast()"
-              style="
-                background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-              "
-            >
-              <i class="fas fa-bullseye"></i> Impact Forecast
-            </button>
           </div>
         </div>
 
         <!-- Nowcast Output -->
         <div class="nowcast-output" id="nowcastOutput">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 20px;
-              flex-wrap: wrap;
-              gap: 10px;
-            "
-          >
-            <div
-              class="panel-title"
-              style="
-                margin-bottom: 0;
-                font-size: 20px;
-                border-bottom: none;
-                padding-bottom: 0;
-              "
-            >
-              <i class="fas fa-file-alt"></i>
-              नाउकास्ट चेतावनी / Nowcast Warning
-            </div>
-
-            <!-- ADVANCED SETTINGS TOGGLE BUTTON -->
-            <button
-              class="btn btn-secondary btn-small"
-              style="font-size: 13px; padding: 6px 12px"
-              onclick="
-                const el = document.getElementById('advancedOutputGroup');
-                el.style.display =
-                  el.style.display === 'none' ? 'flex' : 'none';
-              "
-            >
-              <i class="fas fa-cogs"></i> Advanced Settings
-            </button>
-          </div>
-
-          <!-- ADVANCED OUTPUT GROUP (HIDDEN BY DEFAULT) -->
-          <div
-            id="advancedOutputGroup"
-            style="
-              display: none;
-              flex-wrap: wrap;
-              gap: 15px;
-              background: #f8f9fa;
-              padding: 15px;
-              border-radius: 8px;
-              border: 1px solid #dee2e6;
-              margin-bottom: 20px;
-              align-items: center;
-            "
-          >
-            <div
-              id="updateWarningContainer"
-              style="
-                padding: 8px 15px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border: 2px solid #dee2e6;
-                transition: all 0.3s;
-              "
-            >
-              <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  cursor: pointer;
-                  color: #2c3e50;
-                  font-weight: bold;
-                  font-size: 14px;
-                  margin: 0;
-                "
-              >
-                <input
-                  type="checkbox"
-                  id="updateWarningToggle"
-                  style="
-                    margin-right: 8px;
-                    transform: scale(1.3);
-                    cursor: pointer;
-                  "
-                  onchange="
-                    generateNowcast(true);
-                    const box = document.getElementById(
-                      'updateWarningContainer',
-                    );
-                    box.style.backgroundColor = this.checked
-                      ? '#e8f0fe'
-                      : '#f8f9fa';
-                    box.style.borderColor = this.checked
-                      ? '#667eea'
-                      : '#dee2e6';
-                  "
-                />
-                चेतावनी अपडेट करें (Update - "जारी रहने की")
-              </label>
-            </div>
-
-            <div
-              id="guidelinesToggleContainer"
-              style="
-                padding: 8px 15px;
-                background: #f8f9fa;
-                border-radius: 8px;
-                border: 2px solid #dee2e6;
-                transition: all 0.3s;
-              "
-            >
-              <label
-                style="
-                  display: flex;
-                  align-items: center;
-                  cursor: pointer;
-                  color: #2c3e50;
-                  font-weight: bold;
-                  font-size: 14px;
-                  margin: 0;
-                "
-              >
-                <input
-                  type="checkbox"
-                  id="includeGuidelinesToggle"
-                  style="
-                    margin-right: 8px;
-                    transform: scale(1.3);
-                    cursor: pointer;
-                  "
-                  onchange="
-                    updateGuidelinesView();
-                    const box = document.getElementById(
-                      'guidelinesToggleContainer',
-                    );
-                    box.style.backgroundColor = this.checked
-                      ? '#e8f0fe'
-                      : '#f8f9fa';
-                    box.style.borderColor = this.checked
-                      ? '#667eea'
-                      : '#dee2e6';
-                  "
-                />
-                द्विभाषी दिशानिर्देश (Bilingual Guidelines)
-              </label>
-            </div>
-
-            <label style="font-weight: bold; color: #2c3e50; font-size: 14px"
-              ><i class="fas fa-crop-alt"></i> Image Aspect Ratio:</label
-            >
-            <select
-              id="imageAspectRatio"
-              style="
-                padding: 6px 10px;
-                border-radius: 6px;
-                border: 1px solid #ccc;
-                font-size: 14px;
-                cursor: pointer;
-                min-width: 200px;
-              "
-            >
-              <option value="256/181" selected>
-                256:181 (Standard Landscape)
-              </option>
-              <option value="4/5">4:5 (Portrait - FB/Insta best)</option>
-              <option value="16/9">16:9 (Landscape - Twitter, YouTube)</option>
-              <option value="1.91/1">1.91:1 (Facebook link preview)</option>
-              <option value="4/3">4:3 (Standard photo)</option>
-              <option value="2/1">2:1 (Banner / Website)</option>
-              <option value="1/1">
-                1:1 (Square - Facebook, Instagram, Twitter)
-              </option>
-              <option value="custom">Custom (Resize)</option>
-            </select>
-
-            <div
-              id="customImageRatioInputs"
-              style="display: none; align-items: center; gap: 8px"
-            >
-              <input
-                type="number"
-                id="customImageRatioW"
-                placeholder="W"
-                style="
-                  width: 60px;
-                  padding: 6px;
-                  border-radius: 4px;
-                  border: 1px solid #ccc;
-                  font-size: 14px;
-                "
-                value="16"
-                min="1"
-              />
-              <span style="font-weight: bold">:</span>
-              <input
-                type="number"
-                id="customImageRatioH"
-                placeholder="H"
-                style="
-                  width: 60px;
-                  padding: 6px;
-                  border-radius: 4px;
-                  border: 1px solid #ccc;
-                  font-size: 14px;
-                "
-                value="9"
-                min="1"
-              />
-              <button
-                class="btn-success"
-                onclick="applyCustomImageRatio()"
-                style="
-                  padding: 6px 12px;
-                  border: none;
-                  border-radius: 4px;
-                  font-size: 14px;
-                  cursor: pointer;
-                  color: white;
-                "
-              >
-                Apply
-              </button>
-            </div>
+          <div class="panel-title" style="margin-bottom: 20px; font-size: 20px">
+            <i class="fas fa-file-alt"></i>
+            नाउकास्ट चेतावनी / Nowcast Warning
           </div>
 
           <!-- IMD Style Warning Bulletin -->
@@ -1040,27 +417,15 @@
                     भारत मौसम विज्ञान विभाग
                   </div>
                   <div style="font-size: 18px; margin-bottom: 2px">
-                    मौसम विज्ञान केंद्र, अनिसाबाद
+                    मौसम विज्ञान केंद्र ,अनिसाबाद
                   </div>
                   <div style="font-size: 18px; margin-bottom: 2px">
                     पटना बिहार – 800002
                   </div>
-                  <div
-                    style="
-                      font-size: 16px;
-                      margin-bottom: 2px;
-                      font-weight: bold;
-                    "
-                  >
+                  <div style="font-size: 16px; margin-bottom: 2px; font-weight: bold;">
                     E-mail: mc.patna@imd.gov.in
                   </div>
-                  <div
-                    style="
-                      font-size: 16px;
-                      margin-bottom: 2px;
-                      font-weight: bold;
-                    "
-                  >
+                  <div style="font-size: 16px; margin-bottom: 2px; font-weight: bold;">
                     दूरभाष/Telephone: 0612-2252356
                   </div>
                 </div>
@@ -1070,6 +435,11 @@
                   class="imd-anniversary"
                   onerror="this.style.display = 'none'"
                 />
+              </div>
+
+              <div class="imd-contact-bar">
+                <span><strong>E-mail:</strong> mc.patna@imd.gov.in</span>
+                <span><strong>दूरभाष/Telephone:</strong> 0612-2252356</span>
               </div>
 
               <div class="imd-warning-content">
@@ -1150,79 +520,6 @@
                   experience light to moderate thunderstorm and lightning
                   accompanied with light rain and Gusty wind (wind speed upto
                   30-40 Kmph)within next two to three hours
-                </div>
-
-                <!-- INTEGRATED MAP SECTION -->
-                <div
-                  id="mapSectionInCard"
-                  style="
-                    display: none;
-                    gap: 15px;
-                    margin-bottom: 20px;
-                    height: 350px;
-                    width: 100%;
-                  "
-                >
-                  <div
-                    style="flex: 1; border: 2px solid #000; position: relative"
-                  >
-                    <div
-                      style="
-                        position: absolute;
-                        top: 5px;
-                        left: 5px;
-                        z-index: 1000;
-                        background: rgba(255, 255, 255, 0.8);
-                        padding: 2px 5px;
-                        font-weight: bold;
-                        border-radius: 4px;
-                        font-size: 12px;
-                      "
-                    >
-                      Bihar Overview
-                    </div>
-                    <div
-                      id="miniMapLeft"
-                      style="
-                        width: 100%;
-                        height: 100%;
-                        background: #e0f3ff;
-                        z-index: 1;
-                      "
-                    ></div>
-                  </div>
-                  <div
-                    style="
-                      flex: 1.5;
-                      border: 2px solid #000;
-                      position: relative;
-                    "
-                  >
-                    <div
-                      style="
-                        position: absolute;
-                        top: 5px;
-                        left: 5px;
-                        z-index: 1000;
-                        background: rgba(255, 255, 255, 0.8);
-                        padding: 2px 5px;
-                        font-weight: bold;
-                        border-radius: 4px;
-                        font-size: 12px;
-                      "
-                    >
-                      Warning Area
-                    </div>
-                    <div
-                      id="miniMapRight"
-                      style="
-                        width: 100%;
-                        height: 100%;
-                        background: #e0f3ff;
-                        z-index: 1;
-                      "
-                    ></div>
-                  </div>
                 </div>
 
                 <div class="guidelines-section">
@@ -1356,139 +653,47 @@
 
           <!-- Export Buttons -->
           <div class="export-section">
-            <div
-              style="
-                width: 150px;
-                height: 54px;
-                display: flex;
-                justify-content: center;
-                flex-shrink: 0;
-              "
-            >
-              <label class="anim-dl-label dl-pdf">
-                <input
-                  type="checkbox"
-                  class="anim-dl-input"
-                  onchange="
-                    if (this.checked) {
-                      downloadNowcastPDF();
-                      setTimeout(() => (this.checked = false), 5000);
-                    }
-                  "
-                />
-                <span class="anim-dl-circle">
-                  <svg
-                    class="anim-dl-icon"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 19V5m0 14-4-4m4 4 4-4"
-                    ></path>
-                  </svg>
-                  <div class="anim-dl-square"></div>
-                </span>
-                <p class="anim-dl-title">PDF <i class="fas fa-file-pdf"></i></p>
-                <p class="anim-dl-title">Done!</p>
-              </label>
-            </div>
+            <   <svg class="anim-dl-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"></path></svg>
+                <div class="anim-dl-square"></div>
+              </span>
+              <p class="anim-dl-title">PDF <i class="fas fa-file-pdf"></i></p>
+              <p class="anim-dl-title">Done!</p>
+            </label>
 
-            <div
-              style="
-                width: 150px;
-                height: 54px;
-                display: flex;
-                justify-content: center;
-                flex-shrink: 0;
-              "
-            >
-              <label class="anim-dl-label dl-img">
-                <input
-                  type="checkbox"
-                  class="anim-dl-input"
-                  onchange="
-                    if (this.checked) {
-                      downloadNowcastImage();
-                      setTimeout(() => (this.checked = false), 5000);
-                    }
-                  "
-                />
-                <span class="anim-dl-circle">
-                  <svg
-                    class="anim-dl-icon"
-                    aria-hidden="true"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      stroke="currentColor"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M12 19V5m0 14-4-4m4 4 4-4"
-                    ></path>
-                  </svg>
-                  <div class="anim-dl-square"></div>
-                </span>
-                <p class="anim-dl-title">Image <i class="fas fa-image"></i></p>
-                <p class="anim-dl-title">Done!</p>
-              </label>
-            </div>
+            <label class="anim-dl-label dl-img">
+              <input type="checkbox" class="anim-dl-input" onchange="if(this.checked) { downloadNowcastImage(); setTimeout(() => this.checked = false, 5000); }" />
+              <span class="anim-dl-circle">
+                <svg class="anim-dl-icon" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19V5m0 14-4-4m4 4 4-4"></path></svg>
+                <div class="anim-dl-square"></div>
+              </span>
+              <p class="anim-dl-title">Image <i class="fas fa-image"></i></p>
+              <p class="anim-dl-title">Done!</p>
+            </label>
 
             <button
-              class="btn copy-anim-btn"
+              class="btn btn-warning"
               id="copyImageBtn"
+              style="background: #ff9800; color: white; transition: all 0.3s ease; height: 54px;"
               onclick="copyNowcastImage()"
-            >
-              <div class="copy-anim-bg"></div>
-              <div class="copy-anim-content">
-                <span class="copy-anim-text base-text"
-                  ><i class="fas fa-copy"></i> Copy image</span
-                >
-                <span class="copy-anim-text success-text"
-                  ><i class="fas fa-check-circle"></i> Copied!</span
-                >
-              </div>
-            </button>
-
+            > abutton>
             <button
-              class="btn btn-secondary export-action-btn btn-print"
-              onclick="printNowcast()"
-            >
-              <i class="fas fa-print"></i> प्रिंट करें
-            </button>
-            <button
-              class="btn export-action-btn btn-whatsapp"
+              class="btn"
               style="background: #25d366; color: white"
-              onclick="shareNowcastWhatsApp()"
-            >
-              <i class="fab fa-whatsapp"></i> WhatsApp
-            </button>
-            <button
-              class="btn export-action-btn btn-facebook"
+              onclick="shareNowcastWhatsApp()" u
+            <b clas
               style="background: #1877f2; color: white"
               onclick="shareNowcastFacebook()"
             >
               <i class="fab fa-facebook"></i> Facebook
             </button>
             <button
-              class="btn export-action-btn btn-twitter"
+              class="btn"
               style="background: #000000; color: white"
               onclick="shareNowcastTwitter()"
             >
               <i class="fab fa-x-twitter"></i> X (Twitter)
             </button>
-            <button
-              class="btn btn-info export-action-btn btn-email-share"
-              onclick="shareNowcastEmail()"
-            >
+            <button class="btn btn-info" onclick="shareNowcastEmail()">
               <i class="fas fa-envelope"></i> Email
             </button>
           </div>
@@ -1580,29 +785,6 @@
       </div>
     </div>
 
-    <!-- Impact Forecast Modal -->
-    <div id="impactForecastModal" class="custom-modal" style="display: none">
-      <div class="glass-popup-content" style="width: 600px">
-        <div class="glass-modal-header">
-          <h3>
-            <i class="fas fa-bullseye"></i> Automatic District Impact Forecast
-          </h3>
-          <span class="close-modal" onclick="closeImpactModal()">&times;</span>
-        </div>
-        <div
-          id="impactForecastOutput"
-          style="max-height: 400px; overflow-y: auto; text-align: left"
-        >
-          <!-- Content injected via JS -->
-        </div>
-        <div style="margin-top: 15px; text-align: right">
-          <button class="btn btn-secondary" onclick="closeImpactModal()">
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
       <div class="spinner"></div>
@@ -1613,12 +795,5 @@
 
     <script src="js/districts.js?v=3.1"></script>
     <script src="js/nowcast.js?v=3.1"></script>
-    <script src="js/gridLayer.js"></script>
-    <script src="js/impactForecast.js"></script>
-    <script src="js/polygonWarningExport.js"></script>
-    <script src="js/weatherLayers.js"></script>
-    <script src="js/advancedDraw.js"></script>
-    <script src="js/aiNowcast.js"></script>
-    <script src="js/autoBulletin.js"></script>
   </body>
 </html>

@@ -64,6 +64,9 @@ document.addEventListener("DOMContentLoaded", function () {
   updateDateTime();
   timeUpdateInterval = setInterval(updateDateTime, 300000); // Update every 5 minutes
 
+  // Initialize New Advanced Layer System
+  initAdvancedPanel();
+
   // Set default warning level
   selectWarningLevel("yellow");
 
@@ -134,6 +137,41 @@ function initializeMap() {
     },
   );
 
+  // --- ADDED: NEW BASE LAYERS ---
+  const topoLayer = L.tileLayer(
+    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 17,
+      attribution:
+        "Map data: &copy; OpenStreetMap, SRTM | Map style: &copy; OpenTopoMap",
+    },
+  );
+
+  const terrainLayer = L.tileLayer(
+    "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+    {
+      maxZoom: 20,
+      subdomains: ["mt0", "mt1", "mt2", "mt3"],
+      attribution: "Google Terrain",
+    },
+  );
+
+  // --- ADDED: GRID LAYER OVERLAY ---
+  let gridLayer = L.layerGroup();
+  if (typeof L.latlngGraticule !== "undefined") {
+    gridLayer = L.latlngGraticule({
+      showLabel: true,
+      color: "#333",
+      weight: 0.8,
+      opacity: 0.5,
+      zoomInterval: [
+        { start: 2, end: 4, interval: 10 },
+        { start: 5, end: 7, interval: 2 },
+        { start: 8, end: 10, interval: 1 },
+      ],
+    });
+  }
+
   // 2. Define "Solid Color" Layer (Empty layer for custom background)
   const solidColorLayer = L.layerGroup();
 
@@ -165,8 +203,14 @@ function initializeMap() {
     Satellite: satelliteLayer,
     Hybrid: hybridLayer,
     "Light Theme": clearLayer,
+    OpenTopoMap: topoLayer,
+    "Google Terrain": terrainLayer,
   };
-  L.control.layers(baseMaps).addTo(map);
+
+  const overlayMaps = {
+    "Lat/Lng Grid": gridLayer,
+  };
+  L.control.layers(baseMaps, overlayMaps).addTo(map);
 
   // --- Map Background Color Logic ---
   const mapDiv = document.getElementById("map");
@@ -352,7 +396,11 @@ function initializeMap() {
         },
       }).addTo(map);
 
-      map.fitBounds(geojsonLayer.getBounds());
+      // Ensure container is fully rendered before fitting bounds
+      setTimeout(() => {
+        map.invalidateSize();
+        map.fitBounds(geojsonLayer.getBounds());
+      }, 300);
     })
     .catch((error) => {
       console.error("Error loading map data:", error);
@@ -405,15 +453,43 @@ function loadPhenomena() {
   grid.innerHTML = "";
 
   weatherPhenomena.forEach((phenom) => {
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "flex";
+    wrapper.style.flexDirection = "column";
+    wrapper.style.gap = "5px";
+
     const label = document.createElement("label"); // Changed from div to label for better clicking
     label.className = "phenomena-item";
     label.dataset.id = phenom.id;
+    label.style.flex = "1";
     label.innerHTML = `
             <input type="checkbox" value="${phenom.id}" onchange="togglePhenomena('${phenom.id}')">
             <span class="phenomena-icon">${phenom.icon}</span>
-            <span>${phenom.hindi}</span>
+            <span>${phenom.hindi} / ${phenom.name}</span>
         `;
-    grid.appendChild(label);
+    wrapper.appendChild(label);
+
+    // Add dropdown for Rain
+    if (phenom.id === "rain") {
+      const select = document.createElement("select");
+      select.id = "rainIntensitySelect";
+      select.style.display = "none";
+      select.style.padding = "5px";
+      select.style.borderRadius = "4px";
+      select.style.border = "1px solid #ccc";
+      select.style.fontSize = "13px";
+      select.innerHTML = `
+        <option value="rain">वर्षा / Rain 🌧️</option>
+        <option value="heavy_rain">भारी वर्षा / Heavy Rainfall 🌧️🌧️</option>
+        <option value="very_heavy_rain">अत्यधिक भारी वर्षा / Very Heavy Rainfall 🌧️🌧️🌧️</option>
+        <option value="extremely_heavy_rain">अत्यंत भारी वर्षा / Extremely Heavy Rainfall ⛈️🌧️</option>
+      `;
+      // Prevent label click when clicking select
+      select.addEventListener("click", (e) => e.stopPropagation());
+      wrapper.appendChild(select);
+    }
+
+    grid.appendChild(wrapper);
   });
 }
 
@@ -436,6 +512,25 @@ function setupEventListeners() {
     .addEventListener("change", function (e) {
       selectedIntensity = parseInt(e.target.value);
     });
+
+  // Image Aspect Ratio Selector
+  const imageAspectRatio = document.getElementById("imageAspectRatio");
+  if (imageAspectRatio) {
+    imageAspectRatio.addEventListener("change", function (e) {
+      const val = e.target.value;
+      const customInputs = document.getElementById("customImageRatioInputs");
+      const cardContainer = document.getElementById("warningCardContainer");
+
+      if (val === "custom") {
+        customInputs.style.display = "flex";
+      } else {
+        customInputs.style.display = "none";
+        if (cardContainer) {
+          cardContainer.style.aspectRatio = val === "auto" ? "auto" : val;
+        }
+      }
+    });
+  }
 }
 
 // अपडेट: चुने हुए जिलों की संख्या दिखाएं
@@ -560,6 +655,16 @@ function togglePhenomena(phenomId) {
   } else {
     selectedPhenomena.splice(index, 1);
     if (item) item.classList.remove("selected");
+  }
+
+  // Toggle Rain intensity dropdown visibility
+  if (phenomId === "rain") {
+    const rainSelect = document.getElementById("rainIntensitySelect");
+    if (rainSelect) {
+      rainSelect.style.display = selectedPhenomena.includes("rain")
+        ? "block"
+        : "none";
+    }
   }
 
   // Toggle Wind Speed Section visibility based on 'Gusty Wind'
@@ -723,8 +828,23 @@ function applyManualTime() {
   }
 }
 
+// Apply Custom Image Aspect Ratio
+function applyCustomImageRatio() {
+  const w = document.getElementById("customImageRatioW").value;
+  const h = document.getElementById("customImageRatioH").value;
+  const cardContainer = document.getElementById("warningCardContainer");
+
+  if (w > 0 && h > 0 && cardContainer) {
+    cardContainer.style.aspectRatio = `${w} / ${h}`;
+  } else {
+    alert(
+      "कृपया चौड़ाई (Width) और ऊंचाई (Height) के लिए सही संख्या दर्ज करें।\nPlease enter valid positive numbers for Width and Height.",
+    );
+  }
+}
+
 // Generate Nowcast (Updated Logic from index.html)
-function generateNowcast() {
+function generateNowcast(isDynamicUpdate = false) {
   // 1. Get Selected Districts
   const selectedDistrictsList = [];
   const districtCheckboxes = document.querySelectorAll(
@@ -757,9 +877,11 @@ function generateNowcast() {
 
   // Validation
   if (uniqueDistricts.length === 0) {
-    alert(
-      "कृपया कम से कम एक जिला चुनें!\nPlease select at least one district!",
-    );
+    if (!isDynamicUpdate) {
+      alert(
+        "कृपया कम से कम एक जिला चुनें!\nPlease select at least one district!",
+      );
+    }
     return;
   }
 
@@ -817,9 +939,11 @@ function generateNowcast() {
   });
 
   if (selectedPhenomData.length === 0) {
-    alert(
-      "कृपया कम से कम एक मौसम घटना चुनें!\nPlease select at least one weather phenomenon!",
-    );
+    if (!isDynamicUpdate) {
+      alert(
+        "कृपया कम से कम एक मौसम घटना चुनें!\nPlease select at least one weather phenomenon!",
+      );
+    }
     return;
   }
 
@@ -864,7 +988,15 @@ function generateNowcast() {
   let phenomStrHi = "";
   if (mainPhenomena.length > 0) {
     let names = mainPhenomena.map((p) => {
-      if (p.id === "rain" && warningLevel === "red") return "भारी वर्षा";
+      if (p.id === "rain") {
+        const rainVal =
+          document.getElementById("rainIntensitySelect")?.value || "rain";
+        if (rainVal === "heavy_rain") return "भारी वर्षा";
+        if (rainVal === "very_heavy_rain") return "अत्यधिक भारी वर्षा";
+        if (rainVal === "extremely_heavy_rain") return "अत्यंत भारी वर्षा";
+        if (warningLevel === "red") return "भारी वर्षा";
+        return p.hindi;
+      }
       return p.hindi;
     });
 
@@ -880,7 +1012,16 @@ function generateNowcast() {
   let phenomStrEn = "";
   if (mainPhenomena.length > 0) {
     let names = mainPhenomena.map((p) => {
-      if (p.id === "rain" && warningLevel === "red") return "heavy rain";
+      if (p.id === "rain") {
+        const rainVal =
+          document.getElementById("rainIntensitySelect")?.value || "rain";
+        if (rainVal === "heavy_rain") return "heavy rainfall";
+        if (rainVal === "very_heavy_rain") return "very heavy rainfall";
+        if (rainVal === "extremely_heavy_rain")
+          return "extremely heavy rainfall";
+        if (warningLevel === "red") return "heavy rain";
+        return p.name.toLowerCase();
+      }
       return p.name.toLowerCase();
     });
 
@@ -906,15 +1047,19 @@ function generateNowcast() {
   }
 
   // GENERATE SENTENCES BASED ON WARNING LEVEL
+  const isUpdate =
+    document.getElementById("updateWarningToggle")?.checked || false;
+  const actionVerbHi = isUpdate ? "जारी रहने" : "होने";
+
   if (warningLevel === "yellow") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले एक से तीन घंटे में हल्के से मध्यम दर्जे की ${fullPhenomHi} जारी रहने की संभावना है।`;
-    warningEn = `Some parts of ${districtTextEn} would experience light to moderate ${fullPhenomEn} will continue in next one to three hours.`;
+    warningHi = `${districtTextHi} के कुछ भागों में अगले एक से तीन घंटे में हल्के से मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are likely to continue experiencing" : "are likely to experience"} light to moderate ${fullPhenomEn} within next one to three hours.`;
   } else if (warningLevel === "orange") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में मध्यम दर्जे की ${fullPhenomHi} होने की प्रबल संभावना है।`;
-    warningEn = `Some parts of ${districtTextEn} would experience moderate ${fullPhenomEn} within next two to three hours.`;
+    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are very likely to continue experiencing" : "are very likely to experience"} moderate ${fullPhenomEn} within next two to three hours.`;
   } else if (warningLevel === "red") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में तीव्र दर्जे की ${fullPhenomHi} की प्रबल संभावना है।`;
-    warningEn = `Some parts of ${districtTextEn} would experience severe ${fullPhenomEn} within next two to three hours.`;
+    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में तीव्र दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are very likely to continue experiencing" : "are very likely to experience"} severe ${fullPhenomEn} within next two to three hours.`;
   } else {
     warningHi = "कोई चेतावनी नहीं।";
     warningEn = "No Warning.";
@@ -941,31 +1086,14 @@ function generateNowcast() {
   codeBox.innerText = codeTitle;
 
   // Update Guidelines
-  const guidelinesDiv = document.getElementById("guidelinesText");
-  guidelinesDiv.className = `guidelines-text ${warningLevel}`;
+  updateGuidelinesView();
 
-  let guidelineHTML = "";
-  if (
-    warningLevel === "yellow" ||
-    warningLevel === "orange" ||
-    warningLevel === "red"
-  ) {
-    guidelineHTML = `
-          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें।<br>
-          <strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal.<br><br>
-          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें:<br>
-          For detailed and updated information about this weather, visit the website of Meteorological Centre, Patna:<br>
-          <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; align-items: center;">
-            <a href="https://mausam.imd.gov.in/patna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fas fa-globe" style="font-size: 18px; color: #007bff;"></i> mausam.imd.gov.in/patna/</a>
-            <a href="https://www.facebook.com/IMDpatna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-facebook" style="font-size: 18px; color: #1877f2;"></i> www.facebook.com/IMDpatna/</a>
-            <a href="https://x.com/imd_patna" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-x-twitter" style="font-size: 18px; color: #000;"></i> x.com/imd_patna</a>
-            <a href="https://whatsapp.com/channel/0029VaCu3dgFnSzAwq4DBD3n" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-whatsapp" style="font-size: 18px; color: #25d366;"></i> WhatsApp</a>
-          </div>
-      `;
-  } else {
-    guidelineHTML = "No specific guidelines.";
+  // If dynamic update triggered by a toggle, skip loading and scrolling
+  if (isDynamicUpdate === true) {
+    document.getElementById("nowcastOutput").style.display = "block";
+    document.getElementById("nowcastOutput").classList.add("active");
+    return;
   }
-  guidelinesDiv.innerHTML = guidelineHTML;
 
   // Show Loading Animation & Display output
   showLoading();
@@ -1013,6 +1141,13 @@ function clearAll() {
     item.classList.remove("selected");
     item.querySelector("input").checked = false;
   });
+
+  // Clear Rain Dropdown selection
+  const rainSelect = document.getElementById("rainIntensitySelect");
+  if (rainSelect) {
+    rainSelect.value = "rain";
+    rainSelect.style.display = "none";
+  }
 
   // Clear region highlights map reset
   document
@@ -1195,16 +1330,23 @@ function copyNowcastImage() {
           // Success Animation on Button
           const copyBtn = document.getElementById("copyImageBtn");
           if (copyBtn) {
-            const originalHtml = copyBtn.innerHTML;
-            copyBtn.innerHTML =
-              '<i class="fas fa-check-circle" style="transform: scale(1.2);"></i> Copied!';
-            copyBtn.style.background = "#28a745"; // Success Green Color
+            if (copyBtn.classList.contains("copy-anim-btn")) {
+              copyBtn.classList.add("is-copied");
+              setTimeout(() => {
+                copyBtn.classList.remove("is-copied");
+              }, 3000);
+            } else {
+              // Backward compatibility for fog.html / Nowcast.html
+              const originalHtml = copyBtn.innerHTML;
+              copyBtn.innerHTML =
+                '<i class="fas fa-check-circle" style="transform: scale(1.2);"></i> Copied!';
+              copyBtn.style.background = "#28a745";
 
-            // Revert back after 3 seconds
-            setTimeout(() => {
-              copyBtn.innerHTML = originalHtml;
-              copyBtn.style.background = "#ff9800"; // Original Orange Color
-            }, 3000);
+              setTimeout(() => {
+                copyBtn.innerHTML = originalHtml;
+                copyBtn.style.background = "#ff9800";
+              }, 3000);
+            }
           }
 
           // Show alert after a slight delay so button updates first
@@ -1396,6 +1538,7 @@ function printNowcast() {
                 }
             .imd-logo-section { display: flex; align-items: center; gap: 15px; justify-self: start; }
                 .imd-emblem { width: auto; height: 140px; object-fit: contain; }
+                .imd-emblem { width: auto; height: 180px; object-fit: contain; }
             .imd-title-section { text-align: center; justify-self: center; }
                 .imd-title-section h2 { color: #d32f2f; font-size: 20px; margin: 0; }
                 .imd-title-section h3 { font-size: 14px; margin: 0 0 5px 0; }
@@ -1409,6 +1552,7 @@ function printNowcast() {
                     border-bottom: 1px solid #000;
                     font-size: 12px;
                 }
+            .imd-anniversary { width: auto; height: 180px; object-fit: contain; justify-self: end; }
                 .imd-warning-content { padding: 20px; }
                 .warning-code-section { 
                     display: flex; 
@@ -1432,22 +1576,36 @@ function printNowcast() {
                 }
                 .imd-footer { 
                     display: flex; 
-                    justify-content: space-between; 
+                    flex-direction: column;
+                    align-items: stretch;
                     padding: 15px; 
                     border-top: 2px solid #000;
                     background: #f5f5f5;
+                    gap: 15px;
                 }
-                .warning-legend { display: flex; gap: 10px; }
+                .warning-legend { 
+                    display: flex; 
+                    gap: 10px; 
+                    align-items: center;
+                    width: 100%;
+                }
+                .warning-legend b, .warning-legend strong, .warning-legend span {
+                    white-space: nowrap;
+                    flex-shrink: 0;
+                }
                 .legend-item { 
-                    padding: 5px 15px; 
+                    padding: 8px 10px; 
                     font-size: 12px; 
                     font-weight: bold;
                     border: 1px solid #000;
+                    flex: 1;
+                    text-align: center;
                 }
                 .legend-item.green { background: #4caf50; color: white; }
                 .legend-item.yellow { background: #ffeb3b; color: black; }
                 .legend-item.orange { background: #ff9800; color: white; }
                 .legend-item.red { background: #f44336; color: white; }
+                .forecasting-officer { text-align: right; font-size: 14px; order: -1; width: 100%; }
                 @media print {
                     body { padding: 0; }
                 }
@@ -1467,4 +1625,300 @@ function printNowcast() {
         </html>
     `);
   printWindow.document.close();
+}
+
+// Update Guidelines dynamically without full regeneration
+function updateGuidelinesView() {
+  const warningLevelInput = document.querySelector(
+    'input[name="warningLevel"]:checked',
+  );
+  const warningLevel = warningLevelInput ? warningLevelInput.value : "green";
+
+  const guidelinesDiv = document.getElementById("guidelinesText");
+  const guidelinesSection = document.querySelector(".guidelines-section");
+
+  if (!guidelinesDiv || !guidelinesSection) return;
+
+  guidelinesDiv.className = `guidelines-text ${warningLevel}`;
+
+  const isBilingual =
+    document.getElementById("includeGuidelinesToggle")?.checked || false;
+
+  let guidelineHTML = "";
+  if (
+    warningLevel === "yellow" ||
+    warningLevel === "orange" ||
+    warningLevel === "red"
+  ) {
+    guidelinesSection.style.display = "block";
+    guidelineHTML = `
+          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें。<br>
+          ${isBilingual ? "<strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal.<br>" : ""}<br>
+          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें:<br>
+          ${isBilingual ? "For detailed and updated information about this weather, visit the website of Meteorological Centre, Patna:<br>" : ""}
+          <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; align-items: center;">
+            <a href="https://mausam.imd.gov.in/patna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fas fa-globe" style="font-size: 18px; color: #007bff;"></i> mausam.imd.gov.in/patna/</a>
+            <a href="https://www.facebook.com/IMDpatna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-facebook" style="font-size: 18px; color: #1877f2;"></i> www.facebook.com/IMDpatna/</a>
+            <a href="https://x.com/imd_patna" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-x-twitter" style="font-size: 18px; color: #000;"></i> x.com/imd_patna</a>
+            <a href="https://whatsapp.com/channel/0029VaCu3dgFnSzAwq4DBD3n" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-whatsapp" style="font-size: 18px; color: #25d366;"></i> WhatsApp</a>
+          </div>
+      `;
+  } else {
+    guidelinesSection.style.display = "none";
+    guidelineHTML = "No specific guidelines.";
+  }
+  guidelinesDiv.innerHTML = guidelineHTML;
+}
+
+// ============================================================================
+// ================== ADVANCED WEATHER LAYERS SYSTEM ==========================
+// ============================================================================
+
+const advancedOverlays = {
+  weather: [
+    {
+      id: "light",
+      name: "Lightning Strikes (Live)",
+      icon: "⚡",
+      layer: null,
+      opacity: 1,
+    },
+    {
+      id: "radar",
+      name: "RainViewer Radar",
+      icon: "🌧️",
+      layer: null,
+      opacity: 0.6,
+    },
+    {
+      id: "sat",
+      name: "NASA Satellite TrueColor",
+      icon: "☁️",
+      layer: null,
+      opacity: 0.7,
+    },
+    {
+      id: "storm",
+      name: "Storm Motion Vectors",
+      icon: "🌪️",
+      layer: null,
+      opacity: 0.8,
+    },
+  ],
+  convective: [
+    { id: "cape", name: "CAPE Heatmap", icon: "🌩️", layer: null, opacity: 0.6 },
+    {
+      id: "lifted",
+      name: "Lifted Index",
+      icon: "🌩️",
+      layer: null,
+      opacity: 0.6,
+    },
+    { id: "kindex", name: "K Index", icon: "🌩️", layer: null, opacity: 0.6 },
+  ],
+  external: [
+    {
+      id: "ildn",
+      name: "ILDN External Map",
+      icon: "🗺️",
+      isIframe: true,
+      url: "https://ildn.in/imap.php",
+      opacity: 0.8,
+    },
+  ],
+};
+
+const activeAdvancedLayers = {};
+let latestRadarTime = null;
+let lightningInterval = null;
+
+function initAdvancedPanel() {
+  // Fetch latest radar time from Rainviewer to ensure accurate data tiles
+  fetch("https://api.rainviewer.com/public/weather-maps.json")
+    .then((res) => res.json())
+    .then((data) => {
+      if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
+        latestRadarTime = data.radar.past[data.radar.past.length - 1].time;
+      }
+    })
+    .catch((e) => console.log("Rainviewer fetch failed", e));
+
+  buildAdvancedPanel();
+}
+
+function buildAdvancedPanel() {
+  const container = document.getElementById("advancedLayersContainer");
+  if (!container) return;
+  let html = "";
+
+  const buildSection = (title, layers) => {
+    let secHtml = `<div class="adv-layer-section"><h5>${title}</h5>`;
+    layers.forEach((l) => {
+      secHtml += `
+            <div class="adv-layer-item">
+                <label class="adv-layer-label">
+                    <input type="checkbox" id="chk_${l.id}" onchange="handleAdvancedLayerToggle('${l.id}', this.checked)">
+                    <span>${l.icon} ${l.name}</span>
+                </label>
+                <input type="range" id="op_${l.id}" min="0" max="1" step="0.1" value="${l.opacity}" oninput="handleAdvancedLayerOpacity('${l.id}', this.value)" class="adv-opacity-slider" title="Opacity Control">
+            </div>`;
+    });
+    secHtml += `</div>`;
+    return secHtml;
+  };
+
+  html += buildSection("🌦️ Operational Weather Data", advancedOverlays.weather);
+  html += buildSection("🌩️ Convective Indices", advancedOverlays.convective);
+  html += buildSection("🌐 External Data Sources", advancedOverlays.external);
+
+  container.innerHTML = html;
+}
+
+function toggleAdvancedPanel() {
+  const panel = document.getElementById("advancedPanel");
+  if (panel) panel.classList.toggle("open");
+}
+
+function createMockLightningLayer() {
+  const layer = L.layerGroup();
+  // Simulate lightning strikes within map bounds for demo. Replace with real Websocket later.
+  lightningInterval = setInterval(() => {
+    if (map && map.hasLayer(layer)) {
+      const bounds = map.getBounds();
+      const lat =
+        bounds.getSouth() +
+        Math.random() * (bounds.getNorth() - bounds.getSouth());
+      const lng =
+        bounds.getWest() +
+        Math.random() * (bounds.getEast() - bounds.getWest());
+      const icon = L.divIcon({
+        html: '<div style="font-size:20px; color:#f1c40f;">⚡</div>',
+        className: "lightning-icon",
+        iconSize: [24, 24],
+        iconAnchor: [12, 12],
+      });
+      const marker = L.marker([lat, lng], { icon }).addTo(layer);
+      setTimeout(() => {
+        if (layer.hasLayer(marker)) layer.removeLayer(marker);
+      }, 600);
+    }
+  }, 1200);
+  return layer;
+}
+
+function getAdvancedLayerInstance(id) {
+  switch (id) {
+    case "light":
+      return createMockLightningLayer();
+    case "radar":
+      let t = latestRadarTime ? latestRadarTime : "nowcast";
+      return L.tileLayer(
+        `https://tilecache.rainviewer.com/v2/radar/${t}/256/{z}/{x}/{y}/2/1_1.png`,
+        { zIndex: 400 },
+      );
+    case "sat":
+      return L.tileLayer(
+        "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/current/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
+        { zIndex: 200 },
+      );
+    case "storm":
+      return L.layerGroup(); // Placeholder for Leaflet-Velocity Plugin
+    // Using generic NOAA Base Reflectivity WMS as placeholders for Convective Layers
+    case "cape":
+      return L.tileLayer.wms(
+        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
+        {
+          layers: "conus_bref_qcd",
+          format: "image/png",
+          transparent: true,
+          zIndex: 300,
+        },
+      );
+    case "lifted":
+      return L.tileLayer.wms(
+        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
+        {
+          layers: "conus_bref_qcd",
+          format: "image/png",
+          transparent: true,
+          zIndex: 300,
+        },
+      );
+    case "kindex":
+      return L.tileLayer.wms(
+        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
+        {
+          layers: "conus_bref_qcd",
+          format: "image/png",
+          transparent: true,
+          zIndex: 300,
+        },
+      );
+    default:
+      return L.layerGroup();
+  }
+}
+
+function handleAdvancedLayerToggle(id, isChecked) {
+  let layerObj = null;
+  for (let cat in advancedOverlays) {
+    let found = advancedOverlays[cat].find((l) => l.id === id);
+    if (found) {
+      layerObj = found;
+      break;
+    }
+  }
+  if (!layerObj) return;
+
+  const opVal = document.getElementById(`op_${id}`).value;
+
+  // Handle Iframe overlay natively outside Leaflet stack
+  if (layerObj.isIframe) {
+    const iframe = document.getElementById("externalIframeOverlay");
+    if (iframe) {
+      if (isChecked) {
+        iframe.src = layerObj.url;
+        iframe.style.display = "block";
+        iframe.style.opacity = opVal;
+      } else {
+        iframe.style.display = "none";
+        iframe.src = "";
+      }
+    }
+  } else {
+    if (isChecked) {
+      if (!layerObj.layer) layerObj.layer = getAdvancedLayerInstance(id);
+      if (layerObj.layer.setOpacity) layerObj.layer.setOpacity(opVal);
+      layerObj.layer.addTo(map);
+      activeAdvancedLayers[id] = layerObj.layer;
+    } else {
+      if (activeAdvancedLayers[id]) {
+        map.removeLayer(activeAdvancedLayers[id]);
+        delete activeAdvancedLayers[id];
+      }
+    }
+  }
+
+  // 9. Auto Resize Requirement (Ensures external renders load tile paths appropriately)
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 200);
+}
+
+function handleAdvancedLayerOpacity(id, val) {
+  let layerObj = null;
+  for (let cat in advancedOverlays) {
+    let found = advancedOverlays[cat].find((l) => l.id === id);
+    if (found) {
+      layerObj = found;
+      break;
+    }
+  }
+  if (!layerObj) return;
+
+  if (layerObj.isIframe) {
+    document.getElementById("externalIframeOverlay").style.opacity = val;
+  } else if (activeAdvancedLayers[id] && activeAdvancedLayers[id].setOpacity) {
+    activeAdvancedLayers[id].setOpacity(val);
+  }
 }
