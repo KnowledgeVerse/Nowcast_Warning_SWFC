@@ -5,6 +5,110 @@ const drawnItems = new L.FeatureGroup();
 let drawControlInstance = null;
 let currentlySelectedPolygon = null;
 
+// Buffer Rings Handlers
+window.toggleWarningRings = function (enabled) {
+  if (!enabled) {
+    // Remove all generated rings
+    const layersToRemove = [];
+    drawnItems.eachLayer((layer) => {
+      if (layer.feature?.properties?.generatedRing) {
+        layersToRemove.push(layer);
+      }
+    });
+    layersToRemove.forEach((l) => drawnItems.removeLayer(l));
+  } else {
+    // Regenerate for all base polygons
+    drawnItems.eachLayer((layer) => {
+      if (
+        layer.feature?.properties?.id &&
+        !layer.feature.properties.generatedRing
+      ) {
+        let level = "yellow";
+        if (layer.feature.properties.warningColor === "#ff9800")
+          level = "orange";
+        if (layer.feature.properties.warningColor === "#f44336") level = "red";
+        createWarningRings(layer, level);
+        layer.bringToFront();
+      }
+    });
+  }
+};
+
+function createWarningRings(parentLayer, warningLevel) {
+  const toggle = document.getElementById("enableWarningRingsToggle");
+  const isEnabled = toggle ? toggle.checked : true;
+
+  const parentId = parentLayer.feature.properties.id;
+
+  // 1. Remove existing rings for this parent to avoid duplicates
+  const layersToRemove = [];
+  drawnItems.eachLayer((layer) => {
+    if (
+      layer.feature?.properties?.generatedRing &&
+      layer.feature.properties.parentPolygonId === parentId
+    ) {
+      layersToRemove.push(layer);
+    }
+  });
+  layersToRemove.forEach((l) => drawnItems.removeLayer(l));
+
+  if (!isEnabled || (warningLevel !== "orange" && warningLevel !== "red"))
+    return;
+  if (typeof turf === "undefined")
+    return console.warn("Turf.js not found. Cannot generate warning rings.");
+
+  try {
+    const geojson = parentLayer.toGeoJSON();
+    const bounds = parentLayer.getBounds();
+    const diagonalKm =
+      map.distance(bounds.getSouthWest(), bounds.getNorthEast()) / 1000;
+
+    // Helper to generate and attach a ring
+    const addRingToMap = (bufferRadius, colorHex, opacity) => {
+      const bufferedGeoJSON = turf.buffer(geojson, bufferRadius, {
+        units: "kilometers",
+      });
+      if (!bufferedGeoJSON) return;
+
+      const tempLayer = L.geoJSON(bufferedGeoJSON);
+      tempLayer.eachLayer((layer) => {
+        layer.setStyle({
+          color: colorHex,
+          fillColor: colorHex,
+          weight: 3,
+          fillOpacity: opacity,
+          dashArray: null,
+        });
+        layer.feature = layer.feature || { type: "Feature", properties: {} };
+        layer.feature.properties = {
+          warningColor: colorHex,
+          generatedRing: true,
+          parentPolygonId: parentId,
+          phenomena: [...(parentLayer.feature.properties.phenomena || [])],
+          id: "ring_poly_" + new Date().getTime() + Math.random(),
+        };
+        layer.on("click", function (ev) {
+          L.DomEvent.stopPropagation(ev);
+          selectPolygon(layer);
+        });
+        updatePolygonPopup(layer);
+        drawnItems.addLayer(layer);
+      });
+    };
+
+    // Generate Yellow Ring (Outer - 10%) for both Orange and Red
+    addRingToMap(diagonalKm * 0.1, "#ffeb3b", 0.45); // Transparency reduced (Color made more visible)
+
+    // Generate Orange Ring (Middle - 5%) only if RED
+    if (warningLevel === "red") addRingToMap(diagonalKm * 0.05, "#ff9800", 0.6); // Transparency reduced (Color made more visible)
+
+    // Ensure parent stays on top of the newly generated rings
+    parentLayer.bringToFront();
+  } catch (e) {
+    console.error("Error generating warning rings:", e);
+  }
+}
+
 function initAdvancedDraw() {
   if (typeof map === "undefined" || map === null) {
     setTimeout(initAdvancedDraw, 500);
@@ -63,7 +167,7 @@ function initAdvancedDraw() {
       fillColor: selectedColor,
       color: selectedColor,
       weight: 3,
-      fillOpacity: 0.6,
+      fillOpacity: 0.8, // Make the inner polygon the darkest/most solid
     });
 
     // Store Metadata
@@ -80,6 +184,11 @@ function initAdvancedDraw() {
     });
 
     drawnItems.addLayer(layer);
+
+    // Automatically create buffer rings if applicable
+    createWarningRings(layer, sLevel);
+    layer.bringToFront();
+
     selectPolygon(layer); // Auto select upon drawing
 
     // Turf.js Intersection Check: Automatically select districts covered by the polygon
@@ -181,6 +290,10 @@ window.selectWarningLevel = function (level) {
     // keep highlight border #000 while selected, just change fill
     currentlySelectedPolygon.setStyle({ fillColor: newColor });
     updatePolygonPopup(currentlySelectedPolygon);
+
+    // Regenerate rings when base polygon color changes
+    createWarningRings(currentlySelectedPolygon, level);
+    currentlySelectedPolygon.bringToFront();
   }
 };
 

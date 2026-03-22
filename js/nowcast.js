@@ -400,7 +400,16 @@ function initializeMap() {
       setTimeout(() => {
         map.invalidateSize();
         map.fitBounds(geojsonLayer.getBounds());
-      }, 300);
+      }, 800); // Increased timeout for Hostinger slower load times
+
+      // Add ResizeObserver to auto-fit map if window or container resizes
+      const mapDiv = document.getElementById("map");
+      if (mapDiv && window.ResizeObserver) {
+        const resizeObserver = new ResizeObserver(() => {
+          if (map) map.invalidateSize();
+        });
+        resizeObserver.observe(mapDiv);
+      }
     })
     .catch((error) => {
       console.error("Error loading map data:", error);
@@ -1673,15 +1682,7 @@ function updateGuidelinesView() {
     guidelinesSection.style.display = "block";
     guidelineHTML = `
           <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें。<br>
-          ${isBilingual ? "<strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal.<br>" : ""}<br>
-          इस मौसम की विस्तृत तथा अद्यतन जानकारी के लिए मौसम विज्ञान केंद्र, पटना की वेबसाइट देखें:<br>
-          ${isBilingual ? "For detailed and updated information about this weather, visit the website of Meteorological Centre, Patna:<br>" : ""}
-          <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-top: 10px; align-items: center;">
-            <a href="https://mausam.imd.gov.in/patna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fas fa-globe" style="font-size: 18px; color: #007bff;"></i> mausam.imd.gov.in/patna/</a>
-            <a href="https://www.facebook.com/IMDpatna/" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-facebook" style="font-size: 18px; color: #1877f2;"></i> www.facebook.com/IMDpatna/</a>
-            <a href="https://x.com/imd_patna" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-x-twitter" style="font-size: 18px; color: #000;"></i> x.com/imd_patna</a>
-            <a href="https://whatsapp.com/channel/0029VaCu3dgFnSzAwq4DBD3n" target="_blank" style="color: #0066cc; text-decoration: none; display: flex; align-items: center; gap: 5px; font-weight: bold;"><i class="fab fa-whatsapp" style="font-size: 18px; color: #25d366;"></i> WhatsApp</a>
-          </div>
+          ${isBilingual ? "<strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal." : ""}
       `;
   } else {
     guidelinesSection.style.display = "none";

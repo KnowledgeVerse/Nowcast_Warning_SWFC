@@ -2,6 +2,14 @@
 
 let mapLeftInstance = null;
 let mapRightInstance = null;
+let currentMiniBaseLayerLeft = null;
+let currentMiniBaseLayerRight = null;
+let miniGridLayerLeft = null;
+let miniGridLayerRight = null;
+let biharBoundsLeft = null;
+let warningBoundsRight = null;
+let leftZoomCtrl = null;
+let rightZoomCtrl = null;
 
 function generateNowcastWithMap() {
   if (
@@ -52,9 +60,13 @@ function generateNowcastWithMap() {
         fadeAnimation: false,
         preferCanvas: true,
       }).setView([25.6, 85.6], 6);
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      currentMiniBaseLayerLeft = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       ).addTo(mapLeftInstance);
+      // Add Scale Bar to Left Map
+      L.control
+        .scale({ position: "bottomleft", metric: true, imperial: false })
+        .addTo(mapLeftInstance);
     }
 
     if (!mapRightInstance) {
@@ -67,9 +79,21 @@ function generateNowcastWithMap() {
         fadeAnimation: false,
         preferCanvas: true,
       }).setView([25.6, 85.6], 7);
-      L.tileLayer(
-        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+      currentMiniBaseLayerRight = L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       ).addTo(mapRightInstance);
+      // Add Scale Bar to Right Map
+      L.control
+        .scale({ position: "bottomleft", metric: true, imperial: false })
+        .addTo(mapRightInstance);
+    }
+
+    // Ensure current layers match dropdown if UI was used
+    if (typeof changeMiniMapBaseLayer === "function") {
+      const baseDrop = document.getElementById("miniMapBaseLayer");
+      if (baseDrop && baseDrop.value !== "street") {
+        changeMiniMapBaseLayer();
+      }
     }
 
     // Explicitly invalidate size after UI is visible
@@ -174,47 +198,65 @@ function generateNowcastWithMap() {
             let applyColor = isSelected && !hasDrawnPolygons;
 
             return {
-              fillColor: applyColor ? hexColor : "#cccccc",
+              fillColor: applyColor ? hexColor : "transparent",
               weight: 1,
-              color: "white",
-              fillOpacity: applyColor ? 0.9 : 0.4,
+              color: "#444",
+              fillOpacity: applyColor ? 0.7 : 0,
             };
           },
         }).addTo(mapLeftInstance);
-        mapLeftInstance.fitBounds(leftLayer.getBounds());
 
         // Render Right Zoomed View Structure
+        let selectedRightFeaturesGroup = L.featureGroup();
+
         const rightLayer = L.geoJSON(data, {
-          filter: function (feature) {
+          style: function (feature) {
             let dName = feature.properties.D_NAME;
             if (nameMapping[dName]) dName = nameMapping[dName];
 
+            let isSelected = false;
             if (typeof districtsData !== "undefined") {
               const dist = districtsData.find(
                 (d) => d.name.toLowerCase() === dName.trim().toLowerCase(),
               );
-              return dist && selectedDistricts.includes(dist.id);
+              if (dist && selectedDistricts.includes(dist.id))
+                isSelected = true;
             }
-            return false;
-          },
-          style: function (feature) {
+
+            let applyColor = isSelected && !hasDrawnPolygons;
+
             return {
-              fillColor: hasDrawnPolygons ? "transparent" : hexColor,
-              weight: 2,
-              color: "#000",
-              fillOpacity: hasDrawnPolygons ? 0 : 0.7,
+              fillColor: applyColor ? hexColor : "transparent",
+              weight: isSelected ? 2 : 1,
+              color: isSelected ? "#000" : "#666",
+              fillOpacity: applyColor ? 0.6 : 0,
             };
           },
           onEachFeature: function (feature, layer) {
             let dName = feature.properties.D_NAME;
             if (nameMapping[dName]) dName = nameMapping[dName];
-            layer.bindTooltip(dName.toUpperCase(), {
-              permanent: true,
-              direction: "center",
-              className: "map-label",
-              style:
-                "font-weight: bold; background: transparent; border: none; box-shadow: none;",
-            });
+
+            let isSelected = false;
+            if (typeof districtsData !== "undefined") {
+              const dist = districtsData.find(
+                (d) => d.name.toLowerCase() === dName.trim().toLowerCase(),
+              );
+              if (dist && selectedDistricts.includes(dist.id)) {
+                isSelected = true;
+                selectedRightFeaturesGroup.addLayer(layer);
+              }
+            }
+
+            // Only display labels for selected districts to avoid map clutter
+            if (isSelected || hasDrawnPolygons) {
+              layer.bindTooltip(dName.toUpperCase(), {
+                permanent: true,
+                direction: "center",
+                className: "map-label",
+                style:
+                  "font-weight: bold; background: transparent; border: none; box-shadow: none;",
+              });
+            }
           },
         }).addTo(mapRightInstance);
 
@@ -222,17 +264,43 @@ function generateNowcastWithMap() {
         let customPolygonsGroup = L.featureGroup();
 
         if (typeof drawnItems !== "undefined") {
+          // Extract layers to sort them by size
+          let layersArray = [];
           drawnItems.eachLayer((layer) => {
+            if (layer.getBounds && layer.getLatLngs) {
+              layersArray.push(layer);
+            }
+          });
+
+          // Sort descending by diagonal length (Largest polygons/rings first, inner polygons last)
+          layersArray.sort((a, b) => {
+            let distA = a
+              .getBounds()
+              .getSouthWest()
+              .distanceTo(a.getBounds().getNorthEast());
+            let distB = b
+              .getBounds()
+              .getSouthWest()
+              .distanceTo(b.getBounds().getNorthEast());
+            return distB - distA;
+          });
+
+          layersArray.forEach((layer) => {
             // Use the feature property color to avoid exporting selection dashes/styles
             const warningCol =
               layer.feature?.properties?.warningColor ||
               layer.options.fillColor ||
               hexColor;
+            const polyOpacity =
+              layer.options.fillOpacity !== undefined
+                ? layer.options.fillOpacity
+                : 0.6;
             const polyStyle = {
               color: warningCol,
               fillColor: warningCol,
-              weight: 3,
-              fillOpacity: 0.6,
+              weight:
+                layer.options.weight !== undefined ? layer.options.weight : 3,
+              fillOpacity: polyOpacity,
               dashArray: null,
             };
 
@@ -288,24 +356,239 @@ function generateNowcastWithMap() {
           mapLeftInstance.invalidateSize();
           mapRightInstance.invalidateSize();
 
-          if (customPolygonsGroup.getLayers().length > 0) {
-            mapRightInstance.fitBounds(customPolygonsGroup.getBounds(), {
-              padding: [30, 30],
-              maxZoom: 14,
-              animate: false,
-            });
-          } else if (rightLayer.getLayers().length > 0) {
-            mapRightInstance.fitBounds(rightLayer.getBounds(), {
-              padding: [30, 30],
-              maxZoom: 14,
+          // Fit Left Map to whole Bihar outline
+          if (leftLayer.getLayers().length > 0) {
+            biharBoundsLeft = leftLayer.getBounds();
+            mapLeftInstance.fitBounds(biharBoundsLeft, {
+              padding: [10, 10],
               animate: false,
             });
           }
-        }, 400);
+
+          if (customPolygonsGroup.getLayers().length > 0) {
+            warningBoundsRight = customPolygonsGroup.getBounds();
+            mapRightInstance.fitBounds(warningBoundsRight, {
+              padding: [10, 10],
+              maxZoom: 15,
+              animate: false,
+            });
+          } else if (selectedRightFeaturesGroup.getLayers().length > 0) {
+            warningBoundsRight = selectedRightFeaturesGroup.getBounds();
+            mapRightInstance.fitBounds(warningBoundsRight, {
+              padding: [10, 10],
+              maxZoom: 15,
+              animate: false,
+            });
+          }
+        }, 800); // Ensure DOM is fully painted before calculating fitBounds on export
       })
       .catch((e) => console.error("Error loading GeoJSON for export map:", e));
-  }, 600); // 600ms matches the timeout in generateNowcast()
+  }, 800); // Slight delay increase to sync with display rendering
 }
+
+// --- BULLETIN EDIT MODE AND MAP TOOLS ---
+
+window.toggleBulletinEditMode = function (isEdit) {
+  document.getElementById("warningTextHindi").contentEditable = isEdit;
+  document.getElementById("warningTextEnglish").contentEditable = isEdit;
+
+  const toolbar = document.getElementById("miniMapEditorToolbar");
+  if (toolbar) toolbar.style.display = isEdit ? "block" : "none";
+
+  [mapLeftInstance, mapRightInstance].forEach((m, idx) => {
+    if (m) {
+      if (isEdit) {
+        m.dragging.enable();
+        m.touchZoom.enable();
+        m.doubleClickZoom.enable();
+        m.scrollWheelZoom.enable();
+        m.boxZoom.enable();
+        m.keyboard.enable();
+
+        if (idx === 0 && !leftZoomCtrl) {
+          leftZoomCtrl = L.control.zoom({ position: "topleft" }).addTo(m);
+        } else if (idx === 1 && !rightZoomCtrl) {
+          rightZoomCtrl = L.control.zoom({ position: "topleft" }).addTo(m);
+        }
+      } else {
+        m.dragging.disable();
+        m.touchZoom.disable();
+        m.doubleClickZoom.disable();
+        m.scrollWheelZoom.disable();
+        m.boxZoom.disable();
+        m.keyboard.disable();
+
+        if (idx === 0 && leftZoomCtrl) {
+          m.removeControl(leftZoomCtrl);
+          leftZoomCtrl = null;
+        }
+        if (idx === 1 && rightZoomCtrl) {
+          m.removeControl(rightZoomCtrl);
+          rightZoomCtrl = null;
+        }
+      }
+    }
+  });
+
+  // visual hint for editable text
+  const hiTxt = document.getElementById("warningTextHindi");
+  const enTxt = document.getElementById("warningTextEnglish");
+  if (isEdit) {
+    if (hiTxt) {
+      hiTxt.style.border = "1px dashed #007bff";
+      hiTxt.style.padding = "5px";
+      hiTxt.style.backgroundColor = "#f8f9fa";
+    }
+    if (enTxt) {
+      enTxt.style.border = "1px dashed #007bff";
+      enTxt.style.padding = "5px";
+      enTxt.style.backgroundColor = "#f8f9fa";
+    }
+  } else {
+    if (hiTxt) {
+      hiTxt.style.border = "none";
+      hiTxt.style.padding = "0";
+      hiTxt.style.backgroundColor = "transparent";
+    }
+    if (enTxt) {
+      enTxt.style.border = "none";
+      enTxt.style.padding = "0";
+      enTxt.style.backgroundColor = "transparent";
+    }
+  }
+};
+
+window.updateMiniMapSize = function () {
+  const h = document.getElementById("miniMapHeightSlider").value;
+  const valLabel = document.getElementById("miniMapHeightVal");
+  if (valLabel) valLabel.innerText = h;
+
+  const mapSec = document.getElementById("mapSectionInCard");
+  if (mapSec) {
+    mapSec.style.height = h + "px";
+  }
+  if (mapLeftInstance) mapLeftInstance.invalidateSize();
+  if (mapRightInstance) mapRightInstance.invalidateSize();
+};
+
+window.updateMiniMapWidth = function () {
+  const leftPct = document.getElementById("miniMapWidthSlider").value;
+  const rightPct = 100 - leftPct;
+
+  const valLabel = document.getElementById("miniMapWidthVal");
+  if (valLabel) valLabel.innerText = leftPct + ":" + rightPct;
+
+  const leftWrapper = document.getElementById("leftMapWrapper");
+  const rightWrapper = document.getElementById("rightMapWrapper");
+
+  if (leftWrapper) leftWrapper.style.width = `calc(${leftPct}% - 7.5px)`;
+  if (rightWrapper) rightWrapper.style.width = `calc(${rightPct}% - 7.5px)`;
+
+  if (mapLeftInstance) mapLeftInstance.invalidateSize();
+  if (mapRightInstance) mapRightInstance.invalidateSize();
+};
+
+window.autoFitBiharRatio = function () {
+  const mapSec = document.getElementById("mapSectionInCard");
+  if (mapSec && mapSec.children[0]) {
+    const leftMapDiv = mapSec.children[0]; // 40% div
+    const currentWidth = leftMapDiv.offsetWidth;
+    const targetHeight = currentWidth / 1.65;
+
+    const slider = document.getElementById("miniMapHeightSlider");
+    if (slider) slider.value = Math.round(targetHeight);
+
+    window.updateMiniMapSize(); // Apply height
+    setTimeout(() => window.autoFitBiharMap(), 100); // Wait for DOM resize then center
+  }
+};
+
+window.autoFitBiharMap = function () {
+  if (mapLeftInstance && biharBoundsLeft) {
+    mapLeftInstance.fitBounds(biharBoundsLeft, { padding: [10, 10] });
+  }
+  if (mapRightInstance && warningBoundsRight) {
+    mapRightInstance.fitBounds(warningBoundsRight, { padding: [10, 10] });
+  }
+};
+
+window.changeMiniMapBaseLayer = function () {
+  const type = document.getElementById("miniMapBaseLayer").value;
+  const getLayer = (type) => {
+    switch (type) {
+      case "street":
+        return L.tileLayer(
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        );
+      case "satellite":
+        return L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+        );
+      case "hybrid":
+        return L.layerGroup([
+          L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          ),
+          L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+          ),
+        ]);
+      case "topo":
+        return L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png");
+      case "terrain":
+        return L.tileLayer(
+          "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+          { subdomains: ["mt0", "mt1", "mt2", "mt3"] },
+        );
+      case "clear":
+        return L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+        );
+      default:
+        return L.layerGroup();
+    }
+  };
+
+  if (mapLeftInstance) {
+    if (currentMiniBaseLayerLeft)
+      mapLeftInstance.removeLayer(currentMiniBaseLayerLeft);
+    currentMiniBaseLayerLeft = getLayer(type).addTo(mapLeftInstance);
+    currentMiniBaseLayerLeft.bringToBack();
+  }
+  if (mapRightInstance) {
+    if (currentMiniBaseLayerRight)
+      mapRightInstance.removeLayer(currentMiniBaseLayerRight);
+    currentMiniBaseLayerRight = getLayer(type).addTo(mapRightInstance);
+    currentMiniBaseLayerRight.bringToBack();
+  }
+};
+
+window.toggleMiniMapGrid = function () {
+  const enabled = document.getElementById("miniMapGridToggle").checked;
+  const color = document.getElementById("miniMapGridColor").value;
+
+  if (miniGridLayerLeft && mapLeftInstance)
+    mapLeftInstance.removeLayer(miniGridLayerLeft);
+  if (miniGridLayerRight && mapRightInstance)
+    mapRightInstance.removeLayer(miniGridLayerRight);
+
+  if (enabled && typeof L.latlngGraticule !== "undefined") {
+    miniGridLayerLeft = L.latlngGraticule({
+      showLabel: true,
+      color: color,
+      weight: 1,
+      opacity: 0.6,
+      zoomInterval: [{ start: 2, end: 15, interval: 0.5 }],
+    }).addTo(mapLeftInstance);
+    miniGridLayerRight = L.latlngGraticule({
+      showLabel: true,
+      color: color,
+      weight: 1,
+      opacity: 0.6,
+      zoomInterval: [{ start: 2, end: 15, interval: 0.25 }],
+    }).addTo(mapRightInstance);
+  }
+};
 
 function downloadMapWarningImage() {
   // Just redirect to standard image download as everything is integrated now
