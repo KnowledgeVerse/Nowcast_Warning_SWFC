@@ -938,6 +938,7 @@
                 min-width: 200px;
               "
             >
+              <option value="auto">Auto (Fit Content)</option>
               <option value="256/181" selected>
                 256:181 (Standard Landscape)
               </option>
@@ -1164,7 +1165,12 @@
                   "
                 >
                   <div
-                    style="flex: 1; border: 2px solid #000; position: relative"
+                    style="
+                      width: 40%;
+                      border: 2px solid #000;
+                      position: relative;
+                      box-sizing: border-box;
+                    "
                   >
                     <div
                       style="
@@ -1193,9 +1199,10 @@
                   </div>
                   <div
                     style="
-                      flex: 1.5;
+                      width: 60%;
                       border: 2px solid #000;
                       position: relative;
+                      box-sizing: border-box;
                     "
                   >
                     <div

@@ -1254,12 +1254,17 @@ function getNowcastFilename(extension) {
 function downloadNowcastPDF() {
   const element = document.getElementById("warningCardContainer");
 
+  // HTML2Canvas Leaflet Offset Fix
+  const originalScrollY = window.scrollY;
+  window.scrollTo(0, 0);
+
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
   }).then((canvas) => {
+    window.scrollTo(0, originalScrollY);
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jspdf.jsPDF("p", "mm", "a4");
 
@@ -1288,12 +1293,17 @@ function downloadNowcastPDF() {
 function downloadNowcastImage() {
   const element = document.getElementById("warningCardContainer");
 
+  // HTML2Canvas Leaflet Offset Fix
+  const originalScrollY = window.scrollY;
+  window.scrollTo(0, 0);
+
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
   }).then((canvas) => {
+    window.scrollTo(0, originalScrollY);
     const link = document.createElement("a");
     link.download = getNowcastFilename("png");
     link.href = canvas.toDataURL();
@@ -1306,12 +1316,17 @@ function copyNowcastImage() {
   const element = document.getElementById("warningCardContainer");
   showLoading();
 
+  // HTML2Canvas Leaflet Offset Fix
+  const originalScrollY = window.scrollY;
+  window.scrollTo(0, 0);
+
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
   }).then((canvas) => {
+    window.scrollTo(0, originalScrollY);
     canvas.toBlob((blob) => {
       if (!navigator.clipboard || !window.ClipboardItem) {
         hideLoading();
@@ -1378,6 +1393,10 @@ async function processAndShare(platform) {
   try {
     const element = document.getElementById("warningCardContainer");
 
+    // HTML2Canvas Leaflet Offset Fix
+    const originalScrollY = window.scrollY;
+    window.scrollTo(0, 0);
+
     // 1. Image Capture and Processing
     const canvas = await html2canvas(element, {
       scale: 3,
@@ -1385,6 +1404,7 @@ async function processAndShare(platform) {
       allowTaint: true,
       backgroundColor: "#ffffff",
     });
+    window.scrollTo(0, originalScrollY);
 
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/png"),

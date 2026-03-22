@@ -27,6 +27,12 @@ function generateNowcastWithMap() {
 
     mapSection.style.display = "flex"; // Show map container inside the main card
 
+    // Prevent Canvas Clipping and Layout Shifting
+    const cardContainer = document.getElementById("warningCardContainer");
+    if (cardContainer) cardContainer.style.aspectRatio = "auto";
+    const aspectSelect = document.getElementById("imageAspectRatio");
+    if (aspectSelect) aspectSelect.value = "auto";
+
     // Select Hex color per warnings
     let hexColor = "#ffff00";
     if (typeof selectedWarningLevel !== "undefined") {
@@ -42,6 +48,9 @@ function generateNowcastWithMap() {
         attributionControl: false,
         dragging: false,
         scrollWheelZoom: false,
+        zoomAnimation: false,
+        fadeAnimation: false,
+        preferCanvas: true,
       }).setView([25.6, 85.6], 6);
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -54,6 +63,9 @@ function generateNowcastWithMap() {
         attributionControl: false,
         dragging: false,
         scrollWheelZoom: false,
+        zoomAnimation: false,
+        fadeAnimation: false,
+        preferCanvas: true,
       }).setView([25.6, 85.6], 7);
       L.tileLayer(
         "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -73,6 +85,12 @@ function generateNowcastWithMap() {
       if (layer.options && layer.options.pane === "overlayPane" && !layer._url)
         mapRightInstance.removeLayer(layer);
     });
+
+    // Remove existing Legend control if any to prevent duplicates
+    if (mapRightInstance.legendControl) {
+      mapRightInstance.removeControl(mapRightInstance.legendControl);
+      mapRightInstance.legendControl = null;
+    }
 
     const nameMapping = {
       Purnia: "PURNEA",
@@ -127,6 +145,17 @@ function generateNowcastWithMap() {
           }
         }
 
+        // Collect Unique Phenomena for Legend
+        let uniquePhenomena = new Set();
+        if (typeof selectedPhenomena !== "undefined") {
+          selectedPhenomena.forEach((p) => uniquePhenomena.add(p));
+        }
+
+        // Check if any custom warning polygons are drawn
+        const hasDrawnPolygons =
+          typeof drawnItems !== "undefined" &&
+          drawnItems.getLayers().length > 0;
+
         // Render Full Map Structure
         const leftLayer = L.geoJSON(data, {
           style: function (feature) {
@@ -141,11 +170,14 @@ function generateNowcastWithMap() {
               if (dist && selectedDistricts.includes(dist.id))
                 isSelected = true;
             }
+
+            let applyColor = isSelected && !hasDrawnPolygons;
+
             return {
-              fillColor: isSelected ? hexColor : "#cccccc",
+              fillColor: applyColor ? hexColor : "#cccccc",
               weight: 1,
               color: "white",
-              fillOpacity: isSelected ? 0.9 : 0.4,
+              fillOpacity: applyColor ? 0.9 : 0.4,
             };
           },
         }).addTo(mapLeftInstance);
@@ -167,10 +199,10 @@ function generateNowcastWithMap() {
           },
           style: function (feature) {
             return {
-              fillColor: hexColor,
+              fillColor: hasDrawnPolygons ? "transparent" : hexColor,
               weight: 2,
               color: "#000",
-              fillOpacity: 0.7,
+              fillOpacity: hasDrawnPolygons ? 0 : 0.7,
             };
           },
           onEachFeature: function (feature, layer) {
@@ -191,11 +223,24 @@ function generateNowcastWithMap() {
 
         if (typeof drawnItems !== "undefined") {
           drawnItems.eachLayer((layer) => {
+            // Use the feature property color to avoid exporting selection dashes/styles
+            const warningCol =
+              layer.feature?.properties?.warningColor ||
+              layer.options.fillColor ||
+              hexColor;
+            const polyStyle = {
+              color: warningCol,
+              fillColor: warningCol,
+              weight: 3,
+              fillOpacity: 0.6,
+              dashArray: null,
+            };
+
             // Left map polygon
-            L.polygon(layer.getLatLngs(), layer.options).addTo(mapLeftInstance);
+            L.polygon(layer.getLatLngs(), polyStyle).addTo(mapLeftInstance);
 
             // Right map polygon
-            let rightPoly = L.polygon(layer.getLatLngs(), layer.options).addTo(
+            let rightPoly = L.polygon(layer.getLatLngs(), polyStyle).addTo(
               mapRightInstance,
             );
             customPolygonsGroup.addLayer(rightPoly);
@@ -206,42 +251,57 @@ function generateNowcastWithMap() {
               layer.feature.properties &&
               layer.feature.properties.phenomena
             ) {
-              let iconsHtml = "";
               layer.feature.properties.phenomena.forEach((phenomId) => {
-                let phenomObj = weatherPhenomena.find((p) => p.id === phenomId);
-                if (phenomObj) iconsHtml += phenomObj.icon;
+                uniquePhenomena.add(phenomId);
               });
-
-              if (iconsHtml !== "") {
-                let center = layer.getBounds().getCenter();
-                let iconMarker = L.marker(center, {
-                  icon: L.divIcon({
-                    className: "map-phenom-marker",
-                    html: `<div style="background:rgba(255,255,255,0.85); padding:3px 6px; border-radius:6px; font-size:18px; border:2px solid ${layer.options.color || "#000"}; display:inline-block; white-space:nowrap; box-shadow:0 2px 5px rgba(0,0,0,0.3);">${iconsHtml}</div>`,
-                    iconSize: null,
-                  }),
-                });
-                iconMarker.addTo(mapRightInstance);
-                customPolygonsGroup.addLayer(iconMarker);
-              }
             }
           });
         }
 
+        // Build Legend Control for mapRightInstance
+        if (uniquePhenomena.size > 0) {
+          let legendHtml =
+            '<div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:5px; padding-bottom:3px; font-size:13px; color:#333; text-transform:uppercase;">Weather Warning</div>';
+          uniquePhenomena.forEach((phenomId) => {
+            let phenomObj = weatherPhenomena.find((p) => p.id === phenomId);
+            if (phenomObj) {
+              legendHtml += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:15px; font-weight:bold; color:#000; white-space:nowrap;"><span style="font-size:22px;">${phenomObj.icon}</span> ${phenomObj.name}</div>`;
+            }
+          });
+          const legendControl = L.control({ position: "bottomright" });
+          legendControl.onAdd = function () {
+            const div = L.DomUtil.create("div", "info legend-export");
+            div.style.backgroundColor = "rgba(255, 255, 255, 0.95)";
+            div.style.padding = "10px 15px";
+            div.style.borderRadius = "8px";
+            div.style.border = "3px solid " + hexColor;
+            div.style.boxShadow = "0 4px 8px rgba(0,0,0,0.3)";
+            div.innerHTML = legendHtml;
+            return div;
+          };
+          legendControl.addTo(mapRightInstance);
+          mapRightInstance.legendControl = legendControl;
+        }
+
         // Adjust Right Map Zoom Priority (Focus on Polygons if they exist)
         setTimeout(() => {
+          mapLeftInstance.invalidateSize();
+          mapRightInstance.invalidateSize();
+
           if (customPolygonsGroup.getLayers().length > 0) {
             mapRightInstance.fitBounds(customPolygonsGroup.getBounds(), {
-              padding: [40, 40],
-              maxZoom: 10,
+              padding: [30, 30],
+              maxZoom: 14,
+              animate: false,
             });
           } else if (rightLayer.getLayers().length > 0) {
             mapRightInstance.fitBounds(rightLayer.getBounds(), {
               padding: [30, 30],
-              maxZoom: 9,
+              maxZoom: 14,
+              animate: false,
             });
           }
-        }, 100);
+        }, 400);
       })
       .catch((e) => console.error("Error loading GeoJSON for export map:", e));
   }, 600); // 600ms matches the timeout in generateNowcast()
