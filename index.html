@@ -334,6 +334,774 @@
                 </div>
               </div>
 
+              <!-- NEW: Custom GeoJSON Layers -->
+              <div
+                style="
+                  position: relative;
+                  display: inline-block;
+                  margin-left: 5px;
+                "
+              >
+                <button
+                  onclick="
+                    document.getElementById('geojsonDropdown').style.display =
+                      document.getElementById('geojsonDropdown').style
+                        .display === 'none'
+                        ? 'block'
+                        : 'none'
+                  "
+                  style="
+                    padding: 5px 10px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                >
+                  <i class="fas fa-draw-polygon"></i> GeoJSON Layers
+                </button>
+                <div
+                  id="geojsonDropdown"
+                  style="
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
+                    background: white;
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    z-index: 1000;
+                    width: 250px;
+                    max-height: 400px;
+                    overflow-y: auto;
+                    text-align: left;
+                    margin-top: 5px;
+                  "
+                >
+                  <!-- Bihar State -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_state"
+                        onchange="toggleCustomGeoJson('state', this.checked)"
+                        style="margin-right: 5px"
+                      />
+                      Bihar State</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_state"
+                        value="#2c3e50"
+                        onchange="updateGeoJsonStyle('state')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_state"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.2"
+                        oninput="updateGeoJsonStyle('state')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_state"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('state')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- District HQ -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_district_hq"
+                        onchange="
+                          toggleCustomGeoJson('district_hq', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      District HQ</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_district_hq"
+                        value="#e74c3c"
+                        onchange="updateGeoJsonStyle('district_hq')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_district_hq"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="1.0"
+                        oninput="updateGeoJsonStyle('district_hq')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_district_hq"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('district_hq')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Sub-District HQ -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_sub_district_hq"
+                        onchange="
+                          toggleCustomGeoJson('sub_district_hq', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      Sub-District HQ</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_sub_district_hq"
+                        value="#e67e22"
+                        onchange="updateGeoJsonStyle('sub_district_hq')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_sub_district_hq"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="1.0"
+                        oninput="updateGeoJsonStyle('sub_district_hq')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_sub_district_hq"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('sub_district_hq')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Sub-Districts -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_subdistricts"
+                        onchange="
+                          toggleCustomGeoJson('subdistricts', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      Sub-Districts</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_subdistricts"
+                        value="#9b59b6"
+                        onchange="updateGeoJsonStyle('subdistricts')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_subdistricts"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.4"
+                        oninput="updateGeoJsonStyle('subdistricts')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_subdistricts"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('subdistricts')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Villages -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_villages"
+                        onchange="toggleCustomGeoJson('villages', this.checked)"
+                        style="margin-right: 5px"
+                      />
+                      Villages</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_villages"
+                        value="#16a085"
+                        onchange="updateGeoJsonStyle('villages')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_villages"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.4"
+                        oninput="updateGeoJsonStyle('villages')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_villages"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('villages')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- FMO Patna -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_fmo_patna"
+                        onchange="
+                          toggleCustomGeoJson('fmo_patna', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      FMO Patna</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_fmo_patna"
+                        value="#f1c40f"
+                        onchange="updateGeoJsonStyle('fmo_patna')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_fmo_patna"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.5"
+                        oninput="updateGeoJsonStyle('fmo_patna')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_fmo_patna"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('fmo_patna')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- National Highways -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_nh_bihar"
+                        onchange="toggleCustomGeoJson('nh_bihar', this.checked)"
+                        style="margin-right: 5px"
+                      />
+                      National Highways</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_nh_bihar"
+                        value="#34495e"
+                        onchange="updateGeoJsonStyle('nh_bihar')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_nh_bihar"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.8"
+                        oninput="updateGeoJsonStyle('nh_bihar')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_nh_bihar"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('nh_bihar')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Railways -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_railway"
+                        onchange="toggleCustomGeoJson('railway', this.checked)"
+                        style="margin-right: 5px"
+                      />
+                      Railways</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_railway"
+                        value="#000000"
+                        onchange="updateGeoJsonStyle('railway')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_railway"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.8"
+                        oninput="updateGeoJsonStyle('railway')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_railway"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('railway')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Water Areas -->
+                  <div
+                    style="
+                      margin-bottom: 10px;
+                      border-bottom: 1px solid #eee;
+                      padding-bottom: 5px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_water_areas"
+                        onchange="
+                          toggleCustomGeoJson('water_areas', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      Water Areas</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_water_areas"
+                        value="#3498db"
+                        onchange="updateGeoJsonStyle('water_areas')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_water_areas"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.6"
+                        oninput="updateGeoJsonStyle('water_areas')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_water_areas"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('water_areas')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                  <!-- Water Lines -->
+                  <div style="margin-bottom: 5px">
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        cursor: pointer;
+                        font-weight: bold;
+                        font-size: 13px;
+                      "
+                      ><input
+                        type="checkbox"
+                        id="gj_chk_water_lines"
+                        onchange="
+                          toggleCustomGeoJson('water_lines', this.checked)
+                        "
+                        style="margin-right: 5px"
+                      />
+                      Water Lines</label
+                    >
+                    <div
+                      style="
+                        display: flex;
+                        gap: 5px;
+                        align-items: center;
+                        margin-top: 5px;
+                        font-size: 11px;
+                      "
+                    >
+                      <input
+                        type="color"
+                        id="gj_col_water_lines"
+                        value="#2980b9"
+                        onchange="updateGeoJsonStyle('water_lines')"
+                        style="
+                          width: 22px;
+                          height: 22px;
+                          padding: 0;
+                          border: none;
+                          cursor: pointer;
+                        "
+                        title="Layer Color"
+                      />
+                      <input
+                        type="range"
+                        id="gj_op_water_lines"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value="0.8"
+                        oninput="updateGeoJsonStyle('water_lines')"
+                        style="width: 60px; cursor: pointer"
+                        title="Opacity"
+                      />
+                      <input
+                        type="range"
+                        id="gj_wt_water_lines"
+                        min="0.5"
+                        max="8"
+                        step="0.5"
+                        value="2"
+                        oninput="updateGeoJsonStyle('water_lines')"
+                        style="width: 60px; cursor: pointer"
+                        title="Width/Size"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <button
                 class="btn btn-info btn-small"
                 onclick="toggleAdvancedPanel()"
@@ -856,6 +1624,58 @@
             </div>
           </div>
 
+          <!-- Impact Risk Matrix -->
+          <div class="panel-section">
+            <div class="panel-title">
+              <i class="fas fa-th"></i>
+              इम्पैक्ट रिस्क मैट्रिक्स / Impact Risk Matrix
+            </div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap">
+              <label style="flex: 1; font-size: 13px; font-weight: bold"
+                >Probability (संभावना):
+                <select
+                  id="matrixProbability"
+                  onchange="
+                    if (typeof updateRiskMatrix === 'function')
+                      updateRiskMatrix();
+                  "
+                  style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #dee2e6;
+                    margin-top: 5px;
+                  "
+                >
+                  <option value="1">Unlikely (संभावना कम)</option>
+                  <option value="2" selected>Likely (संभावित)</option>
+                  <option value="3">Very Likely (प्रबल संभावना)</option>
+                </select>
+              </label>
+              <label style="flex: 1; font-size: 13px; font-weight: bold"
+                >Impact (प्रभाव):
+                <select
+                  id="matrixImpact"
+                  onchange="
+                    if (typeof updateRiskMatrix === 'function')
+                      updateRiskMatrix();
+                  "
+                  style="
+                    width: 100%;
+                    padding: 8px;
+                    border-radius: 6px;
+                    border: 1px solid #dee2e6;
+                    margin-top: 5px;
+                  "
+                >
+                  <option value="1">Minor (मामूली)</option>
+                  <option value="2" selected>Moderate (मध्यम)</option>
+                  <option value="3">Severe (गंभीर)</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
           <!-- Weather Phenomena -->
           <div class="panel-section">
             <div class="panel-title">
@@ -1221,6 +2041,52 @@
                 Enable Bulletin Edit Mode (Live Editing)
               </label>
             </div>
+
+            <!-- Regional Language Translation Toggle -->
+            <div
+              style="
+                padding: 8px 15px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                border: 2px solid #dee2e6;
+                transition: all 0.3s;
+              "
+            >
+              <label
+                style="
+                  font-weight: bold;
+                  color: #2c3e50;
+                  font-size: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                  margin: 0;
+                  cursor: pointer;
+                "
+              >
+                <i
+                  class="fas fa-language"
+                  style="font-size: 18px; color: #667eea"
+                ></i>
+                क्षेत्रीय भाषा (Language):
+                <select
+                  id="localLanguageSelect"
+                  onchange="generateNowcast(true)"
+                  style="
+                    padding: 6px 10px;
+                    border-radius: 6px;
+                    border: 1px solid #ccc;
+                    font-size: 14px;
+                    cursor: pointer;
+                    background: white;
+                  "
+                >
+                  <option value="hindi" selected>Hindi (हिंदी)</option>
+                  <option value="bhojpuri">Bhojpuri (भोजपुरी)</option>
+                  <option value="maithili">Maithili (मैथिली)</option>
+                </select>
+              </label>
+            </div>
           </div>
 
           <!-- IMD Style Warning Bulletin -->
@@ -1355,6 +2221,109 @@
                           Update
                         </button>
                       </div>
+                    </div>
+                  </div>
+
+                  <!-- Impact Risk Matrix Visual -->
+                  <div
+                    style="
+                      margin-left: auto;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      background: #fff;
+                      padding: 5px 8px;
+                      border-radius: 4px;
+                      border: 2px solid #000;
+                      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    "
+                  >
+                    <div
+                      style="
+                        font-size: 11px;
+                        font-weight: bold;
+                        margin-bottom: 4px;
+                        text-transform: uppercase;
+                      "
+                    >
+                      IMPACT MATRIX
+                    </div>
+                    <div
+                      id="riskMatrixVisual"
+                      style="
+                        display: grid;
+                        grid-template-columns: 20px 20px 20px;
+                        grid-template-rows: 20px 20px 20px;
+                        gap: 2px;
+                        position: relative;
+                      "
+                    >
+                      <div
+                        class="rm-cell"
+                        id="rm-3-1"
+                        style="background: #ffeb3b"
+                        title="High Probability, Low Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-3-2"
+                        style="background: #ff9800"
+                        title="High Probability, Moderate Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-3-3"
+                        style="background: #f44336"
+                        title="High Probability, Severe Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-2-1"
+                        style="background: #4caf50"
+                        title="Medium Probability, Low Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-2-2"
+                        style="background: #ffeb3b"
+                        title="Medium Probability, Moderate Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-2-3"
+                        style="background: #ff9800"
+                        title="Medium Probability, Severe Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-1-1"
+                        style="background: #4caf50"
+                        title="Low Probability, Low Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-1-2"
+                        style="background: #4caf50"
+                        title="Low Probability, Moderate Impact"
+                      ></div>
+                      <div
+                        class="rm-cell"
+                        id="rm-1-3"
+                        style="background: #ffeb3b"
+                        title="Low Probability, Severe Impact"
+                      ></div>
+                    </div>
+                    <div
+                      style="
+                        display: flex;
+                        justify-content: space-between;
+                        width: 100%;
+                        font-size: 8px;
+                        margin-top: 2px;
+                        font-weight: bold;
+                      "
+                    >
+                      <span>Min.</span><span>Imp.</span><span>Max.</span>
                     </div>
                   </div>
                 </div>
@@ -2013,5 +2982,6 @@
     <script src="js/weatherLayers.js?v=4.0"></script>
     <script src="js/advancedDraw.js?v=4.0"></script>
     <script src="js/autoBulletin.js?v=4.0"></script>
+    <script src="js/geojsonLayers.js?v=1.0"></script>
   </body>
 </html>

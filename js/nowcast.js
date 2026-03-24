@@ -265,11 +265,11 @@ function initializeMap() {
   // Load Bihar Map from GeoJSON
   // Fix for Hostinger/Linux Case Sensitivity: Try multiple filename variations
   const possiblePaths = [
-    "data/bihar_districts.geojson", // Standard lowercase
-    "data/Bihar_Districts.geojson", // CamelCase file
-    "Data/bihar_districts.geojson", // Capitalized Folder
-    "Data/Bihar_Districts.geojson", // Both Capitalized
-    "data/bihar_district.geojson", // Singular name check
+    "geojson/bihar_districts.geojson", // Standard lowercase
+    "geojson/Bihar_Districts.geojson", // CamelCase file
+    "Geojson/bihar_districts.geojson", // Capitalized Folder
+    "Geojson/Bihar_Districts.geojson", // Both Capitalized
+    "geojson/bihar_district.geojson", // Singular name check
   ];
 
   // Recursive function to try loading paths one by one
@@ -433,7 +433,7 @@ function initializeMap() {
           "Detail: " +
           error.message +
           "\n\n" +
-          "Hostinger Fix: Ensure 'bihar_districts.geojson' exists in 'data' folder and matches Case Sensitivity.",
+          "Hostinger Fix: Ensure 'bihar_districts.geojson' exists in 'geojson' folder and matches Case Sensitivity.",
       );
     });
 }
@@ -1135,19 +1135,39 @@ function generateNowcast(isDynamicUpdate = false) {
   // GENERATE SENTENCES BASED ON WARNING LEVEL
   const isUpdate =
     document.getElementById("updateWarningToggle")?.checked || false;
+  const language =
+    document.getElementById("localLanguageSelect")?.value || "hindi";
   const actionVerbHi = isUpdate ? "जारी रहने" : "होने";
 
   if (warningLevel === "yellow") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले एक से तीन घंटे में हल्के से मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की संभावना है।`;
+    if (language === "bhojpuri") {
+      warningHi = `${districtTextHi} के कुछ भागन में अगिला 1-3 घंटा में हल्का से मध्यम ${fullPhenomHi} ${isUpdate ? "जारी रहे" : "होखे"} के संभावना बा।`;
+    } else if (language === "maithili") {
+      warningHi = `${districtTextHi} के किछु भागमे अगिला 1-3 घन्टामे हल्का सँ मध्यम ${fullPhenomHi} ${isUpdate ? "जारी रहबाक" : "हेबाक"} सम्भावना अछि।`;
+    } else {
+      warningHi = `${districtTextHi} के कुछ भागों में अगले एक से तीन घंटे में हल्के से मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की संभावना है।`;
+    }
     warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are likely to continue experiencing" : "are likely to experience"} light to moderate ${fullPhenomEn} within next one to three hours.`;
   } else if (warningLevel === "orange") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    if (language === "bhojpuri") {
+      warningHi = `${districtTextHi} के कुछ भागन में अगिला 2-3 घंटा में मध्यम ${fullPhenomHi} ${isUpdate ? "लगातार रहे" : "होखे"} के प्रबल संभावना बा। सतर्क रहीं।`;
+    } else if (language === "maithili") {
+      warningHi = `${districtTextHi} के किछु भागमे अगिला 2-3 घन्टामे मध्यम ${fullPhenomHi} ${isUpdate ? "लगातार रहबाक" : "हेबाक"} प्रबल सम्भावना अछि। सतर्क रहू।`;
+    } else {
+      warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में मध्यम दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    }
     warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are very likely to continue experiencing" : "are very likely to experience"} moderate ${fullPhenomEn} within next two to three hours.`;
   } else if (warningLevel === "red") {
-    warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में तीव्र दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    if (language === "bhojpuri") {
+      warningHi = `${districtTextHi} के कुछ भागन में अगिला 2-3 घंटा में भारी ${fullPhenomHi} ${isUpdate ? "प्रचंड रूप से जारी रहे" : "होखे"} के भारी संभावना बा। तुरंत बचाव करीं।`;
+    } else if (language === "maithili") {
+      warningHi = `${districtTextHi} के किछु भागमे अगिला 2-3 घन्टामे भारी ${fullPhenomHi} ${isUpdate ? "प्रचण्ड रूप सँ जारी रहबाक" : "हेबाक"} भारी सम्भावना अछि। तुरुन्त बचाव करू।`;
+    } else {
+      warningHi = `${districtTextHi} के कुछ भागों में अगले दो से तीन घंटे में तीव्र दर्जे की ${fullPhenomHi} ${actionVerbHi} की प्रबल संभावना है।`;
+    }
     warningEn = `Some parts of ${districtTextEn} ${isUpdate ? "are very likely to continue experiencing" : "are very likely to experience"} severe ${fullPhenomEn} within next two to three hours.`;
   } else {
-    warningHi = "कोई चेतावनी नहीं।";
+    warningHi = "कोई चेतावनी नहीं। / कवनो चेतावनी नईखे। / कोनो चेतावनी नहि।";
     warningEn = "No Warning.";
   }
 
@@ -1835,6 +1855,13 @@ const advancedOverlays = {
       url: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=7&overlay=wind&product=ecmwf&level=surface&lat=25.6&lon=85.6",
       opacity: 0.8,
     },
+    {
+      id: "aws",
+      name: "Live AWS Stations",
+      icon: "📡",
+      layer: null,
+      opacity: 1,
+    },
   ],
   convective: [
     {
@@ -1963,6 +1990,41 @@ function createMockLightningLayer() {
   return layer;
 }
 
+function fetchRealTimeAWSData(layerGroup) {
+  // यहाँ अपने सर्वर का असली API URL डालें (Replace with your actual API endpoint)
+  const apiUrl = "https://your-server.com/api/aws-live-data";
+
+  fetch(apiUrl)
+    .then((res) => {
+      if (!res.ok) throw new Error("Failed to fetch AWS data");
+      return res.json();
+    })
+    .then((data) => {
+      // API से डेटा मिलने के बाद हर स्टेशन के लिए मार्कर बनाएँ
+      data.forEach((station) => {
+        const popupContent = `<div style='font-size:14px;'>
+          <b>${station.name || "Unknown AWS"} (Live)</b><br>
+          Temp: ${station.temp !== undefined ? station.temp : "--"}°C<br>
+          Rain (Last 1hr): ${station.rain !== undefined ? station.rain : "0.0"}mm<br>
+          Wind: ${station.wind !== undefined ? station.wind : "--"} km/h
+        </div>`;
+
+        L.marker([station.lat, station.lng])
+          .bindPopup(popupContent)
+          .addTo(layerGroup);
+      });
+    })
+    .catch((err) => {
+      console.error("Error fetching live AWS data:", err);
+      // यदि API फेल हो जाता है, तो एरर मैसेज दिखाएँ
+      L.marker([25.6, 85.1])
+        .bindPopup(
+          "<div style='font-size:14px; color:red;'><b>AWS API Failed</b><br>Could not load real-time data.</div>",
+        )
+        .addTo(layerGroup);
+    });
+}
+
 function getAdvancedLayerInstance(id) {
   switch (id) {
     case "light":
@@ -1993,6 +2055,13 @@ function getAdvancedLayerInstance(id) {
           zIndex: 200,
         },
       );
+    case "aws":
+      const awsGroup = L.layerGroup();
+
+      // सर्वर से लाइव डेटा मंगाने के लिए फ़ंक्शन कॉल करें
+      fetchRealTimeAWSData(awsGroup);
+
+      return awsGroup;
     default:
       return L.layerGroup();
   }
@@ -2086,3 +2155,52 @@ function handleAdvancedLayerOpacity(id, val) {
     activeAdvancedLayers[id].setOpacity(val);
   }
 }
+
+// ============================================================================
+// ================== ADVANCED RISK MATRIX & TRANSLATION LOGIC ================
+// ============================================================================
+
+window.updateRiskMatrix = function () {
+  const prob = document.getElementById("matrixProbability")?.value || "2";
+  const imp = document.getElementById("matrixImpact")?.value || "2";
+
+  document.querySelectorAll(".rm-cell").forEach((c) => {
+    c.style.opacity = "0.2";
+    c.style.border = "none";
+    c.style.transform = "scale(1)";
+    c.style.boxShadow = "none";
+  });
+
+  const selectedCell = document.getElementById(`rm-${prob}-${imp}`);
+  if (selectedCell) {
+    selectedCell.style.opacity = "1";
+    selectedCell.style.border = "2px solid #000";
+    selectedCell.style.transform = "scale(1.3)";
+    selectedCell.style.boxShadow = "0 0 8px rgba(0,0,0,0.5)";
+    selectedCell.style.zIndex = "2";
+  }
+};
+
+// Listen for Warning Level Change to Auto-Update Matrix
+const originalWarningSelect = window.selectWarningLevel;
+window.selectWarningLevel = function (level) {
+  if (originalWarningSelect) originalWarningSelect(level);
+  const probDrop = document.getElementById("matrixProbability");
+  const impDrop = document.getElementById("matrixImpact");
+  if (probDrop && impDrop) {
+    if (level === "yellow") {
+      probDrop.value = "2";
+      impDrop.value = "1";
+    } else if (level === "orange") {
+      probDrop.value = "2";
+      impDrop.value = "2";
+    } else if (level === "red") {
+      probDrop.value = "3";
+      impDrop.value = "3";
+    } else {
+      probDrop.value = "1";
+      impDrop.value = "1";
+    }
+    updateRiskMatrix();
+  }
+};
