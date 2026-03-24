@@ -333,7 +333,22 @@ function generateNowcastWithMap() {
           uniquePhenomena.forEach((phenomId) => {
             let phenomObj = weatherPhenomena.find((p) => p.id === phenomId);
             if (phenomObj) {
-              legendHtml += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:15px; font-weight:bold; color:#000; white-space:nowrap;"><span style="font-size:22px;">${phenomObj.icon}</span> ${phenomObj.name}</div>`;
+              let iconHtml = phenomObj.img
+                ? `<img src="${phenomObj.img}" style="width: 24px; height: 24px; object-fit: contain;">`
+                : `<span style="font-size:22px;">${phenomObj.icon}</span>`;
+
+              if (phenomId === "rain") {
+                const rainVal =
+                  document.getElementById("rainIntensitySelect")?.value ||
+                  "rain";
+                if (rainVal === "heavy_rain")
+                  iconHtml = `<img src="assets/weather-icons/heavyrain.png" style="width: 24px; height: 24px; object-fit: contain;">`;
+                else if (rainVal === "very_heavy_rain")
+                  iconHtml = `<img src="assets/weather-icons/veryheavyrain.png" style="width: 24px; height: 24px; object-fit: contain;">`;
+                else if (rainVal === "extremely_heavy_rain")
+                  iconHtml = `<img src="assets/weather-icons/extremelyveryheavyrain.png" style="width: 24px; height: 24px; object-fit: contain;">`;
+              }
+              legendHtml += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:5px; font-size:15px; font-weight:bold; color:#000; white-space:nowrap;">${iconHtml} ${phenomObj.name}</div>`;
             }
           });
           const legendControl = L.control({ position: "bottomright" });
@@ -537,7 +552,7 @@ window.changeMiniMapBaseLayer = function () {
         return L.tileLayer("https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png");
       case "terrain":
         return L.tileLayer(
-          "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+          "https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
           { subdomains: ["mt0", "mt1", "mt2", "mt3"] },
         );
       case "clear":

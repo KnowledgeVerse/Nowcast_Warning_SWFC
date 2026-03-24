@@ -13,11 +13,41 @@ let districtLayers = {};
 
 // --- Added Missing Data ---
 const weatherPhenomena = [
-  { id: "thunderstorm", name: "Thunderstorm", hindi: "मेघ गर्जन", icon: "⛈️" },
-  { id: "lightning", name: "Lightning", hindi: "वज्रपात", icon: "⚡" },
-  { id: "hail", name: "Hailstorm", hindi: "ओलावृष्टि", icon: "🌨️" },
-  { id: "rain", name: "Rain", hindi: "वर्षा", icon: "🌧️" },
-  { id: "gusty_wind", name: "Gusty Wind", hindi: "तेज हवा", icon: "🌬️" },
+  {
+    id: "thunderstorm",
+    name: "Thunderstorm",
+    hindi: "मेघ गर्जन",
+    icon: "⛈️",
+    img: "assets/weather-icons/thunderstorm.png",
+  },
+  {
+    id: "lightning",
+    name: "Lightning",
+    hindi: "वज्रपात",
+    icon: "⚡",
+    img: null,
+  },
+  {
+    id: "hail",
+    name: "Hailstorm",
+    hindi: "ओलावृष्टि",
+    icon: "🌨️",
+    img: "assets/weather-icons/hailstorm.png",
+  },
+  {
+    id: "rain",
+    name: "Rain",
+    hindi: "वर्षा",
+    icon: "🌧️",
+    img: "assets/weather-icons/rain.png",
+  },
+  {
+    id: "gusty_wind",
+    name: "Gusty Wind",
+    hindi: "तेज हवा",
+    icon: "🌬️",
+    img: "assets/weather-icons/gustywind.png",
+  },
 ];
 
 const warningConfig = {
@@ -148,29 +178,13 @@ function initializeMap() {
   );
 
   const terrainLayer = L.tileLayer(
-    "http://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
+    "https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}",
     {
       maxZoom: 20,
       subdomains: ["mt0", "mt1", "mt2", "mt3"],
       attribution: "Google Terrain",
     },
   );
-
-  // --- ADDED: GRID LAYER OVERLAY ---
-  let gridLayer = L.layerGroup();
-  if (typeof L.latlngGraticule !== "undefined") {
-    gridLayer = L.latlngGraticule({
-      showLabel: true,
-      color: "#333",
-      weight: 0.8,
-      opacity: 0.5,
-      zoomInterval: [
-        { start: 2, end: 4, interval: 10 },
-        { start: 5, end: 7, interval: 2 },
-        { start: 8, end: 10, interval: 1 },
-      ],
-    });
-  }
 
   // 2. Define "Solid Color" Layer (Empty layer for custom background)
   const solidColorLayer = L.layerGroup();
@@ -207,11 +221,8 @@ function initializeMap() {
     "Google Terrain": terrainLayer,
   };
 
-  const overlayMaps = {
-    "Lat/Lng Grid": gridLayer,
-  };
-  L.control.layers(baseMaps, overlayMaps).addTo(map);
-
+  // The "Lat/Lng Grid" is now managed exclusively by the custom panel at the bottom.
+  L.control.layers(baseMaps, {}).addTo(map);
   // --- Map Background Color Logic ---
   const mapDiv = document.getElementById("map");
   const colorInput = document.getElementById("mapBgColor");
@@ -471,18 +482,31 @@ function loadPhenomena() {
     label.className = "phenomena-item";
     label.dataset.id = phenom.id;
     label.style.flex = "1";
+
+    const iconHtml = phenom.img
+      ? `<img src="${phenom.img}" alt="${phenom.name}" id="icon_${phenom.id}" style="width: 24px; height: 24px; object-fit: contain; margin-right: 8px;">`
+      : `<span class="phenomena-icon" id="icon_${phenom.id}">${phenom.icon}</span>`;
+
     label.innerHTML = `
             <input type="checkbox" value="${phenom.id}" onchange="togglePhenomena('${phenom.id}')">
-            <span class="phenomena-icon">${phenom.icon}</span>
+            ${iconHtml}
             <span>${phenom.hindi} / ${phenom.name}</span>
         `;
     wrapper.appendChild(label);
 
     // Add dropdown for Rain
     if (phenom.id === "rain") {
+      const rainWrapper = document.createElement("div");
+      rainWrapper.id = "rainIntensityWrapper";
+      rainWrapper.style.maxHeight = "0";
+      rainWrapper.style.overflow = "hidden";
+      rainWrapper.style.transition = "all 0.3s ease-in-out";
+      rainWrapper.style.opacity = "0";
+      rainWrapper.style.marginTop = "0";
+
       const select = document.createElement("select");
       select.id = "rainIntensitySelect";
-      select.style.display = "none";
+      select.style.width = "100%";
       select.style.padding = "5px";
       select.style.borderRadius = "4px";
       select.style.border = "1px solid #ccc";
@@ -495,7 +519,23 @@ function loadPhenomena() {
       `;
       // Prevent label click when clicking select
       select.addEventListener("click", (e) => e.stopPropagation());
-      wrapper.appendChild(select);
+
+      // Update rain icon on change
+      select.addEventListener("change", (e) => {
+        const val = e.target.value;
+        const iconEl = document.getElementById("icon_rain");
+        if (iconEl) {
+          if (val === "heavy_rain")
+            iconEl.src = "assets/weather-icons/heavyrain.png";
+          else if (val === "very_heavy_rain")
+            iconEl.src = "assets/weather-icons/veryheavyrain.png";
+          else if (val === "extremely_heavy_rain")
+            iconEl.src = "assets/weather-icons/extremelyveryheavyrain.png";
+          else iconEl.src = "assets/weather-icons/rain.png";
+        }
+      });
+      rainWrapper.appendChild(select);
+      wrapper.appendChild(rainWrapper);
     }
 
     grid.appendChild(wrapper);
@@ -513,13 +553,6 @@ function setupEventListeners() {
         const text = label.textContent.toLowerCase();
         label.style.display = text.includes(searchTerm) ? "flex" : "none";
       });
-    });
-
-  // Intensity selector
-  document
-    .getElementById("intensitySelector")
-    .addEventListener("change", function (e) {
-      selectedIntensity = parseInt(e.target.value);
     });
 
   // Image Aspect Ratio Selector
@@ -666,23 +699,39 @@ function togglePhenomena(phenomId) {
     if (item) item.classList.remove("selected");
   }
 
-  // Toggle Rain intensity dropdown visibility
+  // Toggle Rain intensity dropdown visibility smoothly
   if (phenomId === "rain") {
-    const rainSelect = document.getElementById("rainIntensitySelect");
-    if (rainSelect) {
-      rainSelect.style.display = selectedPhenomena.includes("rain")
-        ? "block"
-        : "none";
+    const rainWrapper = document.getElementById("rainIntensityWrapper");
+    if (rainWrapper) {
+      if (selectedPhenomena.includes("rain")) {
+        rainWrapper.style.maxHeight = "50px"; // Enough to show the dropdown smoothly
+        rainWrapper.style.opacity = "1";
+        rainWrapper.style.marginTop = "5px";
+      } else {
+        rainWrapper.style.maxHeight = "0";
+        rainWrapper.style.opacity = "0";
+        rainWrapper.style.marginTop = "0";
+      }
     }
   }
 
-  // Toggle Wind Speed Section visibility based on 'Gusty Wind'
+  // Toggle Wind Speed Section visibility smoothly
   if (phenomId === "gusty_wind") {
     const windSection = document.getElementById("windSpeedSection");
     if (windSection) {
       const isSelected = selectedPhenomena.includes("gusty_wind");
-      windSection.style.display = isSelected ? "block" : "none";
-      if (!isSelected) selectWindSpeed(null); // Clear selection if hidden
+      if (isSelected) {
+        windSection.style.maxHeight = "500px";
+        windSection.style.opacity = "1";
+        windSection.style.marginBottom = "15px";
+        windSection.style.padding = "15px";
+      } else {
+        windSection.style.maxHeight = "0";
+        windSection.style.opacity = "0";
+        windSection.style.marginBottom = "0";
+        windSection.style.padding = "0 15px";
+        selectWindSpeed(null); // Clear selection if hidden
+      }
     }
   }
 }
@@ -699,6 +748,19 @@ function selectWarningLevel(level) {
   if (selectedOption) {
     selectedOption.classList.add("selected");
     selectedOption.querySelector("input").checked = true;
+  }
+
+  // --- Screen Edge Glow Effect ---
+  const glowDiv = document.getElementById("screenEdgeGlow");
+  if (glowDiv) {
+    glowDiv.className = ""; // Reset old glow
+    void glowDiv.offsetWidth; // Trigger DOM reflow to restart animation
+    if (level === "yellow" || level === "orange" || level === "red") {
+      glowDiv.classList.add(`glow-${level}`);
+      setTimeout(() => {
+        glowDiv.classList.remove(`glow-${level}`);
+      }, 800); // 800ms के बाद ग्लो इफ़ेक्ट हट जाएगा
+    }
   }
 }
 
@@ -1155,7 +1217,22 @@ function clearAll() {
   const rainSelect = document.getElementById("rainIntensitySelect");
   if (rainSelect) {
     rainSelect.value = "rain";
-    rainSelect.style.display = "none";
+    rainSelect.dispatchEvent(new Event("change")); // Reset to default rain icon
+  }
+  const rainWrapper = document.getElementById("rainIntensityWrapper");
+  if (rainWrapper) {
+    rainWrapper.style.maxHeight = "0";
+    rainWrapper.style.opacity = "0";
+    rainWrapper.style.marginTop = "0";
+  }
+
+  // Clear Wind Section visual smoothly
+  const windSection = document.getElementById("windSpeedSection");
+  if (windSection) {
+    windSection.style.maxHeight = "0";
+    windSection.style.opacity = "0";
+    windSection.style.marginBottom = "0";
+    windSection.style.padding = "0 15px";
   }
 
   // Clear region highlights map reset
@@ -1263,17 +1340,14 @@ function getNowcastFilename(extension) {
 function downloadNowcastPDF() {
   const element = document.getElementById("warningCardContainer");
 
-  // HTML2Canvas Leaflet Offset Fix
-  const originalScrollY = window.scrollY;
-  window.scrollTo(0, 0);
-
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
+    scrollX: 0,
+    scrollY: -window.scrollY,
   }).then((canvas) => {
-    window.scrollTo(0, originalScrollY);
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jspdf.jsPDF("p", "mm", "a4");
 
@@ -1302,17 +1376,14 @@ function downloadNowcastPDF() {
 function downloadNowcastImage() {
   const element = document.getElementById("warningCardContainer");
 
-  // HTML2Canvas Leaflet Offset Fix
-  const originalScrollY = window.scrollY;
-  window.scrollTo(0, 0);
-
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
+    scrollX: 0,
+    scrollY: -window.scrollY,
   }).then((canvas) => {
-    window.scrollTo(0, originalScrollY);
     const link = document.createElement("a");
     link.download = getNowcastFilename("png");
     link.href = canvas.toDataURL();
@@ -1325,17 +1396,14 @@ function copyNowcastImage() {
   const element = document.getElementById("warningCardContainer");
   showLoading();
 
-  // HTML2Canvas Leaflet Offset Fix
-  const originalScrollY = window.scrollY;
-  window.scrollTo(0, 0);
-
   html2canvas(element, {
     scale: 3,
     useCORS: true,
     allowTaint: true,
     backgroundColor: "#ffffff",
+    scrollX: 0,
+    scrollY: -window.scrollY,
   }).then((canvas) => {
-    window.scrollTo(0, originalScrollY);
     canvas.toBlob((blob) => {
       if (!navigator.clipboard || !window.ClipboardItem) {
         hideLoading();
@@ -1402,18 +1470,15 @@ async function processAndShare(platform) {
   try {
     const element = document.getElementById("warningCardContainer");
 
-    // HTML2Canvas Leaflet Offset Fix
-    const originalScrollY = window.scrollY;
-    window.scrollTo(0, 0);
-
     // 1. Image Capture and Processing
     const canvas = await html2canvas(element, {
       scale: 3,
       useCORS: true,
       allowTaint: true,
       backgroundColor: "#ffffff",
+      scrollX: 0,
+      scrollY: -window.scrollY,
     });
-    window.scrollTo(0, originalScrollY);
 
     const blob = await new Promise((resolve) =>
       canvas.toBlob(resolve, "image/png"),
@@ -1681,7 +1746,7 @@ function updateGuidelinesView() {
   ) {
     guidelinesSection.style.display = "block";
     guidelineHTML = `
-          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें。<br>
+          <strong>नोट:</strong> इस मौसम को देखते हुए लोगों से आग्रह है कि वे सतर्क और सावधान रहें। यदि आप खुले में हों तो शीघ्रताशीघ्र किसी पक्के मकान की शरण लें। ऊँचे पेड़ और बिजली के खंभों से दूर रहें। किसान अपने खेतों में न जाएं एवं मौसम सामान्य होने की प्रतीक्षा करें । <br>
           ${isBilingual ? "<strong>Note:</strong> In view of this weather, people are requested to be alert and cautious. If you are in the open, take shelter in a concrete house as soon as possible. Stay away from tall trees and electric poles. Farmers should not go to their fields and wait for the weather to become normal." : ""}
       `;
   } else {

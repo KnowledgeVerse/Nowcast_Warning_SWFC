@@ -37,9 +37,11 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
-    <link rel="stylesheet" href="css/style.css?v=3.2" />
+    <link rel="stylesheet" href="css/style.css?v=4.0" />
   </head>
   <body class="nowcast-page">
+    <!-- Screen Edge Glow Overlay -->
+    <div id="screenEdgeGlow"></div>
     <div class="container">
       <!-- Header -->
       <div class="header">
@@ -242,6 +244,223 @@
 
           <div class="map-container" id="map"></div>
 
+          <!-- Advanced Ring Controls Panel -->
+          <div
+            style="
+              margin-top: 10px;
+              background: #e3f2fd;
+              padding: 10px;
+              border-radius: 8px;
+              border: 1px solid #b6d4fe;
+              font-size: 13px;
+              display: flex;
+              gap: 15px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <strong
+              ><i class="fas fa-bullseye"></i> Outer Rings Advanced
+              Settings:</strong
+            >
+
+            <label
+              style="display: flex; align-items: center; gap: 5px"
+              title="Adjust the size multiplier of the rings"
+            >
+              Size (साइज):
+              <input
+                type="range"
+                id="ringSizeSlider"
+                min="0.2"
+                max="5.0"
+                step="0.1"
+                value="1.0"
+                oninput="
+                  document.getElementById('ringSizeVal').innerText =
+                    this.value + 'x';
+                  if (typeof applyRingSettingsFromUI === 'function')
+                    applyRingSettingsFromUI();
+                "
+                style="width: 80px; cursor: pointer"
+              />
+              <span
+                id="ringSizeVal"
+                style="font-weight: bold; width: 35px; color: #0d6efd"
+                >1.0x</span
+              >
+            </label>
+
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 5px;
+                background: #fff3cd;
+                padding: 2px 8px;
+                border-radius: 4px;
+                border: 1px solid #ffeeba;
+                cursor: pointer;
+              "
+              title="Allow stretching in multiple directions simultaneously without resetting previous stretches"
+            >
+              <input type="checkbox" id="multiStretchToggle" />
+              Multi-Direction (मल्टी)
+            </label>
+
+            <label
+              style="display: flex; align-items: center; gap: 5px"
+              title="Stretch rings in a specific direction (Storm Motion)"
+            >
+              Direction (दिशा):
+              <select
+                id="ringDirectionSelect"
+                onchange="
+                  if (typeof syncStretchSliderWithDirection === 'function')
+                    syncStretchSliderWithDirection();
+                  if (typeof applyRingSettingsFromUI === 'function')
+                    applyRingSettingsFromUI();
+                "
+                style="
+                  padding: 3px;
+                  font-size: 12px;
+                  border-radius: 4px;
+                  border: 1px solid #ccc;
+                  cursor: pointer;
+                "
+              >
+                <option value="center">Center (None)</option>
+                <option value="0">N (उत्तर)</option>
+                <option value="45">NE (उत्तर-पूर्व)</option>
+                <option value="90">E (पूर्व)</option>
+                <option value="135">SE (दक्षिण-पूर्व)</option>
+                <option value="180">S (दक्षिण)</option>
+                <option value="225">SW (दक्षिण-पश्चिम)</option>
+                <option value="270">W (पश्चिम)</option>
+                <option value="315">NW (उत्तर-पश्चिम)</option>
+              </select>
+            </label>
+
+            <label
+              style="display: flex; align-items: center; gap: 5px"
+              title="Adjust how much the ring stretches in the selected direction"
+            >
+              Stretch (खिंचाव):
+              <input
+                type="range"
+                id="ringStretchSlider"
+                min="0"
+                max="3.0"
+                step="0.1"
+                value="0.6"
+                oninput="
+                  document.getElementById('ringStretchVal').innerText =
+                    this.value + 'x';
+                  if (typeof applyRingSettingsFromUI === 'function')
+                    applyRingSettingsFromUI();
+                "
+                style="width: 80px; cursor: pointer"
+              />
+              <span
+                id="ringStretchVal"
+                style="font-weight: bold; width: 35px; color: #0d6efd"
+                >0.6x</span
+              >
+            </label>
+
+            <label
+              style="display: flex; align-items: center; gap: 5px"
+              title="Smoothness of the ring edges"
+            >
+              Smoothness (गोलाई):
+              <input
+                type="range"
+                id="ringSmoothnessSlider"
+                min="8"
+                max="128"
+                step="8"
+                value="32"
+                oninput="
+                  if (typeof applyRingSettingsFromUI === 'function')
+                    applyRingSettingsFromUI();
+                "
+                style="width: 80px; cursor: pointer"
+              />
+            </label>
+          </div>
+
+          <!-- Advanced Polygon Draw Settings Panel -->
+          <div
+            style="
+              margin-top: 10px;
+              background: #fff3cd;
+              padding: 10px;
+              border-radius: 8px;
+              border: 1px solid #ffeeba;
+              font-size: 13px;
+              display: flex;
+              gap: 15px;
+              flex-wrap: wrap;
+              align-items: center;
+            "
+          >
+            <strong
+              ><i class="fas fa-draw-polygon"></i> Polygon Warning Tool:</strong
+            >
+            <span style="color: #d32f2f; font-weight: bold; font-size: 12px"
+              >(Draw a polygon, click to select it, then use the main Warning
+              Level and Phenomena panels below to assign properties to
+              it.)</span
+            >
+            <button
+              class="btn btn-primary btn-small"
+              onclick="generateAutoBulletin()"
+              style="padding: 4px 8px; font-size: 12px"
+            >
+              <i class="fas fa-magic"></i> Auto Generate Bulletin
+            </button>
+            <button
+              class="btn btn-success btn-small"
+              onclick="exportPolygonsToGeoJSON()"
+              style="padding: 4px 8px; font-size: 12px"
+            >
+              <i class="fas fa-file-export"></i> Export Polygons
+            </button>
+            <input
+              type="file"
+              id="importPolygonFile"
+              accept=".geojson,.json"
+              style="display: none"
+              onchange="
+                if (typeof importPolygonsFromGeoJSON === 'function')
+                  importPolygonsFromGeoJSON(event);
+              "
+            />
+            <button
+              class="btn btn-info btn-small"
+              onclick="document.getElementById('importPolygonFile').click()"
+              style="padding: 4px 8px; font-size: 12px"
+            >
+              <i class="fas fa-file-import"></i> Import Polygons
+            </button>
+            <button
+              class="btn btn-danger btn-small"
+              onclick="
+                if (typeof clearAllPolygons === 'function') clearAllPolygons();
+              "
+              style="
+                padding: 4px 8px;
+                font-size: 12px;
+                background: #dc3545;
+                color: white;
+                border: none;
+                cursor: pointer;
+              "
+            >
+              <i class="fas fa-trash-alt"></i> Clear All
+            </button>
+          </div>
+
           <!-- Grid Settings Panel -->
           <div
             style="
@@ -303,59 +522,6 @@
                 style="width: 50px"
                 onchange="updateGridLayer()"
             /></label>
-          </div>
-
-          <!-- Advanced Polygon Draw Settings Panel -->
-          <div
-            style="
-              margin-top: 10px;
-              background: #fff3cd;
-              padding: 10px;
-              border-radius: 8px;
-              border: 1px solid #ffeeba;
-              font-size: 13px;
-              display: flex;
-              gap: 15px;
-              flex-wrap: wrap;
-              align-items: center;
-            "
-          >
-            <strong
-              ><i class="fas fa-draw-polygon"></i> Polygon Warning Tool:</strong
-            >
-            <span style="color: #d32f2f; font-weight: bold; font-size: 12px"
-              >(Draw a polygon, click to select it, then use the main Warning
-              Level and Phenomena panels below to assign properties to
-              it.)</span
-            >
-            <button
-              class="btn btn-primary btn-small"
-              onclick="generateAutoBulletin()"
-              style="padding: 4px 8px; font-size: 12px"
-            >
-              <i class="fas fa-magic"></i> Auto Generate Bulletin
-            </button>
-            <label
-              style="
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                cursor: pointer;
-                font-weight: bold;
-                margin-left: auto;
-              "
-            >
-              <input
-                type="checkbox"
-                id="enableWarningRingsToggle"
-                onchange="
-                  if (typeof toggleWarningRings === 'function')
-                    toggleWarningRings(this.checked);
-                "
-                checked
-              />
-              Enable Protective Warning Rings
-            </label>
           </div>
 
           <!-- External Map Iframe Overlay -->
@@ -663,9 +829,43 @@
 
           <!-- Warning Level -->
           <div class="panel-section">
-            <div class="panel-title">
-              <i class="fas fa-exclamation-triangle"></i>
-              चेतावनी स्तर / Warning Level
+            <div
+              class="panel-title"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <div>
+                <i class="fas fa-exclamation-triangle"></i>
+                चेतावनी स्तर / Warning Level
+              </div>
+              <label
+                style="
+                  font-size: 13px;
+                  font-weight: normal;
+                  cursor: pointer;
+                  display: flex;
+                  align-items: center;
+                  gap: 4px;
+                  background: #fff3cd;
+                  padding: 2px 8px;
+                  border-radius: 4px;
+                  border: 1px solid #ffeeba;
+                "
+              >
+                <input
+                  type="checkbox"
+                  id="enableWarningRingsToggle"
+                  checked
+                  onchange="
+                    if (typeof toggleWarningRings === 'function')
+                      toggleWarningRings(this.checked);
+                  "
+                />
+                Enable Outer Rings
+              </label>
             </div>
             <div class="warning-levels">
               <label
@@ -714,19 +914,20 @@
             <div class="phenomena-grid" id="phenomenaGrid">
               <!-- Phenomena will be loaded here -->
             </div>
-            <select class="intensity-selector" id="intensitySelector">
-              <option value="0">हल्का / Light</option>
-              <option value="1">मध्यम / Moderate</option>
-              <option value="2">तीव्र / Severe</option>
-              <option value="3">अत्यंत तीव्र / Very Severe</option>
-            </select>
           </div>
 
           <!-- Wind Speed -->
           <div
             class="panel-section"
             id="windSpeedSection"
-            style="display: none"
+            style="
+              max-height: 0;
+              opacity: 0;
+              overflow: hidden;
+              margin-bottom: 0;
+              padding: 0 15px;
+              transition: all 0.4s ease-in-out;
+            "
           >
             <div class="panel-title">
               <i class="fas fa-wind"></i>
@@ -1292,14 +1493,14 @@
                     <div style="flex: 1; min-width: 180px">
                       <label style="font-size: 12px; font-weight: bold"
                         >Map Width Ratio:
-                        <span id="miniMapWidthVal">40:60</span></label
+                        <span id="miniMapWidthVal">30:70</span></label
                       >
                       <input
                         type="range"
                         id="miniMapWidthSlider"
                         min="15"
                         max="85"
-                        value="40"
+                        value="30"
                         style="width: 100%"
                         oninput="
                           if (typeof updateMiniMapWidth === 'function')
@@ -1407,7 +1608,7 @@
                   <div
                     id="leftMapWrapper"
                     style="
-                      width: calc(40% - 7.5px);
+                      width: calc(30% - 7.5px);
                       border: 2px solid #000;
                       position: relative;
                       box-sizing: border-box;
@@ -1441,7 +1642,7 @@
                   <div
                     id="rightMapWrapper"
                     style="
-                      width: calc(60% - 7.5px);
+                      width: calc(70% - 7.5px);
                       border: 2px solid #000;
                       position: relative;
                       box-sizing: border-box;
@@ -1853,14 +2054,14 @@
       </div>
     </div>
 
-    <script src="js/districts.js?v=3.1"></script>
-    <script src="js/nowcast.js?v=3.1"></script>
-    <script src="js/gridLayer.js"></script>
-    <script src="js/impactForecast.js"></script>
-    <script src="js/polygonWarningExport.js"></script>
-    <script src="js/weatherLayers.js"></script>
-    <script src="js/advancedDraw.js"></script>
-    <script src="js/aiNowcast.js"></script>
-    <script src="js/autoBulletin.js"></script>
+    <script src="js/districts.js?v=4.0"></script>
+    <script src="js/nowcast.js?v=4.0"></script>
+    <script src="js/gridLayer.js?v=4.0"></script>
+    <script src="js/impactForecast.js?v=4.0"></script>
+    <script src="js/polygonWarningExport.js?v=4.0"></script>
+    <script src="js/weatherLayers.js?v=4.0"></script>
+    <script src="js/advancedDraw.js?v=4.0"></script>
+    <script src="js/aiNowcast.js?v=4.0"></script>
+    <script src="js/autoBulletin.js?v=4.0"></script>
   </body>
 </html>
