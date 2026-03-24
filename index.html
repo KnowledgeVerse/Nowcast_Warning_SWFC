@@ -37,6 +37,19 @@
     />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 
+    <!-- Leaflet Velocity for Wind Animations -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-velocity@1.0.3/dist/leaflet-velocity.min.css"
+    />
+    <script src="https://unpkg.com/leaflet-velocity@1.0.3/dist/leaflet-velocity.min.js"></script>
+
+    <!-- Leaflet Terminator for Day/Night Boundary -->
+    <script src="https://unpkg.com/@joergdietrich/leaflet.terminator@1.0.0/L.Terminator.js"></script>
+
+    <!-- Leaflet WMS (if not already included) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.wms/0.2.0/leaflet.wms.min.js"></script>
+
     <link rel="stylesheet" href="css/style.css?v=4.0" />
   </head>
   <body class="nowcast-page">
@@ -129,6 +142,23 @@
                 font-weight: normal;
               "
             >
+              <button
+                onclick="
+                  if (typeof fitMapToBounds === 'function') fitMapToBounds();
+                "
+                title="Auto Fit Map / मैप को फिट करें"
+                style="
+                  background: none;
+                  border: none;
+                  cursor: pointer;
+                  color: #007bff;
+                  font-size: 16px;
+                  padding: 2px;
+                  margin-right: 5px;
+                "
+              >
+                <i class="fas fa-expand-arrows-alt"></i>
+              </button>
               <label
                 style="
                   cursor: pointer;
@@ -140,7 +170,7 @@
                 "
                 title="मैप को आटोमेटिक ज़ूम करें"
               >
-                <input type="checkbox" id="autoZoomToggle" checked />
+                <input type="checkbox" id="autoZoomToggle" />
                 Auto Zoom
               </label>
               <label for="mapBgColor" style="cursor: pointer">BG Color:</label>
@@ -159,34 +189,164 @@
                   border-radius: 4px;
                 "
               />
+
+              <!-- Zoom Earth Style - Weather Maps -->
+              <select
+                onchange="changeWeatherBase(this.value)"
+                style="
+                  padding: 5px;
+                  font-size: 12px;
+                  border-radius: 4px;
+                  border: 1px solid #ccc;
+                  cursor: pointer;
+                  margin-left: 10px;
+                "
+              >
+                <option value="none">Weather Maps: None</option>
+                <option value="satellite">Satellite</option>
+                <option value="radar">Radar</option>
+                <option value="precipitation">Precipitation</option>
+                <option value="wind">Wind</option>
+                <option value="temperature">Temperature</option>
+                <option value="humidity">Humidity</option>
+                <option value="pressure">Pressure</option>
+              </select>
+
+              <!-- Zoom Earth Style - Map Overlays -->
+              <div
+                style="
+                  position: relative;
+                  display: inline-block;
+                  margin-left: 5px;
+                "
+              >
+                <button
+                  onclick="
+                    document.getElementById('overlaysDropdown').style.display =
+                      document.getElementById('overlaysDropdown').style
+                        .display === 'none'
+                        ? 'block'
+                        : 'none'
+                  "
+                  style="
+                    padding: 5px 10px;
+                    font-size: 12px;
+                    font-weight: bold;
+                    background: #6c757d;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                  "
+                >
+                  <i class="fas fa-layer-group"></i> Overlays
+                </button>
+                <div
+                  id="overlaysDropdown"
+                  style="
+                    display: none;
+                    position: absolute;
+                    top: 100%;
+                    right: 0;
+                    background: white;
+                    border: 1px solid #ccc;
+                    padding: 10px;
+                    border-radius: 5px;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                    z-index: 1000;
+                    width: 180px;
+                    text-align: left;
+                    margin-top: 5px;
+                  "
+                >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('radarOverlay', this.checked)"
+                    />
+                    Radar Overlay</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('windOverlay', this.checked)"
+                    />
+                    Wind Animation</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('heatSpots', this.checked)"
+                    />
+                    Heat Spots</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('activeFires', this.checked)"
+                    />
+                    Active Fires</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('tropical', this.checked)"
+                    />
+                    Tropical Systems</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('mapLabels', this.checked)"
+                    />
+                    Map Labels</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('borderLines', this.checked)"
+                    />
+                    Border Lines</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('nightBoundary', this.checked)"
+                    />
+                    Night Boundary</label
+                  >
+                  <label
+                    style="display: block; margin-top: 5px; cursor: pointer"
+                    ><input
+                      type="checkbox"
+                      onchange="toggleMapOverlay('crosshair', this.checked)"
+                    />
+                    Crosshair</label
+                  >
+                </div>
+              </div>
+
               <button
                 class="btn btn-info btn-small"
                 onclick="toggleAdvancedPanel()"
                 style="
                   padding: 5px 10px;
                   font-size: 12px;
-                  margin-left: 10px;
+                  margin-left: 5px;
                   font-weight: bold;
                   background: linear-gradient(135deg, #1e3c72, #2a5298);
                   border: none;
                 "
               >
                 <i class="fas fa-layer-group"></i> Adv. Mode
-              </button>
-              <button
-                class="btn btn-warning btn-small"
-                onclick="
-                  document.getElementById('aiNowcastPanel').style.display =
-                    'block'
-                "
-                style="
-                  padding: 5px 10px;
-                  font-size: 12px;
-                  margin-left: 5px;
-                  font-weight: bold;
-                "
-              >
-                <i class="fas fa-robot"></i> AI Dashboard
               </button>
             </div>
           </div>
@@ -557,215 +717,6 @@
             </div>
             <div class="advanced-panel-content" id="advancedLayersContainer">
               <!-- Populated Dynamically via JS -->
-            </div>
-          </div>
-
-          <!-- AI Severe Weather Alert Panel -->
-          <div
-            id="aiNowcastPanel"
-            style="
-              display: none;
-              margin-top: 15px;
-              background: white;
-              border-radius: 10px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-              border: 2px solid #e74c3c;
-            "
-          >
-            <div
-              style="
-                background: linear-gradient(135deg, #e74c3c, #c0392b);
-                color: white;
-                padding: 10px 15px;
-                border-radius: 8px 8px 0 0;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <h4 style="margin: 0; font-size: 15px">
-                <i class="fas fa-brain"></i> AI Severe Weather Alert Panel
-              </h4>
-              <div>
-                <button
-                  class="btn btn-secondary btn-small"
-                  onclick="runAINowcast()"
-                  style="margin-right: 10px"
-                >
-                  <i class="fas fa-play"></i> Run AI Model
-                </button>
-                <button
-                  onclick="
-                    document.getElementById('aiNowcastPanel').style.display =
-                      'none'
-                  "
-                  style="
-                    background: transparent;
-                    border: none;
-                    color: white;
-                    cursor: pointer;
-                  "
-                >
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-            </div>
-            <div style="padding: 15px; max-height: 250px; overflow-y: auto">
-              <table
-                style="
-                  width: 100%;
-                  border-collapse: collapse;
-                  text-align: left;
-                  font-size: 13px;
-                "
-              >
-                <thead>
-                  <tr
-                    style="
-                      background: #f8f9fa;
-                      border-bottom: 2px solid #dee2e6;
-                    "
-                  >
-                    <th style="padding: 8px">District</th>
-                    <th style="padding: 8px">ETA</th>
-                    <th style="padding: 8px">AI Suggested Warning</th>
-                    <th style="padding: 8px">Severe Risk</th>
-                    <th style="padding: 8px">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="aiAlertTableBody">
-                  <tr>
-                    <td
-                      colspan="5"
-                      style="text-align: center; padding: 15px; color: #7f8c8d"
-                    >
-                      Click "Run AI Model" to detect storm cells.
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Professional Map Control Panel -->
-          <div
-            id="proControlPanel"
-            style="
-              margin-top: 15px;
-              background: white;
-              border-radius: 10px;
-              box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-              border: 1px solid #ccc;
-            "
-          >
-            <div
-              style="
-                background: #2c3e50;
-                color: white;
-                padding: 10px 15px;
-                border-radius: 8px 8px 0 0;
-                display: flex;
-                justify-content: space-between;
-              "
-            >
-              <h4 style="margin: 0; font-size: 14px">
-                <i class="fas fa-sliders-h"></i> Professional Map Control Panel
-              </h4>
-            </div>
-            <div
-              style="
-                padding: 10px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                font-size: 13px;
-              "
-              id="proLayersContainer"
-            >
-              <!-- Dynamic Injection from weatherLayers.js -->
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong
-                  ><i class="fas fa-satellite-dish"></i> Radar &
-                  Satellite</strong
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('radar', this.checked)"
-                  />
-                  Radar Animation (RainViewer)</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('satellite', this.checked)"
-                  />
-                  Satellite True Color</label
-                >
-              </div>
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong
-                  ><i class="fas fa-bolt"></i> Lightning & Convection</strong
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('lightning', this.checked)"
-                  />
-                  Live Lightning Tracking</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('cape', this.checked)"
-                  />
-                  CAPE Heatmap</label
-                >
-              </div>
-              <div
-                class="layer-group"
-                style="
-                  flex: 1;
-                  min-width: 200px;
-                  border: 1px solid #eee;
-                  padding: 10px;
-                  border-radius: 5px;
-                "
-              >
-                <strong><i class="fas fa-wind"></i> Storm Tracking</strong>
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('stormMotion', this.checked)"
-                  />
-                  Storm Motion Vectors</label
-                >
-                <label style="display: block; margin-top: 5px"
-                  ><input
-                    type="checkbox"
-                    onchange="toggleProLayer('stormCells', this.checked)"
-                  />
-                  Detected Storm Cells</label
-                >
-              </div>
             </div>
           </div>
 
@@ -2061,7 +2012,6 @@
     <script src="js/polygonWarningExport.js?v=4.0"></script>
     <script src="js/weatherLayers.js?v=4.0"></script>
     <script src="js/advancedDraw.js?v=4.0"></script>
-    <script src="js/aiNowcast.js?v=4.0"></script>
     <script src="js/autoBulletin.js?v=4.0"></script>
   </body>
 </html>

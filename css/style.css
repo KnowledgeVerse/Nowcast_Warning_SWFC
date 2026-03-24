@@ -10,6 +10,32 @@ html {
 
 :root {
   --map-overlay-scale: 1;
+  --glow-primary: rgba(102, 126, 234, 0.8);
+  --glow-secondary: rgba(118, 75, 162, 0.5);
+  --glow-primary-light: rgba(102, 126, 234, 0.4);
+  --glow-secondary-light: rgba(118, 75, 162, 0.2);
+}
+
+/* Dynamic Warning Colors */
+body.warning-yellow {
+  --glow-primary: rgba(255, 235, 59, 0.8);
+  --glow-secondary: rgba(253, 216, 53, 0.5);
+  --glow-primary-light: rgba(255, 235, 59, 0.4);
+  --glow-secondary-light: rgba(253, 216, 53, 0.2);
+}
+
+body.warning-orange {
+  --glow-primary: rgba(255, 152, 0, 0.8);
+  --glow-secondary: rgba(245, 124, 0, 0.5);
+  --glow-primary-light: rgba(255, 152, 0, 0.4);
+  --glow-secondary-light: rgba(245, 124, 0, 0.2);
+}
+
+body.warning-red {
+  --glow-primary: rgba(244, 67, 54, 0.8);
+  --glow-secondary: rgba(211, 47, 47, 0.5);
+  --glow-primary-light: rgba(244, 67, 54, 0.4);
+  --glow-secondary-light: rgba(211, 47, 47, 0.2);
 }
 
 body {
@@ -2856,12 +2882,25 @@ body.nowcast-page .map-container {
   min-height: 500px;
   border-radius: 10px;
   overflow: hidden;
-  border: 2px solid #dee2e6;
+  border: 2px solid var(--glow-primary);
   position: relative;
   width: 100%;
   z-index: 1;
   padding: 0;
-  box-shadow: none;
+  animation: mapPulseGlow 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes mapPulseGlow {
+  0% {
+    box-shadow:
+      0 0 10px var(--glow-primary-light),
+      0 0 20px var(--glow-secondary-light);
+  }
+  100% {
+    box-shadow:
+      0 0 25px var(--glow-primary),
+      0 0 45px var(--glow-secondary);
+  }
 }
 
 /* Region Selector Bar */
@@ -3123,7 +3162,7 @@ body.nowcast-page .action-buttons {
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 20px var(--glow-primary);
 }
 
 .btn-success {
@@ -3133,7 +3172,7 @@ body.nowcast-page .action-buttons {
 
 .btn-success:hover {
   background: linear-gradient(135deg, #0e7a71 0%, #2bbd61 100%);
-  box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+  box-shadow: 0 5px 20px var(--glow-primary);
 }
 
 .btn-warning {
@@ -3148,12 +3187,13 @@ body.nowcast-page .action-buttons {
 
 .btn-secondary:hover {
   background: linear-gradient(135deg, #5a6268 0%, #343a40 100%);
-  box-shadow: 0 5px 20px rgba(108, 117, 125, 0.5);
+  box-shadow: 0 5px 20px var(--glow-primary);
 }
 
 .btn:hover {
   opacity: 0.9;
   transform: translateY(-2px);
+  animation: mapPulseGlow 1.5s infinite alternate ease-in-out;
 }
 
 /* Nowcast Output Section */
@@ -4116,4 +4156,44 @@ input[type="radio"]:checked {
   100% {
     transform: scale(1.15);
   }
+}
+
+/* Crosshair Icon Styling */
+.crosshair-icon {
+  pointer-events: none;
+}
+
+/* Lightning Flash Animation */
+.lightning-flash {
+  animation: flash 0.8s ease-out;
+}
+
+@keyframes flash {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* Wind Error Message */
+.wind-error {
+  pointer-events: none;
+}
+
+/* Overlay dropdown styling enhancement */
+#overlaysDropdown label:hover {
+  background-color: #f0f0f0;
+}
+
+#overlaysDropdown input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.2);
 }

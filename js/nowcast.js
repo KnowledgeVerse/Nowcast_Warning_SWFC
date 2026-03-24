@@ -10,6 +10,7 @@ let isAutoTimeUpdate = true; // Flag for auto-update
 let timeUpdateInterval; // Interval reference
 let map = null;
 let districtLayers = {};
+let globalBiharBounds = null;
 
 // --- Added Missing Data ---
 const weatherPhenomena = [
@@ -193,6 +194,7 @@ function initializeMap() {
     center: [25.6, 85.6],
     zoom: 7,
     zoomControl: true,
+    zoomSnap: 0.1,
     scrollWheelZoom: false,
     layers: [solidColorLayer], // Default layer set to Solid/Clear per request
   });
@@ -301,10 +303,10 @@ function initializeMap() {
         style: function (feature) {
           return {
             fillColor: "#3388ff",
-            weight: 2,
+            weight: 1.5,
             opacity: 1,
-            color: "white",
-            dashArray: "3",
+            color: "#000000",
+            dashArray: "",
             fillOpacity: 0.3,
           };
         },
@@ -387,12 +389,12 @@ function initializeMap() {
               // Add hover effect
               layer.on("mouseover", function () {
                 if (!selectedDistricts.includes(district.id)) {
-                  this.setStyle({ weight: 4, fillOpacity: 0.6 });
+                  this.setStyle({ weight: 3, fillOpacity: 0.6 });
                 }
               });
               layer.on("mouseout", function () {
                 if (!selectedDistricts.includes(district.id)) {
-                  this.setStyle({ weight: 2, fillOpacity: 0.3 });
+                  this.setStyle({ weight: 1.5, fillOpacity: 0.3 });
                 }
               });
             }
@@ -407,10 +409,12 @@ function initializeMap() {
         },
       }).addTo(map);
 
+      globalBiharBounds = geojsonLayer.getBounds();
+
       // Ensure container is fully rendered before fitting bounds
       setTimeout(() => {
         map.invalidateSize();
-        map.fitBounds(geojsonLayer.getBounds());
+        map.fitBounds(geojsonLayer.getBounds(), { padding: [5, 5] });
       }, 800); // Increased timeout for Hostinger slower load times
 
       // Add ResizeObserver to auto-fit map if window or container resizes
@@ -618,7 +622,8 @@ function toggleDistrict(districtId, skipZoom = false) {
       districtLayers[districtId].setStyle({
         fillColor: getDistrictRegionColor(districtId),
         weight: 3,
-        color: "white",
+        color: "#000000",
+        dashArray: "",
         fillOpacity: 0.9,
       });
     }
@@ -631,8 +636,9 @@ function toggleDistrict(districtId, skipZoom = false) {
     if (districtLayers[districtId]) {
       districtLayers[districtId].setStyle({
         fillColor: getDistrictRegionColor(districtId),
-        weight: 2,
-        color: "white",
+        weight: 1.5,
+        color: "#000000",
+        dashArray: "",
         fillOpacity: 0.3,
       });
     }
@@ -652,7 +658,7 @@ function toggleDistrict(districtId, skipZoom = false) {
         }
       });
       if (group.getLayers().length > 0) {
-        map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+        map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [5, 5] });
       }
     } else {
       map.setView([25.6, 85.6], 7);
@@ -674,7 +680,7 @@ function selectAllDistricts() {
   // मैप को सभी चुने हुए जिलों के हिसाब से फिट करें
   const autoZoomEnabled = document.getElementById("autoZoomToggle")?.checked;
   if (map && group.getLayers().length > 0 && autoZoomEnabled) {
-    map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+    map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [5, 5] });
   }
 }
 function clearDistricts() {
@@ -750,6 +756,15 @@ function selectWarningLevel(level) {
     selectedOption.querySelector("input").checked = true;
   }
 
+  // --- Dynamic Body Theme Glow (For CSS Variables) ---
+  document.body.classList.remove(
+    "warning-yellow",
+    "warning-orange",
+    "warning-red",
+    "warning-green",
+  );
+  document.body.classList.add(`warning-${level}`);
+
   // --- Screen Edge Glow Effect ---
   const glowDiv = document.getElementById("screenEdgeGlow");
   if (glowDiv) {
@@ -806,7 +821,7 @@ function toggleRegion(region, isChecked) {
           }
         });
         if (group.getLayers().length > 0) {
-          map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [20, 20] });
+          map.fitBounds(group.getBounds(), { maxZoom: 9, padding: [5, 5] });
         }
       } else {
         map.setView([25.6, 85.6], 7);
@@ -1756,6 +1771,35 @@ function updateGuidelinesView() {
   guidelinesDiv.innerHTML = guidelineHTML;
 }
 
+// --- Auto Fit Map Function ---
+window.fitMapToBounds = function () {
+  if (!map) return;
+  const group = L.featureGroup();
+
+  // Check for selected districts
+  if (
+    typeof selectedDistricts !== "undefined" &&
+    selectedDistricts.length > 0
+  ) {
+    selectedDistricts.forEach((id) => {
+      if (districtLayers[id]) group.addLayer(districtLayers[id]);
+    });
+  }
+
+  // Check for drawn polygons
+  if (typeof drawnItems !== "undefined" && drawnItems.getLayers().length > 0) {
+    drawnItems.eachLayer((layer) => group.addLayer(layer));
+  }
+
+  if (group.getLayers().length > 0) {
+    map.fitBounds(group.getBounds(), { padding: [5, 5], maxZoom: 9 });
+  } else if (globalBiharBounds) {
+    map.fitBounds(globalBiharBounds, { padding: [5, 5] });
+  } else {
+    map.setView([25.6, 85.6], 7);
+  }
+};
+
 // ============================================================================
 // ================== ADVANCED WEATHER LAYERS SYSTEM ==========================
 // ============================================================================
@@ -1787,20 +1831,36 @@ const advancedOverlays = {
       id: "storm",
       name: "Storm Motion Vectors",
       icon: "🌪️",
-      layer: null,
+      isIframe: true,
+      url: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=7&overlay=wind&product=ecmwf&level=surface&lat=25.6&lon=85.6",
       opacity: 0.8,
     },
   ],
   convective: [
-    { id: "cape", name: "CAPE Heatmap", icon: "🌩️", layer: null, opacity: 0.6 },
+    {
+      id: "cape",
+      name: "CAPE Heatmap",
+      icon: "🌩️",
+      isIframe: true,
+      url: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=7&overlay=cape&product=ecmwf&level=surface&lat=25.6&lon=85.6",
+      opacity: 0.8,
+    },
     {
       id: "lifted",
       name: "Lifted Index",
       icon: "🌩️",
-      layer: null,
-      opacity: 0.6,
+      isIframe: true,
+      url: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=7&overlay=thunder&product=ecmwf&level=surface&lat=25.6&lon=85.6",
+      opacity: 0.8,
     },
-    { id: "kindex", name: "K Index", icon: "🌩️", layer: null, opacity: 0.6 },
+    {
+      id: "kindex",
+      name: "K Index",
+      icon: "🌩️",
+      isIframe: true,
+      url: "https://embed.windy.com/embed.html?type=map&location=coordinates&metricRain=mm&metricTemp=%C2%B0C&metricWind=km/h&zoom=7&overlay=rainAccu&product=ecmwf&level=surface&lat=25.6&lon=85.6",
+      opacity: 0.8,
+    },
   ],
   external: [
     {
@@ -1815,16 +1875,27 @@ const advancedOverlays = {
 };
 
 const activeAdvancedLayers = {};
-let latestRadarTime = null;
+let rvHost = "https://tilecache.rainviewer.com";
+let rvRadarPath = null;
+let rvSatPath = null;
 let lightningInterval = null;
 
 function initAdvancedPanel() {
-  // Fetch latest radar time from Rainviewer to ensure accurate data tiles
   fetch("https://api.rainviewer.com/public/weather-maps.json")
     .then((res) => res.json())
     .then((data) => {
+      if (data && data.host) rvHost = data.host;
       if (data && data.radar && data.radar.past && data.radar.past.length > 0) {
-        latestRadarTime = data.radar.past[data.radar.past.length - 1].time;
+        rvRadarPath = data.radar.past[data.radar.past.length - 1].path;
+      }
+      if (
+        data &&
+        data.satellite &&
+        data.satellite.infrared &&
+        data.satellite.infrared.length > 0
+      ) {
+        rvSatPath =
+          data.satellite.infrared[data.satellite.infrared.length - 1].path;
       }
     })
     .catch((e) => console.log("Rainviewer fetch failed", e));
@@ -1878,7 +1949,7 @@ function createMockLightningLayer() {
         bounds.getWest() +
         Math.random() * (bounds.getEast() - bounds.getWest());
       const icon = L.divIcon({
-        html: '<div style="font-size:20px; color:#f1c40f;">⚡</div>',
+        html: '<div style="font-size:24px; color:#f1c40f; text-shadow: 0 0 10px #f1c40f;">⚡</div>',
         className: "lightning-icon",
         iconSize: [24, 24],
         iconAnchor: [12, 12],
@@ -1897,47 +1968,29 @@ function getAdvancedLayerInstance(id) {
     case "light":
       return createMockLightningLayer();
     case "radar":
-      let t = latestRadarTime ? latestRadarTime : "nowcast";
+      if (rvRadarPath) {
+        return L.tileLayer(
+          `${rvHost}${rvRadarPath}/256/{z}/{x}/{y}/2/1_1.png`,
+          { zIndex: 400 },
+        );
+      }
       return L.tileLayer(
-        `https://tilecache.rainviewer.com/v2/radar/${t}/256/{z}/{x}/{y}/2/1_1.png`,
+        `https://tilecache.rainviewer.com/v2/radar/${Math.floor(Date.now() / 1000)}/256/{z}/{x}/{y}/2/1_1.png`,
         { zIndex: 400 },
       );
     case "sat":
-      return L.tileLayer(
-        "https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/current/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg",
-        { zIndex: 200 },
-      );
-    case "storm":
-      return L.layerGroup(); // Placeholder for Leaflet-Velocity Plugin
-    // Using generic NOAA Base Reflectivity WMS as placeholders for Convective Layers
-    case "cape":
+      if (rvSatPath) {
+        return L.tileLayer(`${rvHost}${rvSatPath}/256/{z}/{x}/{y}/0/1_1.png`, {
+          zIndex: 200,
+        });
+      }
       return L.tileLayer.wms(
-        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
+        "https://mesonet.agron.iastate.edu/cgi-bin/wms/goes/global.cgi",
         {
-          layers: "conus_bref_qcd",
+          layers: "goes_global_ir",
           format: "image/png",
           transparent: true,
-          zIndex: 300,
-        },
-      );
-    case "lifted":
-      return L.tileLayer.wms(
-        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
-        {
-          layers: "conus_bref_qcd",
-          format: "image/png",
-          transparent: true,
-          zIndex: 300,
-        },
-      );
-    case "kindex":
-      return L.tileLayer.wms(
-        "https://opengeo.ncep.noaa.gov/geoserver/conus/conus_bref_qcd/ows",
-        {
-          layers: "conus_bref_qcd",
-          format: "image/png",
-          transparent: true,
-          zIndex: 300,
+          zIndex: 200,
         },
       );
     default:
@@ -1963,9 +2016,30 @@ function handleAdvancedLayerToggle(id, isChecked) {
     const iframe = document.getElementById("externalIframeOverlay");
     if (iframe) {
       if (isChecked) {
-        iframe.src = layerObj.url;
+        // Uncheck all other iframe checkboxes to prevent confusion
+        for (let cat in advancedOverlays) {
+          advancedOverlays[cat].forEach((l) => {
+            if (l.isIframe && l.id !== id) {
+              const chk = document.getElementById(`chk_${l.id}`);
+              if (chk && chk.checked) {
+                chk.checked = false;
+              }
+            }
+          });
+        }
+        let finalUrl = layerObj.url;
+        if (finalUrl.includes("windy.com")) {
+          let center = map.getCenter();
+          let zoom = map.getZoom();
+          finalUrl = finalUrl
+            .replace(/lat=[0-9.-]+/, "lat=" + center.lat.toFixed(4))
+            .replace(/lon=[0-9.-]+/, "lon=" + center.lng.toFixed(4))
+            .replace(/zoom=[0-9]+/, "zoom=" + zoom);
+        }
+        iframe.src = finalUrl;
         iframe.style.display = "block";
         iframe.style.opacity = opVal;
+        iframe.style.pointerEvents = "auto";
       } else {
         iframe.style.display = "none";
         iframe.src = "";
@@ -1981,6 +2055,10 @@ function handleAdvancedLayerToggle(id, isChecked) {
       if (activeAdvancedLayers[id]) {
         map.removeLayer(activeAdvancedLayers[id]);
         delete activeAdvancedLayers[id];
+      }
+      if (id === "light") {
+        clearInterval(lightningInterval);
+        layerObj.layer = null; // force recreation next time
       }
     }
   }
