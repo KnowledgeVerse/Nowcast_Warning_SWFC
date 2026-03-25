@@ -69,7 +69,7 @@ const geoJsonConfigs = {
     ],
     color: "#16a085",
     opacity: 0.8,
-    weight: 1.0,
+    weight: 0.5,
   },
   fmo_patna: {
     name: "FMO Patna",
