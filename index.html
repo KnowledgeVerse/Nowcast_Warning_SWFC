@@ -673,77 +673,6 @@
                       />
                     </div>
                   </div>
-                  <!-- Villages -->
-                  <div
-                    style="
-                      margin-bottom: 10px;
-                      border-bottom: 1px solid #eee;
-                      padding-bottom: 5px;
-                    "
-                  >
-                    <label
-                      style="
-                        display: flex;
-                        align-items: center;
-                        cursor: pointer;
-                        font-weight: bold;
-                        font-size: 13px;
-                      "
-                      ><input
-                        type="checkbox"
-                        id="gj_chk_villages"
-                        onchange="toggleCustomGeoJson('villages', this.checked)"
-                        style="margin-right: 5px"
-                      />
-                      Villages</label
-                    >
-                    <div
-                      style="
-                        display: flex;
-                        gap: 5px;
-                        align-items: center;
-                        margin-top: 5px;
-                        font-size: 11px;
-                      "
-                    >
-                      <input
-                        type="color"
-                        id="gj_col_villages"
-                        value="#16a085"
-                        onchange="updateGeoJsonStyle('villages')"
-                        style="
-                          width: 22px;
-                          height: 22px;
-                          padding: 0;
-                          border: none;
-                          cursor: pointer;
-                        "
-                        title="Layer Color"
-                      />
-                      <input
-                        type="range"
-                        id="gj_op_villages"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value="0.4"
-                        oninput="updateGeoJsonStyle('villages')"
-                        style="width: 60px; cursor: pointer"
-                        title="Opacity"
-                      />
-                      <input
-                        type="range"
-                        id="gj_wt_villages"
-                        min="0.5"
-                        max="8"
-                        step="0.5"
-                        value="0.5"
-                        oninput="updateGeoJsonStyle('villages')"
-                        style="width: 60px; cursor: pointer"
-                        title="Width/Size"
-                      />
-                    </div>
-                  </div>
                   <!-- FMO Patna -->
                   <div
                     style="
@@ -853,7 +782,7 @@
                       <input
                         type="color"
                         id="gj_col_nh_bihar"
-                        value="#34495e"
+                        value="#e53935"
                         onchange="updateGeoJsonStyle('nh_bihar')"
                         style="
                           width: 22px;
@@ -924,7 +853,7 @@
                       <input
                         type="color"
                         id="gj_col_railway"
-                        value="#000000"
+                        value="#616161"
                         onchange="updateGeoJsonStyle('railway')"
                         style="
                           width: 22px;
@@ -1624,58 +1553,6 @@
             </div>
           </div>
 
-          <!-- Impact Risk Matrix -->
-          <div class="panel-section">
-            <div class="panel-title">
-              <i class="fas fa-th"></i>
-              इम्पैक्ट रिस्क मैट्रिक्स / Impact Risk Matrix
-            </div>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap">
-              <label style="flex: 1; font-size: 13px; font-weight: bold"
-                >Probability (संभावना):
-                <select
-                  id="matrixProbability"
-                  onchange="
-                    if (typeof updateRiskMatrix === 'function')
-                      updateRiskMatrix();
-                  "
-                  style="
-                    width: 100%;
-                    padding: 8px;
-                    border-radius: 6px;
-                    border: 1px solid #dee2e6;
-                    margin-top: 5px;
-                  "
-                >
-                  <option value="1">Unlikely (संभावना कम)</option>
-                  <option value="2" selected>Likely (संभावित)</option>
-                  <option value="3">Very Likely (प्रबल संभावना)</option>
-                </select>
-              </label>
-              <label style="flex: 1; font-size: 13px; font-weight: bold"
-                >Impact (प्रभाव):
-                <select
-                  id="matrixImpact"
-                  onchange="
-                    if (typeof updateRiskMatrix === 'function')
-                      updateRiskMatrix();
-                  "
-                  style="
-                    width: 100%;
-                    padding: 8px;
-                    border-radius: 6px;
-                    border: 1px solid #dee2e6;
-                    margin-top: 5px;
-                  "
-                >
-                  <option value="1">Minor (मामूली)</option>
-                  <option value="2" selected>Moderate (मध्यम)</option>
-                  <option value="3">Severe (गंभीर)</option>
-                </select>
-              </label>
-            </div>
-          </div>
-
           <!-- Weather Phenomena -->
           <div class="panel-section">
             <div class="panel-title">
@@ -2221,109 +2098,6 @@
                           Update
                         </button>
                       </div>
-                    </div>
-                  </div>
-
-                  <!-- Impact Risk Matrix Visual -->
-                  <div
-                    style="
-                      margin-left: auto;
-                      display: flex;
-                      flex-direction: column;
-                      align-items: center;
-                      background: #fff;
-                      padding: 5px 8px;
-                      border-radius: 4px;
-                      border: 2px solid #000;
-                      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-                    "
-                  >
-                    <div
-                      style="
-                        font-size: 11px;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        text-transform: uppercase;
-                      "
-                    >
-                      IMPACT MATRIX
-                    </div>
-                    <div
-                      id="riskMatrixVisual"
-                      style="
-                        display: grid;
-                        grid-template-columns: 20px 20px 20px;
-                        grid-template-rows: 20px 20px 20px;
-                        gap: 2px;
-                        position: relative;
-                      "
-                    >
-                      <div
-                        class="rm-cell"
-                        id="rm-3-1"
-                        style="background: #ffeb3b"
-                        title="High Probability, Low Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-3-2"
-                        style="background: #ff9800"
-                        title="High Probability, Moderate Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-3-3"
-                        style="background: #f44336"
-                        title="High Probability, Severe Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-2-1"
-                        style="background: #4caf50"
-                        title="Medium Probability, Low Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-2-2"
-                        style="background: #ffeb3b"
-                        title="Medium Probability, Moderate Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-2-3"
-                        style="background: #ff9800"
-                        title="Medium Probability, Severe Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-1-1"
-                        style="background: #4caf50"
-                        title="Low Probability, Low Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-1-2"
-                        style="background: #4caf50"
-                        title="Low Probability, Moderate Impact"
-                      ></div>
-                      <div
-                        class="rm-cell"
-                        id="rm-1-3"
-                        style="background: #ffeb3b"
-                        title="Low Probability, Severe Impact"
-                      ></div>
-                    </div>
-                    <div
-                      style="
-                        display: flex;
-                        justify-content: space-between;
-                        width: 100%;
-                        font-size: 8px;
-                        margin-top: 2px;
-                        font-weight: bold;
-                      "
-                    >
-                      <span>Min.</span><span>Imp.</span><span>Max.</span>
                     </div>
                   </div>
                 </div>
