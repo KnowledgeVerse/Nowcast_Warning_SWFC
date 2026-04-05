@@ -795,6 +795,12 @@ function selectWindSpeed(speed) {
       opt.querySelector("input").checked = true;
     }
   });
+
+  // Show or Hide Custom Wind Speed Input if it exists in HTML
+  const customContainer = document.getElementById("customWindSpeedContainer");
+  if (customContainer) {
+    customContainer.style.display = speed === "custom" ? "block" : "none";
+  }
 }
 
 // Toggle multiple districts automatically by Region checkbox
@@ -1055,7 +1061,13 @@ function generateNowcast(isDynamicUpdate = false) {
     const windInput = document.querySelector('input[name="windSpeed"]:checked');
     let speedRange = windInput ? windInput.value : null;
 
-    if (!speedRange) {
+    if (speedRange === "custom") {
+      const customInput = document.getElementById("customWindSpeedInput");
+      speedRange =
+        customInput && customInput.value.trim() !== ""
+          ? customInput.value.trim()
+          : "40-50";
+    } else if (!speedRange) {
       speedRange = "30-40"; // Default
       if (warningLevel === "orange") speedRange = "40-50";
       if (warningLevel === "red") speedRange = "50-60";
@@ -1080,7 +1092,6 @@ function generateNowcast(isDynamicUpdate = false) {
         if (rainVal === "heavy_rain") return "भारी वर्षा";
         if (rainVal === "very_heavy_rain") return "अत्यधिक भारी वर्षा";
         if (rainVal === "extremely_heavy_rain") return "अत्यंत भारी वर्षा";
-        if (warningLevel === "red") return "भारी वर्षा";
         return p.hindi;
       }
       return p.hindi;
@@ -1105,7 +1116,6 @@ function generateNowcast(isDynamicUpdate = false) {
         if (rainVal === "very_heavy_rain") return "very heavy rainfall";
         if (rainVal === "extremely_heavy_rain")
           return "extremely heavy rainfall";
-        if (warningLevel === "red") return "heavy rain";
         return p.name.toLowerCase();
       }
       return p.name.toLowerCase();
@@ -1268,6 +1278,14 @@ function clearAll() {
     windSection.style.opacity = "0";
     windSection.style.marginBottom = "0";
     windSection.style.padding = "0 15px";
+  }
+
+  // Custom wind speed container reset
+  const customContainer = document.getElementById("customWindSpeedContainer");
+  if (customContainer) {
+    customContainer.style.display = "none";
+    const customInput = document.getElementById("customWindSpeedInput");
+    if (customInput) customInput.value = "";
   }
 
   // Clear region highlights map reset
