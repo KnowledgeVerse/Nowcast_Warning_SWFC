@@ -56,7 +56,7 @@ const geoJsonConfigs = {
       "geojson/Bihar_Subdistricts.geojson",
       "geojson/bihar_subdistricts.geojson",
     ],
-    color: "#9b59b6",
+    color: "#000000",
     opacity: 0.8,
     weight: 1.5,
   },

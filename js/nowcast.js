@@ -196,7 +196,7 @@ function initializeMap() {
     zoomControl: true,
     zoomSnap: 0.1,
     scrollWheelZoom: false,
-    layers: [solidColorLayer], // Default layer set to Solid/Clear per request
+    layers: [streetLayer], // Default layer set to Street per request
   });
 
   // Dynamic Font Size for Map Labels based on Zoom Level
