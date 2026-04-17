@@ -664,6 +664,12 @@ function toggleDistrict(districtId, skipZoom = false) {
       map.setView([25.6, 85.6], 7);
     }
   }
+
+  // Auto-update block report when districts are toggled
+  if (typeof updateBlockReport === "function") {
+    clearTimeout(window.blockReportTimeout);
+    window.blockReportTimeout = setTimeout(updateBlockReport, 300);
+  }
 }
 // Select all districts
 function selectAllDistricts() {

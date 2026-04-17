@@ -1409,7 +1409,7 @@ window.blockHindiMap = {
   Bansi: "बौंसी",
 };
 
-window.blockTableLanguage = "en"; // default language
+window.blockTableLanguage = "hi"; // डिफ़ॉल्ट भाषा को हिंदी (Hindi) सेट किया गया है
 
 window.toggleBlockTableLang = function () {
   window.blockTableLanguage = window.blockTableLanguage === "hi" ? "en" : "hi";
@@ -1533,34 +1533,96 @@ window.updateBlockReport = async function () {
     }
   });
 
-  if (drawnFeatures.length === 0) {
-    clearNowcastReport();
+  if (
+    drawnFeatures.length === 0 &&
+    (typeof selectedDistricts === "undefined" || selectedDistricts.length === 0)
+  ) {
+    clearNowcastReport(
+      "No District or Polygon selected. (कोई जिला या पॉलीगॉन चयनित नहीं)",
+    );
     return;
   }
 
   const intersectedBlocks = [];
   const addedBlockIds = new Set(); // Prevent duplicates if multiple polygons overlap the same block
+  const totalBlocksPerDistrict = {}; // ज़िले के कुल प्रखंडों को ट्रैक करने के लिए
 
   // Iterate over Sub-District GeoJSON features
   subDistLayerGroup.eachLayer((sdLayer) => {
     if (!sdLayer.feature) return;
     let intersects = false;
 
-    for (const drawn of drawnFeatures) {
-      try {
-        if (turf.booleanIntersects(drawn, sdLayer.feature)) {
-          intersects = true;
-          break;
+    const props = sdLayer.feature.properties;
+    const distName = getDistrictName(props);
+    const blockName = getBlockName(props);
+
+    // पूरे ज़िले के प्रखंडों की कुल संख्या की गणना (Calculate total blocks per district)
+    if (!totalBlocksPerDistrict[distName]) {
+      totalBlocksPerDistrict[distName] = new Set();
+    }
+    if (blockName && blockName !== "Unknown Block") {
+      totalBlocksPerDistrict[distName].add(blockName);
+    }
+
+    if (drawnFeatures.length > 0) {
+      // 1. Polygon Mode: Strict Intersection
+      for (const drawn of drawnFeatures) {
+        try {
+          if (turf.booleanIntersects(drawn, sdLayer.feature)) {
+            intersects = true;
+            break;
+          }
+        } catch (e) {
+          console.warn(
+            "Turf.js Intersection error (skipping bad geometry):",
+            e,
+          );
         }
-      } catch (e) {
-        console.warn("Turf.js Intersection error (skipping bad geometry):", e);
+      }
+    } else if (
+      typeof selectedDistricts !== "undefined" &&
+      selectedDistricts.length > 0
+    ) {
+      // 2. District Mode: Show all blocks in selected districts
+      let dName =
+        props.district ||
+        props.dtname ||
+        props.district_name ||
+        props.dist ||
+        props.DISTRICT ||
+        props.DTNAME ||
+        "Unknown District";
+
+      const nameMapping = {
+        Purnia: "PURNEA",
+        Munger: "MONGHYR",
+        "Kaimur (Bhabua)": "BHABUA",
+        Kaimur: "BHABUA",
+        Jehanabad: "JAHANABAD",
+        "Purba Champaran": "EAST CHAMPARAN",
+        "Pashchim Champaran": "WEST CHAMPARAN",
+        "East Champaran": "EAST CHAMPARAN",
+        "West Champaran": "WEST CHAMPARAN",
+        East_Champaran: "EAST CHAMPARAN",
+        West_Champaran: "WEST CHAMPARAN",
+      };
+      if (nameMapping[dName]) dName = nameMapping[dName];
+
+      if (typeof districtsData !== "undefined") {
+        const distObj = districtsData.find(
+          (d) => d.name.toLowerCase() === dName.trim().toLowerCase(),
+        );
+        // FIX: String और Number mismatch को रोकने के लिए String में कन्वर्ट करके चेक किया गया
+        if (
+          distObj &&
+          selectedDistricts.some((id) => String(id) === String(distObj.id))
+        ) {
+          intersects = true;
+        }
       }
     }
 
     if (intersects) {
-      const props = sdLayer.feature.properties;
-      const blockName = getBlockName(props);
-      const distName = getDistrictName(props);
       const uniqueId = distName + "_" + blockName; // Composite key
 
       if (!addedBlockIds.has(uniqueId)) {
@@ -1576,7 +1638,13 @@ window.updateBlockReport = async function () {
 
   if (intersectedBlocks.length > 0) {
     const grouped = groupByDistrict(intersectedBlocks);
-    renderNowcastTable(grouped);
+
+    const totalBlocksCount = {};
+    for (const d in totalBlocksPerDistrict) {
+      totalBlocksCount[d] = totalBlocksPerDistrict[d].size;
+    }
+
+    renderNowcastTable(grouped, totalBlocksCount);
   } else {
     clearNowcastReport("No Sub-District selected. (कोई प्रखंड चयनित नहीं)");
   }
@@ -1600,7 +1668,7 @@ window.toggleBlockReportTable = function (isVisible) {
   }
 };
 
-window.renderNowcastTable = function (groupedData) {
+window.renderNowcastTable = function (groupedData, totalBlocksCount = {}) {
   const panel = document.getElementById("blockReportPanel");
   if (!panel) return;
 
@@ -1619,14 +1687,29 @@ window.renderNowcastTable = function (groupedData) {
   let titleText = isHi
     ? "प्रभावित क्षेत्र (जिला एवं प्रखंडवार विवरण)"
     : "Affected Areas (District & Block-wise)";
-  let langBtnText = isHi ? "View in English" : "हिंदी में देखें";
+  let langBtnText = isHi
+    ? "View in English"
+    : "हिंदी में देखें (View in Hindi)";
   let totalDistText = isHi ? "कुल जिले प्रभावित" : "Total Districts Affected";
   let totalBlockText = isHi ? "कुल प्रखंड प्रभावित" : "Total Blocks Affected";
 
   let thSr = isHi ? "क्रम संख्या" : "Sr. No.";
   let thDist = isHi ? "जिला" : "District";
   let thBlock = isHi ? "चयनित प्रखंड" : "Selected Blocks";
-  let thTotal = isHi ? "कुल प्रखंड" : "Total Blocks";
+  let thTotal = isHi ? "कुल प्रखंड" : "Total Blocks (Affected / Total)";
+
+  // Sorting State Initialization
+  if (!window.blockTableSort) {
+    window.blockTableSort = { col: "district", dir: "asc" };
+  }
+  const sort = window.blockTableSort;
+  const getSortIcon = (colName) => {
+    if (sort.col !== colName)
+      return '<i class="fas fa-sort" style="color:#aaa; margin-left:5px; font-size:12px;"></i>';
+    return sort.dir === "asc"
+      ? '<i class="fas fa-sort-up" style="margin-left:5px; font-size:12px;"></i>'
+      : '<i class="fas fa-sort-down" style="margin-left:5px; font-size:12px;"></i>';
+  };
 
   let tableHtml = `
     <div style="background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; border: 2px solid #667eea;">
@@ -1647,9 +1730,9 @@ window.renderNowcastTable = function (groupedData) {
                 <thead>
                     <tr style="background: #f8f9fa; border-bottom: 2px solid #667eea;">
                         <th style="padding: 10px; border: 1px solid #dee2e6;">${thSr}</th>
-                        <th style="padding: 10px; border: 1px solid #dee2e6;">${thDist}</th>
+                        <th style="padding: 10px; border: 1px solid #dee2e6; cursor: pointer; white-space: nowrap;" onclick="handleTableSort('district')" title="Sort by District">${thDist} ${getSortIcon("district")}</th>
                         <th style="padding: 10px; border: 1px solid #dee2e6;">${thBlock}</th>
-                        <th style="padding: 10px; border: 1px solid #dee2e6;">${thTotal}</th>
+                        <th style="padding: 10px; border: 1px solid #dee2e6; text-align: center; cursor: pointer; white-space: nowrap;" onclick="handleTableSort('total')" title="Sort by Count">${thTotal} ${getSortIcon("total")}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1657,14 +1740,36 @@ window.renderNowcastTable = function (groupedData) {
 
   let srNo = 1;
 
-  for (const [district, blocks] of Object.entries(groupedData)) {
-    const blocksStr = blocks.join(", ");
+  // टेबल डेटा को Array में बदलें ताकि उसे सॉर्ट किया जा सके
+  let rows = Object.keys(groupedData).map((dist) => ({
+    district: dist,
+    blocks: groupedData[dist].sort((a, b) =>
+      a.localeCompare(b, isHi ? "hi" : "en"),
+    ),
+    affectedCount: groupedData[dist].length,
+    totalInDist: totalBlocksCount[dist] || groupedData[dist].length,
+  }));
+
+  // चुने गए कॉलम के आधार पर डेटा सॉर्ट करें
+  rows.sort((a, b) => {
+    let comparison = 0;
+    if (sort.col === "district") {
+      comparison = a.district.localeCompare(b.district, isHi ? "hi" : "en");
+    } else if (sort.col === "total") {
+      comparison = a.affectedCount - b.affectedCount;
+      if (comparison === 0) comparison = a.totalInDist - b.totalInDist;
+    }
+    return sort.dir === "asc" ? comparison : -comparison;
+  });
+
+  for (const row of rows) {
+    const blocksStr = row.blocks.join(", ");
     tableHtml += `
             <tr style="background: ${srNo % 2 === 0 ? "#f8f9fa" : "#ffffff"};">
                 <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">${srNo}</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; font-weight: bold; color: #2c3e50;">${district}</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; line-height: 1.5;">${blocksStr}</td>
-                <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #d32f2f;">${blocks.length}</td>
+                <td style="padding: 10px; border: 1px solid #dee2e6; font-weight: bold; color: #2c3e50;">${row.district}</td>
+                <td style="padding: 10px; border: 1px solid #dee2e6; line-height: 1.6;">${blocksStr}</td>
+                <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #d32f2f; white-space: nowrap;">${row.affectedCount} / ${row.totalInDist}</td>
             </tr>
         `;
     srNo++;
@@ -1681,9 +1786,34 @@ window.renderNowcastTable = function (groupedData) {
   panel.style.display = "block";
   window.currentBlockReportData = {
     groupedData,
+    totalBlocksCount,
     totalDistricts,
     totalBlocks,
   };
+};
+
+// क्लिक करने पर टेबल सॉर्ट करने का फंक्शन
+window.handleTableSort = function (colName) {
+  if (!window.blockTableSort)
+    window.blockTableSort = { col: "district", dir: "asc" };
+
+  if (window.blockTableSort.col === colName) {
+    window.blockTableSort.dir =
+      window.blockTableSort.dir === "asc" ? "desc" : "asc";
+  } else {
+    window.blockTableSort.col = colName;
+    window.blockTableSort.dir = "asc";
+  }
+
+  if (
+    window.currentBlockReportData &&
+    window.currentBlockReportData.groupedData
+  ) {
+    renderNowcastTable(
+      window.currentBlockReportData.groupedData,
+      window.currentBlockReportData.totalBlocksCount || {},
+    );
+  }
 };
 
 window.clearNowcastReport = function (msg = "") {
@@ -1711,7 +1841,7 @@ window.clearNowcastReport = function (msg = "") {
       let thSr = isHi ? "क्रम संख्या" : "Sr. No.";
       let thDist = isHi ? "जिला" : "District";
       let thBlock = isHi ? "चयनित प्रखंड" : "Selected Blocks";
-      let thTotal = isHi ? "कुल प्रखंड" : "Total Blocks";
+      let thTotal = isHi ? "कुल प्रखंड" : "Total Blocks (Affected / Total)";
       let noBlockText = isHi ? "कोई प्रखंड चयनित नहीं" : "No Block Selected";
 
       // Default empty table structure instead of hiding
@@ -1734,9 +1864,9 @@ window.clearNowcastReport = function (msg = "") {
                     <thead>
                         <tr style="background: #f8f9fa; border-bottom: 2px solid #667eea;">
                             <th style="padding: 10px; border: 1px solid #dee2e6;">${thSr}</th>
-                            <th style="padding: 10px; border: 1px solid #dee2e6;">${thDist}</th>
+                            <th style="padding: 10px; border: 1px solid #dee2e6; cursor: pointer; white-space: nowrap;" onclick="handleTableSort('district')">${thDist} <i class="fas fa-sort" style="color:#aaa; margin-left:5px; font-size:12px;"></i></th>
                             <th style="padding: 10px; border: 1px solid #dee2e6;">${thBlock}</th>
-                            <th style="padding: 10px; border: 1px solid #dee2e6;">${thTotal}</th>
+                            <th style="padding: 10px; border: 1px solid #dee2e6; text-align: center; cursor: pointer; white-space: nowrap;" onclick="handleTableSort('total')">${thTotal} <i class="fas fa-sort" style="color:#aaa; margin-left:5px; font-size:12px;"></i></th>
                         </tr>
                     </thead>
                     <tbody>
